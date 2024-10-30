@@ -1,6 +1,8 @@
 /* eslint-env node */
 // Learn more https://docs.expo.io/guides/customizing-metro
-const { getDefaultConfig } = require("expo/metro-config");
+const { withNativeWind } = require("nativewind/metro");
+
+const { getDefaultConfig } = require("expo/metro-config")
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname)
@@ -20,4 +22,7 @@ config.transformer.getTransformOptions = async () => ({
 // such as Firebase that use the extension cjs.
 config.resolver.sourceExts.push("cjs")
 
-module.exports = config
+module.exports = withNativeWind(config, { 
+  input: './src/app/global.css',
+  configPath: "./tailwind.config.ts"
+});

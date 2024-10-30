@@ -8,17 +8,17 @@ import { useFonts } from "@expo-google-fonts/space-grotesk"
 import { customFontsToLoad } from "@/theme"
 import { initI18n } from "@/i18n"
 import { loadDateFnsLocale } from "@/utils/formatDate"
-
+// bf94542d-923b-4506-8a8b-b8a2baac45ca
 SplashScreen.preventAutoHideAsync()
-
+import './global.css'
 if (__DEV__) {
   // Load Reactotron configuration in development. We don't want to
   // include this in our production bundle, so we are using `if (__DEV__)`
   // to only execute this in development.
-  require("src/devtools/ReactotronConfig.ts")
+  // require("src/devtools/ReactotronConfig.ts")
 }
 
-export { ErrorBoundary } from "@/components/ErrorBoundary/ErrorBoundary"
+// export { ErrorBoundary } from "@/components/ErrorBoundary/ErrorBoundary"
 
 export default function Root() {
   // @mst remove-block-start
@@ -36,9 +36,7 @@ export default function Root() {
       .then(() => loadDateFnsLocale())
   }, [])
 
-  const loaded = fontsLoaded && isI18nInitialized 
-                         && rehydrated // @mst remove-current-line
-
+  const loaded = fontsLoaded && isI18nInitialized
   useEffect(() => {
     if (fontError) throw fontError
   }, [fontError])
@@ -53,7 +51,11 @@ export default function Root() {
     return null
   }
 
-  return <GestureHandlerRootView style={$root}><Slot /></GestureHandlerRootView>
+  return (
+    <GestureHandlerRootView style={$root}>
+      <Slot />
+    </GestureHandlerRootView>
+  )
 }
 
 const $root: ViewStyle = { flex: 1 }
