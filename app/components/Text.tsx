@@ -1,6 +1,4 @@
-import { TOptions } from "i18next"
-import { StyleProp, Text as RNText, TextProps as RNTextProps, TextStyle } from "react-native"
-import { isRTL, translate, TxKeyPath } from "../i18n"
+import { StyleProp, Text as RNText, TextProps as RNTextProps, TextStyle } from "react-native" 
 import type { ThemedStyle, ThemedStyleArray } from "@/theme"
 import { useAppTheme } from "@/utils/useAppTheme"
 import { typography } from "@/theme/typography"
@@ -57,12 +55,10 @@ export function Text(props: TextProps) {
   const { weight, size, tx, txOptions, text, children, style: $styleOverride, ...rest } = props
   const { themed } = useAppTheme()
 
-  const i18nText = tx && translate(tx, txOptions)
-  const content = i18nText || text || children
+  const content = text || children
 
   const preset: Presets = props.preset ?? "default"
   const $styles: StyleProp<TextStyle> = [
-    $rtlStyle,
     themed($presets[preset]),
     weight && $fontWeightStyles[weight],
     size && $sizeStyles[size],
@@ -110,4 +106,3 @@ const $presets: Record<Presets, ThemedStyleArray<TextStyle>> = {
   formLabel: [$baseStyle, { ...$fontWeightStyles.medium }],
   formHelper: [$baseStyle, { ...$sizeStyles.sm, ...$fontWeightStyles.normal }],
 }
-const $rtlStyle: TextStyle = isRTL ? { writingDirection: "rtl" } : {}

@@ -1,5 +1,4 @@
 import { Image, ImageProps, ImageStyle, StyleProp, TextStyle, View, ViewStyle } from "react-native"
-import { translate } from "../i18n"
 import { Button, ButtonProps } from "./Button"
 import { Text, TextProps } from "./Text"
 import { useAppTheme } from "@/utils/useAppTheme"
@@ -124,9 +123,6 @@ export function EmptyState(props: EmptyStateProps) {
   const EmptyStatePresets = {
     generic: {
       imageSource: sadFace,
-      heading: translate("emptyStateComponent:generic.heading"),
-      content: translate("emptyStateComponent:generic.content"),
-      button: translate("emptyStateComponent:generic.button"),
     } as EmptyStatePresetItem,
   } as const
 

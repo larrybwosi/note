@@ -54,7 +54,6 @@ const config: ExpoConfig = {
     bundler: "metro"
   },
   plugins: [
-    "expo-localization",
     "expo-font"
   ],
   experiments: {

@@ -1,42 +1,23 @@
 import { useEffect, useState } from "react"
 import { ViewStyle } from "react-native"
-import { Slot, SplashScreen } from "expo-router"
+import { Slot, SplashScreen, Stack } from "expo-router"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 // @mst replace-next-line
-import { useInitialRootStore } from "@/models"
 import { useFonts } from "@expo-google-fonts/space-grotesk"
 import { customFontsToLoad } from "@/theme"
-import { initI18n } from "@/i18n"
-import { loadDateFnsLocale } from "@/utils/formatDate"
+import { colorScheme as colorSchemeNW } from "nativewind"
 // bf94542d-923b-4506-8a8b-b8a2baac45ca
 SplashScreen.preventAutoHideAsync()
 import './global.css'
-if (__DEV__) {
-  // Load Reactotron configuration in development. We don't want to
-  // include this in our production bundle, so we are using `if (__DEV__)`
-  // to only execute this in development.
-  // require("src/devtools/ReactotronConfig.ts")
-}
-
-// export { ErrorBoundary } from "@/components/ErrorBoundary/ErrorBoundary"
+import { enableReactTracking } from "@legendapp/state/config/enableReactTracking"
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native"
+enableReactTracking({
+  warnUnobserved: true,
+})
 
 export default function Root() {
-  // @mst remove-block-start
-  // Wait for stores to load and render our layout inside of it so we have access
-  // to auth info etc
-  const { rehydrated } = useInitialRootStore()
-  // @mst remove-block-end
+  const [loaded, fontError] = useFonts(customFontsToLoad)
 
-  const [fontsLoaded, fontError] = useFonts(customFontsToLoad)
-  const [isI18nInitialized, setIsI18nInitialized] = useState(false)
-
-  useEffect(() => {
-    initI18n()
-      .then(() => setIsI18nInitialized(true))
-      .then(() => loadDateFnsLocale())
-  }, [])
-
-  const loaded = fontsLoaded && isI18nInitialized
   useEffect(() => {
     if (fontError) throw fontError
   }, [fontError])
@@ -50,10 +31,15 @@ export default function Root() {
   if (!loaded) {
     return null
   }
+  const theme = colorSchemeNW.get()
 
   return (
     <GestureHandlerRootView style={$root}>
-      <Slot />
+      <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+      </ThemeProvider>
     </GestureHandlerRootView>
   )
 }
