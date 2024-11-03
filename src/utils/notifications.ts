@@ -106,6 +106,8 @@ export const createScheduleNotification = async (scheduleItem : ScheduleItem) =>
       sound: 'default',
       critical: scheduleItem.priority.toLowerCase() === 'high',
     },
+  }).catch((error) => {
+    console.error('Error displaying notification:', error);
   });
 };
 
@@ -162,7 +164,7 @@ export const createRecurringNotification = async (
       if (reminderOffset > 0) {
         const reminderTrigger: TimestampTrigger = {
           type: TriggerType.TIMESTAMP,
-          timestamp: currentDate.getTime() - reminderOffset,
+          timestamp: currentDate.getTime() + 1000 * 60 * (1 + reminderOffset),
         };
 
         // Schedule reminder notification

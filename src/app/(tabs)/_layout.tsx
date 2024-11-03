@@ -13,13 +13,15 @@ export default function TabLayout() {
         tabBarIcon: ({ color, size }) => {
           if (route.name === 'index') {
             return <Feather name="calendar" size={size} color={color} />
-          } else if (route.name === 'search') {
-            return <Feather name="search" size={size} color={color} />
+          } else if (route.name === 'expenses') {
+            return <Feather name="dollar-sign" size={size} color={color} />
           } else if (route.name === 'income') {
-            return <Feather name="image" size={size} color={color} />
-          } else if (route.name === 'messages') {
+            return <Ionicons name="cash" size={size} color={color} />
+          } else if (route.name === 'setup') {
             return <Feather name="message-circle" size={size} color={color} />
-          }
+          } else if (route.name === 'finance') {
+            return <Feather name="airplay" size={size} color={color} />
+          } 
         }, 
       })}
     >

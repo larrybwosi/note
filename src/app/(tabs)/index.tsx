@@ -1,7 +1,6 @@
-import React, { useEffect, useCallback, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { StatusBar } from 'expo-status-bar'
 import { format, addMinutes, differenceInMinutes, parseISO, formatDate } from 'date-fns'
 import { Ionicons } from '@expo/vector-icons'
 import { Memo, observer, useObservable } from '@legendapp/state/react'
@@ -14,22 +13,24 @@ import { Calendar } from 'react-native-calendars'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { ScheduleItem, scheduleStore } from 'src/storage/schedule'
 import { confirmPostpone as confirmPostponeAction } from 'src/storage/schedule.modify'
-import ScheduleList from 'src/storage/schedule.list'
-import { EmptyState } from '@/components/EmptyState'
-// import { useInterval } from "usehooks-ts"
-
+import { ItemCard } from 'src/components/schedule.item'
+import { useInterval } from "usehooks-ts"
+import { createScheduleNotification } from 'src/utils/notifications'
+import { testNotifications } from 'src/utils/test.notifications'
 
 export default observer(function CalendarApp() {
   const [showPostponeModal, setShowPostponeModal] = useState(false)
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null)
   const [showDatePicker, setShowDatePicker] = useState(false)
-  const time = useObservable('')
+  const time = useObservable(format(currentTime.get().getTime(), 'hh : mm '))
   const theme = colorSchemeNW.get()
 
-  // useInterval(() => {
-  //   count$.set((v) => v + 1)
-  // }, currentTime.get().getMinutes())
+  const notification = async() =>{
+    console.log("notification")
+    await testNotifications()
+  }
 
+  // notification()
   const items = scheduleStore.items.get()
 
   const updateCountdowns = useCallback(() => {
@@ -55,9 +56,10 @@ export default observer(function CalendarApp() {
   }
 
 
-  useEffect(() => {
+  useInterval(() => {
     time.set(format(currentTime.get().getTime(), 'hh : mm '))
-  }, [currentTime.get().getMinutes()] )
+    updateCountdowns()
+  }, 1)
   
 
   const handleEditItem = (item: ScheduleItem) => {
@@ -70,7 +72,6 @@ export default observer(function CalendarApp() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       <ScrollView className="flex-1">
         {/* Header */}
         <View className="px-4 py-6 bg-white dark:bg-gray-800 shadow-sm">
@@ -137,13 +138,16 @@ export default observer(function CalendarApp() {
               <Ionicons name="add" size={24} color="white" />
             </TouchableOpacity>
           </View>
-           <ScheduleList
-            items={items}
-            onCompleteItem={handleCompleteItem}
-            onPostpone={handlePostpone}
-            theme={theme as 'light' | 'dark'}
-            ListEmptyComponent={<EmptyState />} 
-          />
+           {items.map((item, index) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onComplete={handleCompleteItem}
+                onPostpone={handlePostpone}
+                handlePostpone={handlePostpone}
+                theme={theme as 'light' | 'dark'}
+              />
+           ))}
 
         </View>
       </ScrollView>

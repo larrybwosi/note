@@ -54,7 +54,16 @@ const config: ExpoConfig = {
     bundler: "metro"
   },
   plugins: [
-    "expo-font"
+    "expo-font",
+    [
+      "expo-build-properties",
+      {
+        "android": {
+          "newArchEnabled": true
+        }
+      }
+    ]
+
   ],
   experiments: {
     tsconfigPaths: true

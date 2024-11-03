@@ -1,14 +1,5 @@
 import { ConfigPlugin, withStringsXml, AndroidConfig, withAndroidStyles } from "expo/config-plugins"
 
-/**
- *
- * Expo Config Plugin to help address the double splash screen issue with `expo-splash-screen`
- * See more information about this issue here: https://github.com/expo/expo/issues/16084
- *
- * How it works:
- *   1) Replace the default splash screen with a transparent screen
- *   2) Set the splash screen status bar to translucent
- */
 export const withSplashScreen: ConfigPlugin = (config) => {
   config = withAndroidSplashScreen(config)
   return config

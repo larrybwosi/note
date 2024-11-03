@@ -40,7 +40,7 @@ export const EXPENSE_CATEGORIES = [
   'Healthcare',
   'Education',
   'Shopping'
-] as const
+] 
 export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number]
 
 export interface ExpenseEntry extends BaseEntry {
@@ -171,6 +171,35 @@ export const incomeStore = observable(
   })
 )
 
+const initialExpenseData: ExpenseEntry[] = [
+  {
+    id: 1,
+    date: format(new Date(), 'yyyy-MM-dd'),
+    time: '12:30',
+    title: 'Monthly Rent',
+    description: 'Apartment rent payment',
+    category: 'Rent',
+    amount: 2000,
+    isUp: false,
+    trend: '+0.0%',
+    status: 'Completed',
+    isRecurring: true,
+    dueDate: format(addMinutes(new Date(), 24 * 60), 'yyyy-MM-dd')
+  },
+  {
+    id: 2,
+    date: format(new Date(), 'yyyy-MM-dd'),
+    time: '18:45',
+    title: 'Grocery Shopping',
+    description: 'Weekly groceries',
+    category: 'Food',
+    amount: 150,
+    isUp: true,
+    trend: '+2.8%',
+    status: 'Completed',
+    isRecurring: false
+  }
+]
 /**
  * Expense Store
  * Tracks expenses with budgeting and category management
@@ -178,35 +207,7 @@ export const incomeStore = observable(
 export const expenseStore = observable(
   synced<ExpenseStore>({
     initial: {
-      expenseData: [
-        {
-          id: 1,
-          date: format(new Date(), 'yyyy-MM-dd'),
-          time: '12:30',
-          title: 'Monthly Rent',
-          description: 'Apartment rent payment',
-          category: 'Rent',
-          amount: 2000,
-          isUp: false,
-          trend: '+0.0%',
-          status: 'Completed',
-          isRecurring: true,
-          dueDate: format(addMinutes(new Date(), 24 * 60), 'yyyy-MM-dd')
-        },
-        {
-          id: 2,
-          date: format(new Date(), 'yyyy-MM-dd'),
-          time: '18:45',
-          title: 'Grocery Shopping',
-          description: 'Weekly groceries',
-          category: 'Food',
-          amount: 150,
-          isUp: true,
-          trend: '+2.8%',
-          status: 'Completed',
-          isRecurring: false
-        }
-      ],
+      expenseData:initialExpenseData,
       showNewExpenseForm: false,
       newExpense: {
         date: format(new Date(), 'yyyy-MM-dd'),
