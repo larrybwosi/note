@@ -1,21 +1,21 @@
-import { useObservable } from "@legendapp/state/react"
-import { ObservableBoolean } from "@legendapp/state"
-import { observer } from "@legendapp/state/react"
-import { useCallback } from "react"
-import { Text, TextInput, TouchableOpacity, ScrollView } from "react-native"
-import { View } from "react-native"
-import DateTimePicker from '@react-native-community/datetimepicker'
-import { format } from 'date-fns'
+import { useObservable } from '@legendapp/state/react';
+import { ObservableBoolean } from '@legendapp/state';
+import { observer } from '@legendapp/state/react';
+import { useCallback } from 'react';
+import { Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
 
 import {
   TransactionType,
   CategoryId,
   RecurrenceFrequency,
   CategoryType,
-  TransactionInput
-} from "src/store/finance/types"
-import useFinanceStore from "src/store/finance/actions"
-import { getCategory, useGetCategoriesByType } from "src/store/finance/utils/category"
+  TransactionInput,
+} from 'src/store/finance/types';
+import useFinanceStore from 'src/store/finance/actions';
+import { getCategory, useGetCategoriesByType } from 'src/store/finance/utils/category';
 
 interface TransactionFormProps {
   showForm: ObservableBoolean;
@@ -23,12 +23,8 @@ interface TransactionFormProps {
   onSubmit: (transaction: TransactionInput) => void;
 }
 
-const TransactionForm = observer(({
-  showForm,
-  type,
-  onSubmit,
-}: TransactionFormProps) => {
-  const { getCategoriesByType } = useFinanceStore()
+const TransactionForm = observer(({ showForm, type, onSubmit }: TransactionFormProps) => {
+  const { getCategoriesByType } = useFinanceStore();
   const transactionData = useObservable<TransactionInput>({
     type,
     amount: 0,
@@ -43,36 +39,35 @@ const TransactionForm = observer(({
     isEssential: false,
     recurrence: {
       frequency: RecurrenceFrequency.MONTHLY,
-      reminderEnabled: false
-    }
-  })
+      reminderEnabled: false,
+    },
+  });
 
-  const newTag = useObservable({ value: '' })
+  const newTag = useObservable({ value: '' });
 
   const handleSubmit = useCallback(() => {
     if (transactionData.title && transactionData.amount) {
-      onSubmit(transactionData.get())
-      showForm.set(false)
+      onSubmit(transactionData.get());
+      showForm.set(false);
     }
-  }, [])
+  }, []);
 
   const addTag = () => {
     if (newTag.value.get() && !transactionData.tags.get()?.includes(newTag.value.get())) {
-      transactionData.tags.set([...transactionData.tags.get() || [], newTag.value.get()])
-      newTag.value.set('')
+      transactionData.tags.set([...(transactionData.tags.get() || []), newTag.value.get()]);
+      newTag.value.set('');
     }
-  }
+  };
 
   const removeTag = (tag: string) => {
-    transactionData.tags.set(transactionData.tags.get()?.filter(t => t !== tag) || [])
-  }
+    transactionData.tags.set(transactionData.tags.get()?.filter((t) => t !== tag) || []);
+  };
 
   const categories = useGetCategoriesByType(
     type === TransactionType.INCOME ? CategoryType.INCOME : CategoryType.EXPENSE
-  )
+  );
 
-
-  const recurrenceOptions = Object.values(RecurrenceFrequency)
+  const recurrenceOptions = Object.values(RecurrenceFrequency);
 
   return (
     <ScrollView className="p-2 ">
@@ -80,7 +75,7 @@ const TransactionForm = observer(({
         <Text className="text-2xl font-rbold mb-6 text-gray-800 dark:text-gray-100 flex-row items-center">
           New {type.toLowerCase()} {type === 'EXPENSE' ? '💸' : '💰'}
         </Text>
-        
+
         <View className="space-y-5">
           {/* Title */}
           <View>
@@ -133,7 +128,7 @@ const TransactionForm = observer(({
               Category
             </Text>
             <View className="flex-row flex-wrap -m-1">
-              {categories.map(({id, name, color}) => (
+              {categories.map(({ id, name, color }) => (
                 <TouchableOpacity
                   key={id}
                   onPress={() => transactionData.categoryId.set(id)}
@@ -210,8 +205,8 @@ const TransactionForm = observer(({
             <TouchableOpacity
               onPress={() => transactionData.isEssential.set(!transactionData.isEssential.get())}
               className={`w-6 h-6 border-2 rounded-lg mr-2 ${
-                transactionData.isEssential.get() 
-                  ? 'bg-violet-500 border-violet-500' 
+                transactionData.isEssential.get()
+                  ? 'bg-violet-500 border-violet-500'
                   : 'border-gray-300 dark:border-gray-600'
               }`}
             />
@@ -254,23 +249,19 @@ const TransactionForm = observer(({
               onPress={() => showForm.set(false)}
               className="px-6 py-3.5 bg-gray-100 dark:bg-gray-700 rounded-xl"
             >
-              <Text className="text-gray-700 dark:text-gray-300 font-plregular">
-                Cancel
-              </Text>
+              <Text className="text-gray-700 dark:text-gray-300 font-plregular">Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSubmit}
               className="px-6 py-3.5 bg-violet-500 rounded-xl shadow-sm shadow-violet-200 dark:shadow-violet-900"
             >
-              <Text className="text-white font-plregular">
-                Save {type.toLowerCase()}
-              </Text>
+              <Text className="text-white font-plregular">Save {type.toLowerCase()}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
     </ScrollView>
-  )
-})
+  );
+});
 
-export default TransactionForm
+export default TransactionForm;

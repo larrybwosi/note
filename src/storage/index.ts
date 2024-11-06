@@ -1,33 +1,39 @@
-import { observable } from "@legendapp/state"
-import { ObservablePersistMMKV } from "@legendapp/state/persist-plugins/mmkv"
-import { synced } from "@legendapp/state/sync"
-import { addMinutes, format } from "date-fns"
+import { observable } from '@legendapp/state';
+import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
+import { synced } from '@legendapp/state/sync';
+import { addMinutes, format } from 'date-fns';
 
 // ========== Shared Types ==========
-export type Status = 'Pending' | 'Completed' | 'Failed' | 'Cancelled'
-type TrendDirection = '+' | '-'
+export type Status = 'Pending' | 'Completed' | 'Failed' | 'Cancelled';
+type TrendDirection = '+' | '-';
 
 interface BaseEntry {
-  id: number
-  date: string
-  time: string
-  title: string
-  description: string
-  amount: number
-  isUp: boolean
-  trend: string
-  status: Status
+  id: number;
+  date: string;
+  time: string;
+  title: string;
+  description: string;
+  amount: number;
+  isUp: boolean;
+  trend: string;
+  status: Status;
 }
 
-export const TRANSACTION_STATUS = ['Pending', 'Completed', 'Failed', 'Cancelled'] as const
-export type TransactionStatus = typeof TRANSACTION_STATUS[number]
+export const TRANSACTION_STATUS = ['Pending', 'Completed', 'Failed', 'Cancelled'] as const;
+export type TransactionStatus = (typeof TRANSACTION_STATUS)[number];
 
 // ========== Income Types ==========
-export const INCOME_CATEGORIES = ['Salary', 'Side Hustle', 'Investments', 'Gifts', 'Other'] as const
-export type IncomeCategory = typeof INCOME_CATEGORIES[number]
+export const INCOME_CATEGORIES = [
+  'Salary',
+  'Side Hustle',
+  'Investments',
+  'Gifts',
+  'Other',
+] as const;
+export type IncomeCategory = (typeof INCOME_CATEGORIES)[number];
 
 export interface IncomeEntry extends BaseEntry {
-  category: IncomeCategory
+  category: IncomeCategory;
 }
 
 // ========== Expense Types ==========
@@ -39,22 +45,22 @@ export const EXPENSE_CATEGORIES = [
   'Utilities',
   'Healthcare',
   'Education',
-  'Shopping'
-] 
-export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number]
+  'Shopping',
+];
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
 export interface ExpenseEntry extends BaseEntry {
-  category: ExpenseCategory
-  isRecurring: boolean
-  dueDate?: string
+  category: ExpenseCategory;
+  isRecurring: boolean;
+  dueDate?: string;
 }
 
 // ========== Health and Wellness Types ==========
-export const WORKOUT_TYPES = ['Strength', 'Cardio', 'Flexibility', 'HIIT', 'Sport'] as const
-export type WorkoutType = typeof WORKOUT_TYPES[number]
+export const WORKOUT_TYPES = ['Strength', 'Cardio', 'Flexibility', 'HIIT', 'Sport'] as const;
+export type WorkoutType = (typeof WORKOUT_TYPES)[number];
 
-export const INTENSITY_LEVELS = ['Low', 'Medium', 'High'] as const
-export type IntensityLevel = typeof INTENSITY_LEVELS[number]
+export const INTENSITY_LEVELS = ['Low', 'Medium', 'High'] as const;
+export type IntensityLevel = (typeof INTENSITY_LEVELS)[number];
 
 export const WELLNESS_ACTIVITIES = [
   'Meditation',
@@ -62,62 +68,62 @@ export const WELLNESS_ACTIVITIES = [
   'Hydration',
   'Sleep',
   'Reading',
-  'Stretching'
-] as const
-export type WellnessActivity = typeof WELLNESS_ACTIVITIES[number]
+  'Stretching',
+] as const;
+export type WellnessActivity = (typeof WELLNESS_ACTIVITIES)[number];
 
 export interface WorkoutItem {
-  id: number
-  date: string
-  type: WorkoutType
-  duration: number // in minutes
-  intensity: IntensityLevel
-  caloriesBurned: number
-  completed: boolean
-  notes: string
+  id: number;
+  date: string;
+  type: WorkoutType;
+  duration: number; // in minutes
+  intensity: IntensityLevel;
+  caloriesBurned: number;
+  completed: boolean;
+  notes: string;
 }
 
 export interface WellnessItem {
-  id: number
-  date: string
-  activity: WellnessActivity
-  duration: number // in minutes
-  goal: number // e.g., 8 hours sleep, 2L water
-  progress: number
-  completed: boolean
-  streak: number
-  notes: string
+  id: number;
+  date: string;
+  activity: WellnessActivity;
+  duration: number; // in minutes
+  goal: number; // e.g., 8 hours sleep, 2L water
+  progress: number;
+  completed: boolean;
+  streak: number;
+  notes: string;
 }
 
 // ========== Store Interfaces ==========
 interface IncomeStore {
-  incomeData: IncomeEntry[]
-  showNewIncomeForm: boolean
-  newIncome: Partial<IncomeEntry>
-  isDarkMode: boolean
+  incomeData: IncomeEntry[];
+  showNewIncomeForm: boolean;
+  newIncome: Partial<IncomeEntry>;
+  isDarkMode: boolean;
 }
 
 interface ExpenseStore {
-  expenseData: ExpenseEntry[]
-  showNewExpenseForm: boolean
-  newExpense: Partial<ExpenseEntry>
-  monthlyBudget: number
-  categoryBudgets: Record<ExpenseCategory, number>
+  expenseData: ExpenseEntry[];
+  showNewExpenseForm: boolean;
+  newExpense: Partial<ExpenseEntry>;
+  monthlyBudget: number;
+  categoryBudgets: Record<ExpenseCategory, number>;
 }
 
 interface HealthStore {
-  workouts: WorkoutItem[]
-  wellness: WellnessItem[]
-  showNewWorkoutForm: boolean
-  showNewWellnessForm: boolean
-  newWorkout: Partial<WorkoutItem>
-  newWellness: Partial<WellnessItem>
+  workouts: WorkoutItem[];
+  wellness: WellnessItem[];
+  showNewWorkoutForm: boolean;
+  showNewWellnessForm: boolean;
+  newWorkout: Partial<WorkoutItem>;
+  newWellness: Partial<WellnessItem>;
   weeklyGoals: {
-    workoutMinutes: number
-    meditationMinutes: number
-    sleepHours: number
-    waterIntake: number // in liters
-  }
+    workoutMinutes: number;
+    meditationMinutes: number;
+    sleepHours: number;
+    waterIntake: number; // in liters
+  };
 }
 
 // ========== Store Implementations ==========
@@ -140,7 +146,7 @@ export const incomeStore = observable(
           amount: 5000,
           isUp: true,
           trend: '+2.5%',
-          status: 'Completed'
+          status: 'Completed',
         },
         {
           id: 2,
@@ -152,24 +158,24 @@ export const incomeStore = observable(
           amount: 1500,
           isUp: true,
           trend: '+5.0%',
-          status: 'Pending'
-        }
+          status: 'Pending',
+        },
       ],
       showNewIncomeForm: false,
       newIncome: {
         date: format(new Date(), 'yyyy-MM-dd'),
         time: format(new Date(), 'HH:mm'),
         category: 'Salary',
-        status: 'Pending'
+        status: 'Pending',
       },
-      isDarkMode: false
+      isDarkMode: false,
     },
     persist: {
       name: 'income',
-      plugin: ObservablePersistMMKV
-    }
+      plugin: ObservablePersistMMKV,
+    },
   })
-)
+);
 
 const initialExpenseData: ExpenseEntry[] = [
   {
@@ -184,7 +190,7 @@ const initialExpenseData: ExpenseEntry[] = [
     trend: '+0.0%',
     status: 'Completed',
     isRecurring: true,
-    dueDate: format(addMinutes(new Date(), 24 * 60), 'yyyy-MM-dd')
+    dueDate: format(addMinutes(new Date(), 24 * 60), 'yyyy-MM-dd'),
   },
   {
     id: 2,
@@ -197,9 +203,9 @@ const initialExpenseData: ExpenseEntry[] = [
     isUp: true,
     trend: '+2.8%',
     status: 'Completed',
-    isRecurring: false
-  }
-]
+    isRecurring: false,
+  },
+];
 /**
  * Expense Store
  * Tracks expenses with budgeting and category management
@@ -207,14 +213,14 @@ const initialExpenseData: ExpenseEntry[] = [
 export const expenseStore = observable(
   synced<ExpenseStore>({
     initial: {
-      expenseData:initialExpenseData,
+      expenseData: initialExpenseData,
       showNewExpenseForm: false,
       newExpense: {
         date: format(new Date(), 'yyyy-MM-dd'),
         time: format(new Date(), 'HH:mm'),
         category: 'Food',
         status: 'Pending',
-        isRecurring: false
+        isRecurring: false,
       },
       monthlyBudget: 4000,
       categoryBudgets: {
@@ -225,15 +231,15 @@ export const expenseStore = observable(
         Utilities: 400,
         Healthcare: 200,
         Education: 150,
-        Shopping: 150
-      }
+        Shopping: 150,
+      },
     },
     persist: {
       name: 'expenses',
-      plugin: ObservablePersistMMKV
-    }
+      plugin: ObservablePersistMMKV,
+    },
   })
-)
+);
 
 /**
  * Health Store
@@ -251,7 +257,7 @@ export const healthStore = observable(
           intensity: 'High',
           caloriesBurned: 320,
           completed: true,
-          notes: 'Full body workout - increased weights'
+          notes: 'Full body workout - increased weights',
         },
         {
           id: 2,
@@ -261,8 +267,8 @@ export const healthStore = observable(
           intensity: 'Medium',
           caloriesBurned: 250,
           completed: true,
-          notes: 'Morning run'
-        }
+          notes: 'Morning run',
+        },
       ],
       wellness: [
         {
@@ -274,7 +280,7 @@ export const healthStore = observable(
           progress: 15,
           completed: true,
           streak: 5,
-          notes: 'Morning meditation session'
+          notes: 'Morning meditation session',
         },
         {
           id: 2,
@@ -285,8 +291,8 @@ export const healthStore = observable(
           progress: 1500,
           completed: false,
           streak: 3,
-          notes: 'Daily water intake tracking'
-        }
+          notes: 'Daily water intake tracking',
+        },
       ],
       showNewWorkoutForm: false,
       showNewWellnessForm: false,
@@ -294,24 +300,24 @@ export const healthStore = observable(
         date: format(new Date(), 'yyyy-MM-dd'),
         type: 'Strength',
         intensity: 'Medium',
-        duration: 45
+        duration: 45,
       },
       newWellness: {
         date: format(new Date(), 'yyyy-MM-dd'),
         activity: 'Meditation',
         duration: 15,
-        goal: 15
+        goal: 15,
       },
       weeklyGoals: {
         workoutMinutes: 180,
         meditationMinutes: 70,
         sleepHours: 56, // 8 hours * 7 days
-        waterIntake: 14 // 2L * 7 days
-      }
+        waterIntake: 14, // 2L * 7 days
+      },
     },
     persist: {
       name: 'health',
-      plugin: ObservablePersistMMKV
-    }
+      plugin: ObservablePersistMMKV,
+    },
   })
-)
+);

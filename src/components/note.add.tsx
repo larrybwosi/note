@@ -118,29 +118,23 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
   const contentRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        Animated.timing(toolbarAnimation, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-        setShowToolbar(false);
-      }
-    );
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      Animated.timing(toolbarAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+      setShowToolbar(false);
+    });
 
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        Animated.timing(toolbarAnimation, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-        setShowToolbar(true);
-      }
-    );
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      Animated.timing(toolbarAnimation, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+      setShowToolbar(true);
+    });
 
     return () => {
       keyboardDidShowListener.remove();
@@ -148,11 +142,14 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
     };
   }, []);
 
-  const handleTextFormat = (format: 'bold' | 'italic' | 'underline' | 'highlight', value?: string) => {
+  const handleTextFormat = (
+    format: 'bold' | 'italic' | 'underline' | 'highlight',
+    value?: string
+  ) => {
     // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const currentText = note.content;
     const { start, end } = selectedText;
-    
+
     const newFormattedContent = [...note.formattedContent];
     newFormattedContent.push({
       text: currentText.slice(start, end),
@@ -161,7 +158,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
       },
     });
 
-    setNote(prev => ({
+    setNote((prev) => ({
       ...prev,
       formattedContent: newFormattedContent,
     }));
@@ -169,8 +166,8 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
 
   const addReference = () => {
     if (!newReference.title) return;
-    
-    setNote(prev => ({
+
+    setNote((prev) => ({
       ...prev,
       references: [...prev.references, newReference],
     }));
@@ -188,18 +185,28 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
       <View className="flex-1 justify-end">
         <View className="bg-white rounded-t-3xl p-6">
           <Text className="text-xl font-rbold mb-4">Add Reference</Text>
-          
+
           <View className="flex-row mb-4">
             {['book', 'website', 'article', 'video'].map((type) => (
               <TouchableOpacity
                 key={type}
-                onPress={() => setNewReference(prev => ({ ...prev, type: type as Reference['type'] }))}
+                onPress={() =>
+                  setNewReference((prev) => ({ ...prev, type: type as Reference['type'] }))
+                }
                 className={`mr-4 p-3 rounded-full ${
                   newReference.type === type ? 'bg-blue-500' : 'bg-gray-200'
                 }`}
               >
                 <FontAwesome5
-                  name={type === 'book' ? 'book' : type === 'website' ? 'globe' : type === 'article' ? 'file-alt' : 'video'}
+                  name={
+                    type === 'book'
+                      ? 'book'
+                      : type === 'website'
+                        ? 'globe'
+                        : type === 'article'
+                          ? 'file-alt'
+                          : 'video'
+                  }
                   size={20}
                   color={newReference.type === type ? 'white' : 'black'}
                 />
@@ -211,14 +218,14 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
             className="bg-gray-100 p-3 rounded-lg mb-3"
             placeholder="Title"
             value={newReference.title}
-            onChangeText={(text) => setNewReference(prev => ({ ...prev, title: text }))}
+            onChangeText={(text) => setNewReference((prev) => ({ ...prev, title: text }))}
           />
-          
+
           <TextInput
             className="bg-gray-100 p-3 rounded-lg mb-3"
             placeholder="Author"
             value={newReference.author}
-            onChangeText={(text) => setNewReference(prev => ({ ...prev, author: text }))}
+            onChangeText={(text) => setNewReference((prev) => ({ ...prev, author: text }))}
           />
 
           {newReference.type !== 'book' && (
@@ -226,7 +233,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
               className="bg-gray-100 p-3 rounded-lg mb-3"
               placeholder="URL"
               value={newReference.url}
-              onChangeText={(text) => setNewReference(prev => ({ ...prev, url: text }))}
+              onChangeText={(text) => setNewReference((prev) => ({ ...prev, url: text }))}
             />
           )}
 
@@ -235,7 +242,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
               className="bg-gray-100 p-3 rounded-lg mb-3"
               placeholder="Page Number"
               value={newReference.page}
-              onChangeText={(text) => setNewReference(prev => ({ ...prev, page: text }))}
+              onChangeText={(text) => setNewReference((prev) => ({ ...prev, page: text }))}
               keyboardType="number-pad"
             />
           )}
@@ -247,10 +254,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
             >
               <Text className="text-gray-500 font-plregular">Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={addReference}
-              className="bg-blue-500 px-4 py-2 rounded-lg"
-            >
+            <TouchableOpacity onPress={addReference} className="bg-blue-500 px-4 py-2 rounded-lg">
               <Text className="text-white font-plregular">Add Reference</Text>
             </TouchableOpacity>
           </View>
@@ -272,14 +276,14 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
           >
             <MaterialIcons name="format-bold" size={24} color="#374151" />
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             onPress={() => handleTextFormat('italic')}
             className="p-2 mx-1 rounded-lg bg-gray-100"
           >
             <MaterialIcons name="format-italic" size={24} color="#374151" />
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             onPress={() => handleTextFormat('underline')}
             className="p-2 mx-1 rounded-lg bg-gray-100"
@@ -288,7 +292,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
           </TouchableOpacity>
 
           <View className="h-6 w-px bg-gray-300 mx-2" />
-          
+
           <View className="flex-row">
             {highlightColors.map((color) => (
               <TouchableOpacity
@@ -315,38 +319,30 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
   );
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={false}
-      visible={isOpen}
-      onRequestClose={onClose}
-    >
+    <Modal animationType="slide" transparent={false} visible={isOpen} onRequestClose={onClose}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <View className="flex-1 bg-gray-100">
           {/* Header with background image */}
-          <Image
-            source={{ uri: note.image }}
-            className="absolute top-0 left-0 right-0 h-60"
-          />
+          <Image source={{ uri: note.image }} className="absolute top-0 left-0 right-0 h-60" />
           <View className="flex-row justify-between items-center p-4 pt-12 bg-black/30">
             <TouchableOpacity onPress={onClose} className="p-2">
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
             <View className="flex-row">
               <TouchableOpacity
-                onPress={() => setNote(prev => ({ ...prev, isBookmarked: !prev.isBookmarked }))}
+                onPress={() => setNote((prev) => ({ ...prev, isBookmarked: !prev.isBookmarked }))}
                 className="p-2 mr-2"
               >
                 <MaterialIcons
-                  name={note.isBookmarked ? "bookmark" : "bookmark-border"}
+                  name={note.isBookmarked ? 'bookmark' : 'bookmark-border'}
                   size={24}
                   color="white"
                 />
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => console.log('save')}
                 className="bg-white rounded-full px-4 py-2"
               >
@@ -358,11 +354,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
           {/* Main content */}
           <ScrollView className="flex-1 bg-white rounded-t-3xl -mt-6 pt-6 px-4">
             {/* Categories */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mb-4"
-            >
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
               {categories.map((category) => (
                 <TouchableOpacity
                   key={category.id}
@@ -392,7 +384,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
               className="text-3xl font-bold mb-4"
               placeholder="Note Title"
               value={note.title}
-              onChangeText={(text) => setNote(prev => ({ ...prev, title: text }))}
+              onChangeText={(text) => setNote((prev) => ({ ...prev, title: text }))}
             />
 
             {/* Main content input */}
@@ -401,7 +393,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
               className="text-base mb-4"
               placeholder="Start typing your note..."
               value={note.content}
-              onChangeText={(text) => setNote(prev => ({ ...prev, content: text }))}
+              onChangeText={(text) => setNote((prev) => ({ ...prev, content: text }))}
               multiline
               textAlignVertical="top"
               numberOfLines={10}
@@ -422,10 +414,10 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
                           ref.type === 'book'
                             ? 'book'
                             : ref.type === 'website'
-                            ? 'globe'
-                            : ref.type === 'article'
-                            ? 'file-alt'
-                            : 'video'
+                              ? 'globe'
+                              : ref.type === 'article'
+                                ? 'file-alt'
+                                : 'video'
                         }
                         size={16}
                         color="#374151"
@@ -434,22 +426,20 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
                       <Text className="font-semibold">{ref.title}</Text>
                     </View>
                     {ref.author && (
-                      <Text className="text-gray-600 text-sm mt-1">
-                        by {ref.author}
-                      </Text>
+                      <Text className="text-gray-600 text-sm mt-1">by {ref.author}</Text>
                     )}
                     {ref.url && (
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         className="mt-1"
-                        onPress={() => {/* Handle URL opening */}}
+                        onPress={() => {
+                          /* Handle URL opening */
+                        }}
                       >
                         <Text className="text-blue-500 text-sm">{ref.url}</Text>
                       </TouchableOpacity>
                     )}
                     {ref.page && (
-                      <Text className="text-gray-600 text-sm mt-1">
-                        Page: {ref.page}
-                      </Text>
+                      <Text className="text-gray-600 text-sm mt-1">Page: {ref.page}</Text>
                     )}
                   </View>
                 ))}
@@ -464,11 +454,11 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
                   <TouchableOpacity
                     key={tag.id}
                     onPress={() => {
-                      setNote(prev => ({
+                      setNote((prev) => ({
                         ...prev,
                         tags: prev.tags.includes(tag.name)
-                          ? prev.tags.filter(t => t !== tag.name)
-                          : [...prev.tags, tag.name]
+                          ? prev.tags.filter((t) => t !== tag.name)
+                          : [...prev.tags, tag.name],
                       }));
                       // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     }}
@@ -476,7 +466,9 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
                       note.tags.includes(tag.name) ? tag.color : 'bg-gray-200'
                     }`}
                   >
-                    <Text className={`${note.tags.includes(tag.name) ? 'text-white' : 'text-gray-700'} font-rmedium text-sm `}>
+                    <Text
+                      className={`${note.tags.includes(tag.name) ? 'text-white' : 'text-gray-700'} font-rmedium text-sm `}
+                    >
                       {tag.name}
                     </Text>
                   </TouchableOpacity>
@@ -489,7 +481,9 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
               <Text className="text-lg font-bold mb-2">Tools</Text>
               <View className="flex-row flex-wrap">
                 <TouchableOpacity
-                  onPress={async () => { /* Handle image selection */ }}
+                  onPress={async () => {
+                    /* Handle image selection */
+                  }}
                   className="bg-gray-100 p-4 rounded-lg mr-2 mb-2 items-center"
                 >
                   <MaterialIcons name="image" size={24} color="#374151" />
@@ -500,9 +494,9 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({ isOpen, onClose, onSave }) 
                   onPress={() => {
                     const date = new Date();
                     date.setDate(date.getDate() + 1);
-                    setNote(prev => ({
+                    setNote((prev) => ({
                       ...prev,
-                      reminder: date
+                      reminder: date,
                     }));
                     // Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   }}

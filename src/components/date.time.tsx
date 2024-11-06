@@ -15,37 +15,30 @@ interface DateTimePickerProps {
   setShowDatePicker: (value: boolean) => void;
   setShowTimePicker: (value: boolean) => void;
 }
-const DateTimePickerComponent = ({ 
-  value, 
-  onDateChange, 
+const DateTimePickerComponent = ({
+  value,
+  onDateChange,
   onTimeChange,
   showDatePicker,
   showTimePicker,
   setShowDatePicker,
-  setShowTimePicker
+  setShowTimePicker,
 }: DateTimePickerProps) => {
   return (
     <View className="space-y-4 mt-3">
-      <Animated.View
-        entering={FadeIn.duration(500)}
-        className="p-4 rounded-2xl"
-      >
+      <Animated.View entering={FadeIn.duration(500)} className="p-4 rounded-2xl">
         <View className="flex-row justify-between items-start space-x-4 gap-4">
           {/* Date Section */}
           <View className="flex-1">
             <View className="flex-row items-center mb-2">
               <Feather name="calendar" size={16} color="#E5E7EB" />
-              <Text className="text-sm font-plregular text-gray-200 ml-2">
-                Date
-              </Text>
+              <Text className="text-sm font-plregular text-gray-200 ml-2">Date</Text>
             </View>
             <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
               className="bg-white/10 p-4 rounded-xl border border-white/20"
             >
-              <Text className="text-white font-medium">
-                {format(value || new Date(), 'PPP')}
-              </Text>
+              <Text className="text-white font-medium">{format(value || new Date(), 'PPP')}</Text>
               {showDatePicker && (
                 <DateTimePicker
                   value={value || new Date()}
@@ -69,17 +62,13 @@ const DateTimePickerComponent = ({
           <View className="flex-1">
             <View className="flex-row items-center mb-2">
               <Feather name="clock" size={16} color="#E5E7EB" />
-              <Text className="text-sm font-plregular text-gray-200 ml-2">
-                Time
-              </Text>
+              <Text className="text-sm font-plregular text-gray-200 ml-2">Time</Text>
             </View>
             <TouchableOpacity
               onPress={() => setShowTimePicker(true)}
               className="bg-white/10 p-4 rounded-xl border border-white/20"
             >
-              <Text className="text-white font-medium">
-                {format(value || new Date(), 'p')}
-              </Text>
+              <Text className="text-white font-medium">{format(value || new Date(), 'p')}</Text>
               {showTimePicker && (
                 <DateTimePicker
                   value={value || new Date()}

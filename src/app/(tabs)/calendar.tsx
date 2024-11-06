@@ -1,19 +1,19 @@
-import { Memo, observer, useObservable, useComputed } from '@legendapp/state/react'
-import { useInterval } from "usehooks-ts"
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native'
-import RNDateTimePicker from '@react-native-community/datetimepicker'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { currentTime } from "@legendapp/state/helpers/time"
-import { colorScheme as colorSchemeNW } from "nativewind"
-import { format, differenceInMinutes } from 'date-fns'
-import { Calendar } from 'react-native-calendars'
-import { Ionicons } from '@expo/vector-icons'
-import { useCallback } from 'react'
+import { Memo, observer, useObservable, useComputed } from '@legendapp/state/react';
+import { useInterval } from 'usehooks-ts';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
+import RNDateTimePicker from '@react-native-community/datetimepicker';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { currentTime } from '@legendapp/state/helpers/time';
+import { colorScheme as colorSchemeNW } from 'nativewind';
+import { format, differenceInMinutes } from 'date-fns';
+import { Calendar } from 'react-native-calendars';
+import { Ionicons } from '@expo/vector-icons';
+import { useCallback } from 'react';
 
-import { markCompleted, postponeItem } from 'src/store/shedule/actions'
-import { ItemCard } from 'src/components/schedule.item'
-import { scheduleStore } from 'src/store/shedule/store'
-import AddItem from 'src/components/schedule.add'
+import { markCompleted, postponeItem } from 'src/store/shedule/actions';
+import { ItemCard } from 'src/components/schedule.item';
+import { scheduleStore } from 'src/store/shedule/store';
+import AddItem from 'src/components/schedule.add';
 
 const CALENDAR_THEME = {
   light: {
@@ -42,7 +42,7 @@ const CALENDAR_THEME = {
     arrowColor: '#60a5fa',
     monthTextColor: '#f3f4f6',
   },
-}
+};
 
 const CalendarApp = observer(function CalendarApp() {
   const state$ = useObservable({
@@ -51,24 +51,26 @@ const CalendarApp = observer(function CalendarApp() {
     showDatePicker: false,
     animation: {
       streakScale: 1,
-    }
-  })
+    },
+  });
 
-  const time = useComputed(() => format(currentTime.get().getTime(), 'hh:mm'))
-  const theme = useComputed(() => colorSchemeNW.get())
-  const items = useComputed(() => scheduleStore.items.get())
+  const time = useComputed(() => format(currentTime.get().getTime(), 'hh:mm'));
+  const theme = useComputed(() => colorSchemeNW.get());
+  const items = useComputed(() => scheduleStore.items.get());
 
   const updateCountdowns = useCallback(() => {
-    scheduleStore.items.set(prevItems => prevItems.map(item => ({
-      ...item,
-      countdown: differenceInMinutes(item.startDate, new Date())
-    })))
-  }, [])
+    scheduleStore.items.set((prevItems) =>
+      prevItems.map((item) => ({
+        ...item,
+        countdown: differenceInMinutes(item.startDate, new Date()),
+      }))
+    );
+  }, []);
 
   const handlePostpone = useCallback((itemId: any) => {
-    state$.selectedItemId.set(itemId)
-    state$.showPostponeModal.set(true)
-  }, [])
+    state$.selectedItemId.set(itemId);
+    state$.showPostponeModal.set(true);
+  }, []);
 
   const confirmPostpone = useCallback(() => {
     if (state$.selectedItemId.get()) {
@@ -78,22 +80,22 @@ const CalendarApp = observer(function CalendarApp() {
         scheduleStore.postponeData.reason.get(),
         'Other',
         'Low'
-      )
+      );
     }
-    state$.showPostponeModal.set(false)
-    state$.selectedItemId.set(null)
-    scheduleStore.postponeData.reason.set('')
-    scheduleStore.postponeData.newDate.set(new Date())
-  }, [])
+    state$.showPostponeModal.set(false);
+    state$.selectedItemId.set(null);
+    scheduleStore.postponeData.reason.set('');
+    scheduleStore.postponeData.newDate.set(new Date());
+  }, []);
 
   useInterval(() => {
-    currentTime.set(new Date())
-    updateCountdowns()
-  }, 60000) // Update every minute
+    currentTime.set(new Date());
+    updateCountdowns();
+  }, 60000); // Update every minute
 
   const handleCompleteItem = useCallback((id: number) => {
-    markCompleted(id)
-  }, [])
+    markCompleted(id);
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
@@ -101,9 +103,7 @@ const CalendarApp = observer(function CalendarApp() {
         {/* Enhanced Header */}
         <View className="px-4 py-6 bg-white dark:bg-gray-800 shadow-lg rounded-b-3xl">
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-3xl font-rbold text-gray-900 dark:text-white">
-              My Schedule
-            </Text>
+            <Text className="text-3xl font-rbold text-gray-900 dark:text-white">My Schedule</Text>
             <View className="bg-blue-100 dark:bg-blue-900 px-4 py-2 rounded-xl">
               <Text className="text-lg font-rmedium text-blue-600 dark:text-blue-300">
                 <Memo>{time}</Memo>
@@ -159,20 +159,24 @@ const CalendarApp = observer(function CalendarApp() {
             </TouchableOpacity>
           </View>
           <Memo>
-            {() => items.get().map((item) => (
-              <ItemCard
-                key={item.id}
-                item={item}
-                onComplete={handleCompleteItem}
-                handlePostpone={handlePostpone}
-                theme={theme.get() as any}
-              />
-            ))}
+            {() =>
+              items
+                .get()
+                .map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    onComplete={handleCompleteItem}
+                    handlePostpone={handlePostpone}
+                    theme={theme.get() as any}
+                  />
+                ))
+            }
           </Memo>
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
-})
+  );
+});
 
-export default CalendarApp
+export default CalendarApp;

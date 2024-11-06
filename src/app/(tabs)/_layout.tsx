@@ -26,10 +26,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="navigation" size={size} color={color} />
-          ),
-          tabBarLabel: "Schedule",
+          tabBarIcon: ({ color, size }) => <Feather name="navigation" size={size} color={color} />,
+          tabBarLabel: 'Schedule',
         }}
       />
       <Tabs.Screen
@@ -43,9 +41,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="income"
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cash" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="cash" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -54,28 +50,23 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="wallet-outline" size={size} color={color} />
           ),
-          tabBarLabel: "Finance",
+          tabBarLabel: 'Finance',
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
-          tabBarIcon: ({ color, size }) => (
-           <Feather name="calendar" size={size} color={color} />
-          ),
-          tabBarLabel: "Calendar",
+          tabBarIcon: ({ color, size }) => <Feather name="calendar" size={size} color={color} />,
+          tabBarLabel: 'Calendar',
         }}
       />
       <Tabs.Screen
         name="note"
         options={{
-          tabBarIcon: ({ color, size }) => (
-           <Octicons name="note" size={size} color={color} />
-          ),
-          tabBarLabel: "Notes",
+          tabBarIcon: ({ color, size }) => <Octicons name="note" size={size} color={color} />,
+          tabBarLabel: 'Notes',
         }}
       />
-    </Tabs> 
+    </Tabs>
   );
 }
-

@@ -79,7 +79,7 @@ export const setupNotificationChannels = async () => {
   try {
     // Get existing channels
     const existingChannels = await notifee.getChannels();
-    const existingChannelIds = new Set(existingChannels.map(channel => channel.id));
+    const existingChannelIds = new Set(existingChannels.map((channel) => channel.id));
 
     // Only create channels that don't exist
     for (const channel of channels) {
@@ -96,12 +96,12 @@ export const setupNotificationChannels = async () => {
 export const deleteAllChannels = async () => {
   try {
     const channels = await notifee.getChannels();
-    await Promise.all(channels.map(channel => notifee.deleteChannel(channel.id)));
+    await Promise.all(channels.map((channel) => notifee.deleteChannel(channel.id)));
   } catch (error) {
     console.error('Error deleting notification channels:', error);
     throw error;
   }
-}
+};
 
 const getChannelId = (priority: ScheduleItem['priority']): string => {
   switch (priority) {
@@ -113,8 +113,6 @@ const getChannelId = (priority: ScheduleItem['priority']): string => {
       return 'schedule_default';
   }
 };
-
-
 
 // Enhanced notification for scheduled items with more informative content
 export const scheduleItemNotification = async (item: ScheduleItem): Promise<string> => {
@@ -165,7 +163,7 @@ export const scheduleItemNotification = async (item: ScheduleItem): Promise<stri
         type: 'schedule_item',
       },
     },
-    trigger,
+    trigger
   );
 
   if (item.reminder) {
@@ -200,7 +198,7 @@ const scheduleReminder = async (item: ScheduleItem) => {
         visibility: AndroidVisibility.PUBLIC,
         actions: [
           {
-            title: '👍 I\'m Ready',
+            title: "👍 I'm Ready",
             pressAction: { id: 'acknowledge' },
           },
           {
@@ -214,7 +212,7 @@ const scheduleReminder = async (item: ScheduleItem) => {
         type: 'reminder',
       },
     },
-    trigger,
+    trigger
   );
 };
 
@@ -261,7 +259,7 @@ export const showCompletionNotification = async (item: ScheduleItem): Promise<vo
 // Enhanced overdue notification with more urgency and options
 export const showOverdueNotification = async (item: ScheduleItem): Promise<void> => {
   const overdueDuration = differenceInMinutes(new Date(), item.endDate);
-  
+
   await notifee.displayNotification({
     title: `⚠️ Overdue Alert: ${item.title}`,
     body: `Urgent: This ${item.priority} priority task is ${Math.round(overdueDuration / 60)} hours overdue`,
@@ -332,30 +330,30 @@ const showStartNotification = async (item: ScheduleItem) => {
   });
 };
 
-
 // New function to create a recurring notification
 interface CreateRecurringNotificationProps {
   title: string;
   body: string;
   frequency: 'daily' | 'weekly';
   time: Date;
-  priority: "Low" | "Medium" | "High" | "Critical";
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
 }
 export const createRecurringNotification = async ({
-time,
-title,
-body,
-frequency,
-priority
-}:CreateRecurringNotificationProps
-  ): Promise<string> => {
+  time,
+  title,
+  body,
+  frequency,
+  priority,
+}: CreateRecurringNotificationProps): Promise<string> => {
   let trigger: TimestampTrigger = {
     type: TriggerType.TIMESTAMP,
     timestamp: time.getTime(),
-    repeatFrequency: 
-      frequency === 'daily' ? RepeatFrequency.DAILY :
-      frequency === 'weekly' ? RepeatFrequency.WEEKLY :
-      RepeatFrequency.WEEKLY,
+    repeatFrequency:
+      frequency === 'daily'
+        ? RepeatFrequency.DAILY
+        : frequency === 'weekly'
+          ? RepeatFrequency.WEEKLY
+          : RepeatFrequency.WEEKLY,
     alarmManager: true,
   };
 
@@ -378,22 +376,22 @@ priority
 };
 
 const showTaskStartNotification = async (itemId: number) => {
-  const item = scheduleStore.get().items.find(i => i.id === itemId);
+  const item = scheduleStore.get().items.find((i) => i.id === itemId);
   if (!item) return;
   await showStartNotification(item);
   await showOverdueNotification(item);
-}
+};
 // Enhanced background handler
 
 export const setupBackgroundHandler = () => {
-   notifee.onBackgroundEvent(async ({ type, detail }) => {
+  notifee.onBackgroundEvent(async ({ type, detail }) => {
     const { notification, pressAction } = detail;
     console.log('onBackgroundEvent', type, detail);
-    
+
     if (!notification?.data?.itemId) return;
-    
+
     const itemId = parseInt(notification.data.itemId as string, 10);
-    
+
     switch (type) {
       case EventType.ACTION_PRESS:
         switch (pressAction?.id) {
@@ -402,17 +400,23 @@ export const setupBackgroundHandler = () => {
             await startItem(itemId);
             await showTaskStartNotification(itemId);
             break;
-            
+
           case 'postpone':
           case 'delay_15':
             const delayMinutes = pressAction?.id === 'delay_15' ? 15 : 30;
             const newDate = new Date(Date.now() + delayMinutes * 60 * 1000);
-            await postponeItem(itemId, newDate, `Postponed by ${delayMinutes} minutes via notification`, 'Other', 'Low');
+            await postponeItem(
+              itemId,
+              newDate,
+              `Postponed by ${delayMinutes} minutes via notification`,
+              'Other',
+              'Low'
+            );
             break;
-            
+
           case 'complete':
             await markCompleted(itemId);
-            const item = scheduleStore.get().items.find(i => i.id === itemId);
+            const item = scheduleStore.get().items.find((i) => i.id === itemId);
             if (item) await showCompletionNotification(item);
             break;
 
@@ -452,16 +456,15 @@ export const initializeNotifications = async () => {
 
   await setupNotificationChannels();
   setupBackgroundHandler();
-  
+
   return true;
 };
 
-
 const updatePostponedItemNotifications = async (itemId: number) => {
   await updatePostponedItemNotifications(itemId);
-  const item = scheduleStore.get().items.find(i => i.id === itemId);
+  const item = scheduleStore.get().items.find((i) => i.id === itemId);
   await showOverdueNotification(item!);
-}
+};
 
 export const notificationHandlers = {
   onCreateItem: scheduleItemNotification,
@@ -470,7 +473,7 @@ export const notificationHandlers = {
   onCompleteItem: showCompletionNotification,
   onStartItem: showTaskStartNotification,
   onItemOverdue: showOverdueNotification,
-  createRecurring: createRecurringNotification
+  createRecurring: createRecurringNotification,
 };
 
 // Example usage of the new recurring notification function

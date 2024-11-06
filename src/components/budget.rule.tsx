@@ -1,21 +1,21 @@
-import { Pressable, Text, TouchableOpacity } from "react-native";
+import { Pressable, Text, TouchableOpacity } from 'react-native';
 
-import { useState } from "react";
-import { View } from "react-native";
+import { useState } from 'react';
+import { View } from 'react-native';
 
-import { TextInput } from "react-native";
-import { FadeOutUp, LinearTransition } from "react-native-reanimated";
-import { FadeInDown } from "react-native-reanimated";
-import Animated from "react-native-reanimated";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { observer, useObservable } from "@legendapp/state/react";
+import { TextInput } from 'react-native';
+import { FadeOutUp, LinearTransition } from 'react-native-reanimated';
+import { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { observer, useObservable } from '@legendapp/state/react';
 
 const CustomRuleForm = observer(({ showNewRuleModal$, onSave }: any) => {
   const newRule$ = useObservable({
-    name: "",
-    description: "",
-    breakdown: "",
-    color: "",
+    name: '',
+    description: '',
+    breakdown: '',
+    color: '',
   });
 
   const { name, description, breakdown } = newRule$;
@@ -28,7 +28,7 @@ const CustomRuleForm = observer(({ showNewRuleModal$, onSave }: any) => {
         type: name,
         description,
         breakdown,
-        color: "#3B82F6",
+        color: '#3B82F6',
       });
     }
   };
@@ -46,9 +46,7 @@ const CustomRuleForm = observer(({ showNewRuleModal$, onSave }: any) => {
         <View className="px-6 pt-8 pb-6 bg-gradient-to-r from-blue-500 to-blue-600">
           <View className="flex-row justify-between items-center">
             <View>
-              <Text className="text-2xl font-rbold text-white">
-                Create New Rule
-              </Text>
+              <Text className="text-2xl font-rbold text-white">Create New Rule</Text>
               <Text className="text-sm font-rregular text-blue-100 mt-2 opacity-90">
                 Customize your budget allocation
               </Text>
@@ -66,18 +64,14 @@ const CustomRuleForm = observer(({ showNewRuleModal$, onSave }: any) => {
         <View className="p-8 space-y-6">
           {/* Rule Name Input with floating label effect */}
           <View className="space-y-2">
-            <Text className="text-sm font-rmedium text-gray-600 mb-1">
-              Rule Name
-            </Text>
+            <Text className="text-sm font-rmedium text-gray-600 mb-1">Rule Name</Text>
             <View className="flex-row items-center rounded-xl p-4 bg-gray-50 border-2 border-gray-100 focus:border-blue-500 transition-colors duration-200">
               <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-3">
                 <Ionicons name="pricetag" size={20} color="#3B82F6" />
               </View>
               <TextInput
                 value={newRule.name}
-                onChangeText={(text) =>
-                  setNewRule((prev) => ({ ...prev, name: text }))
-                }
+                onChangeText={(text) => setNewRule((prev) => ({ ...prev, name: text }))}
                 className="flex-1 font-rregular text-gray-900 text-base"
                 placeholder="e.g., 40/30/30 Rule"
                 placeholderTextColor="#9CA3AF"
@@ -87,9 +81,7 @@ const CustomRuleForm = observer(({ showNewRuleModal$, onSave }: any) => {
 
           {/* Description Input with enhanced styling */}
           <View className="space-y-2">
-            <Text className="text-sm font-rmedium text-gray-600 mb-1">
-              Description
-            </Text>
+            <Text className="text-sm font-rmedium text-gray-600 mb-1">Description</Text>
             <View className="rounded-xl bg-gray-50 border-2 border-gray-100">
               <TextInput
                 className="p-4 font-rregular text-gray-900 min-h-[100px] text-base"
@@ -105,9 +97,7 @@ const CustomRuleForm = observer(({ showNewRuleModal$, onSave }: any) => {
 
           {/* Breakdown Input */}
           <View className="space-y-2">
-            <Text className="text-sm font-rmedium text-gray-600 mb-1">
-              Breakdown
-            </Text>
+            <Text className="text-sm font-rmedium text-gray-600 mb-1">Breakdown</Text>
             <View className="rounded-xl bg-gray-50 border-2 border-gray-100">
               <TextInput
                 className="p-4 font-rregular text-gray-900 text-base"
@@ -127,9 +117,7 @@ const CustomRuleForm = observer(({ showNewRuleModal$, onSave }: any) => {
               onPress={() => showNewRuleModal$.set(false)}
               className="flex-1 py-4 rounded-xl border-2 border-gray-200 bg-white"
             >
-              <Text className="text-center font-rmedium text-gray-700">
-                Cancel
-              </Text>
+              <Text className="text-center font-rmedium text-gray-700">Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSubmit}
@@ -137,9 +125,7 @@ const CustomRuleForm = observer(({ showNewRuleModal$, onSave }: any) => {
             >
               <View className="flex-row items-center justify-center space-x-2">
                 <Ionicons name="save-outline" size={20} color="white" />
-                <Text className="text-center font-rmedium text-white">
-                  Save Rule
-                </Text>
+                <Text className="text-center font-rmedium text-white">Save Rule</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -153,7 +139,7 @@ export enum BudgetRuleType {
   RULE_15_65_20 = '15/65/20 Rule',
   RULE_50_30_20 = '50/30/20 Rule',
   RULE_70_20_10 = '70/20/10 Rule',
-  CUSTOM = 'Custom Rule'
+  CUSTOM = 'Custom Rule',
 }
 interface Rule {
   type: BudgetRuleType;
@@ -169,7 +155,7 @@ interface CustomRule {
   color: string;
   description: string;
 }
-const BudgetRuleSelector = ({rules}: {rules: Rule[]}) => {
+const BudgetRuleSelector = ({ rules }: { rules: Rule[] }) => {
   const [selectedRule, setSelectedRule] = useState<BudgetRuleType>(rules[0].type);
   const [customRules, setCustomRules] = useState([]);
   const [showCustomForm, setShowCustomForm] = useState(false);
@@ -208,8 +194,12 @@ const BudgetRuleSelector = ({rules}: {rules: Rule[]}) => {
           >
             <View className="flex-row justify-between items-center">
               <View className="flex-1">
-                <Text className="text-lg font-bold dark:text-white text-gray-900 mb-1">{rule.type}</Text>
-                <Text className="text-base text-gray-600 dark:text-gray-400 mb-2">{rule.description}</Text>
+                <Text className="text-lg font-bold dark:text-white text-gray-900 mb-1">
+                  {rule.type}
+                </Text>
+                <Text className="text-base text-gray-600 dark:text-gray-400 mb-2">
+                  {rule.description}
+                </Text>
                 <Text style={{ color: rule.color }} className="text-sm font-medium">
                   {rule.breakdown}
                 </Text>

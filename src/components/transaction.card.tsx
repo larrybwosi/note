@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import Animated, { SlideInRight, SlideOutLeft, LinearTransition, runOnJS } from 'react-native-reanimated';
+import Animated, {
+  SlideInRight,
+  SlideOutLeft,
+  LinearTransition,
+  runOnJS,
+} from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { format } from 'date-fns';
-import { 
-  Transaction,
-  TransactionType,
-  TransactionStatus
-} from '../store/finance/types';
+import { Transaction, TransactionType, TransactionStatus } from '../store/finance/types';
 
 interface TransactionCardProps {
   transaction: Transaction;
@@ -98,9 +99,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onDelete
                 {isIncome ? '+' : '-'}${Math.abs(transaction?.amount).toLocaleString()}
               </Text>
               {transaction?.paymentMethod && (
-                <Text className="text-xs text-gray-500 mt-1">
-                  via {transaction?.paymentMethod}
-                </Text>
+                <Text className="text-xs text-gray-500 mt-1">via {transaction?.paymentMethod}</Text>
               )}
             </View>
           </View>
@@ -115,7 +114,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onDelete
               </View>
               <StatusBadge status={transaction?.status} />
             </View>
-            
+
             <View className="flex-row items-center space-x-2">
               <Text className="text-xs text-gray-500 dark:text-gray-400">
                 {format(new Date(`${transaction?.date}T${transaction?.time}`), 'PPp')}
@@ -131,14 +130,9 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onDelete
           {/* Tags Row */}
           {transaction?.tags && transaction?.tags.length > 0 && (
             <View className="mt-2 flex-row flex-wrap gap-1">
-              {transaction?.tags.map(tag => (
-                <View 
-                  key={tag}
-                  className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full"
-                >
-                  <Text className="text-xs text-gray-600 dark:text-gray-300">
-                    {tag}
-                  </Text>
+              {transaction?.tags.map((tag) => (
+                <View key={tag} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
+                  <Text className="text-xs text-gray-600 dark:text-gray-300">{tag}</Text>
                 </View>
               ))}
             </View>

@@ -1,21 +1,28 @@
-import { observable } from "@legendapp/state";
-import { ObservablePersistMMKV } from "@legendapp/state/persist-plugins/mmkv";
-import { synced } from "@legendapp/state/sync";
-import { format } from "date-fns";
-import { v4 as uuidv4 } from "uuid";
+import { observable } from '@legendapp/state';
+import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
+import { synced } from '@legendapp/state/sync';
+import { format } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
 // Enums and Constants
 export const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Elite'] as const;
 export const INTENSITY_LEVELS = ['Low', 'Moderate', 'High', 'Very High'] as const;
 export const MOOD_LEVELS = ['Excellent', 'Good', 'Neutral', 'Poor', 'Terrible'] as const;
 export const SLEEP_QUALITY = ['Deep', 'Light', 'Disrupted', 'Insomnia'] as const;
-export const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Pre-workout', 'Post-workout'] as const;
+export const MEAL_TYPES = [
+  'Breakfast',
+  'Lunch',
+  'Dinner',
+  'Snack',
+  'Pre-workout',
+  'Post-workout',
+] as const;
 
-export type DifficultyLevel = typeof DIFFICULTY_LEVELS[number];
-export type IntensityLevel = typeof INTENSITY_LEVELS[number];
-export type MoodLevel = typeof MOOD_LEVELS[number];
-export type SleepQualityType = typeof SLEEP_QUALITY[number];
-export type MealType = typeof MEAL_TYPES[number];
+export type DifficultyLevel = (typeof DIFFICULTY_LEVELS)[number];
+export type IntensityLevel = (typeof INTENSITY_LEVELS)[number];
+export type MoodLevel = (typeof MOOD_LEVELS)[number];
+export type SleepQualityType = (typeof SLEEP_QUALITY)[number];
+export type MealType = (typeof MEAL_TYPES)[number];
 
 // Basic Interfaces
 interface BaseEntry {
@@ -149,24 +156,22 @@ export const healthUtils = {
     return +(weight / (height * height)).toFixed(1);
   },
 
-  calculateCaloriesBurned: (
-    exercise: Exercise,
-    duration: number,
-    weight: number
-  ): number => {
+  calculateCaloriesBurned: (exercise: Exercise, duration: number, weight: number): number => {
     return Math.round(exercise.calories_per_minute * duration * (weight / 70));
   },
 
   calculateDailyNutrients: (meals: Meal[]): Record<string, number> => {
-    return meals.reduce((acc, meal) => {
-      meal.foods.forEach(({ foodItem, servings }) => {
-        foodItem.nutrients.forEach((nutrient) => {
-          acc[nutrient.name] = (acc[nutrient.name] || 0) + 
-            (nutrient.amount * servings);
+    return meals.reduce(
+      (acc, meal) => {
+        meal.foods.forEach(({ foodItem, servings }) => {
+          foodItem.nutrients.forEach((nutrient) => {
+            acc[nutrient.name] = (acc[nutrient.name] || 0) + nutrient.amount * servings;
+          });
         });
-      });
-      return acc;
-    }, {} as Record<string, number>);
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   },
 
   createWorkoutSession: (partial: Partial<WorkoutSession> = {}): WorkoutSession => {
@@ -182,7 +187,7 @@ export const healthUtils = {
       intensity: partial.intensity || 'Moderate',
       sets: partial.sets || [],
       notes: partial.notes || '',
-      ...partial
+      ...partial,
     };
   },
 
@@ -196,9 +201,9 @@ export const healthUtils = {
       foods: partial.foods || [],
       totalCalories: partial.totalCalories || 0,
       notes: partial.notes || '',
-      ...partial
+      ...partial,
     };
-  }
+  },
 };
 
 // Default Data
@@ -207,7 +212,13 @@ const defaultExercises: Exercise[] = [
     id: '1',
     name: 'Barbell Squat',
     muscleGroups: [
-      { id: 'quads', name: 'Quadriceps', icon: '🦵', color: '#FF5722', relatedMuscles: ['glutes', 'hamstrings'] }
+      {
+        id: 'quads',
+        name: 'Quadriceps',
+        icon: '🦵',
+        color: '#FF5722',
+        relatedMuscles: ['glutes', 'hamstrings'],
+      },
     ],
     difficulty: 'Intermediate',
     equipment: ['Barbell', 'Squat Rack'],
@@ -215,9 +226,9 @@ const defaultExercises: Exercise[] = [
       'Position bar on upper back',
       'Feet shoulder-width apart',
       'Squat down until thighs parallel',
-      'Drive up through heels'
+      'Drive up through heels',
     ],
-    calories_per_minute: 8
+    calories_per_minute: 8,
   },
   // Add more default exercises as needed
 ];
@@ -227,10 +238,13 @@ export const healthStore = observable(
   synced<HealthStore>({
     initial: {
       workouts: {},
-      exercises: defaultExercises.reduce((acc, exercise) => {
-        acc[exercise.id] = exercise;
-        return acc;
-      }, {} as Record<string, Exercise>),
+      exercises: defaultExercises.reduce(
+        (acc, exercise) => {
+          acc[exercise.id] = exercise;
+          return acc;
+        },
+        {} as Record<string, Exercise>
+      ),
       meals: {},
       sleep: {},
       vitals: {},
@@ -238,17 +252,17 @@ export const healthStore = observable(
         daily_calories: 2000,
         daily_protein: 150,
         daily_steps: 10000,
-        weekly_workouts: 4
+        weekly_workouts: 4,
       },
       settings: {
         units: 'metric',
         notifications_enabled: true,
-        reminder_times: ['07:00', '12:00', '18:00']
-      }
+        reminder_times: ['07:00', '12:00', '18:00'],
+      },
     },
     persist: {
       name: 'health',
-      plugin: ObservablePersistMMKV
-    }
+      plugin: ObservablePersistMMKV,
+    },
   })
 );

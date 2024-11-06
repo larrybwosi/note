@@ -1,63 +1,68 @@
-import { Transaction, TransactionType, TransactionStatus, Category, CategoryType, TransactionInput } from '../types';
+import {
+  Transaction,
+  TransactionType,
+  TransactionStatus,
+  Category,
+  CategoryType,
+  TransactionInput,
+} from '../types';
 import { observable } from '@legendapp/state';
-import useFinanceStore from "../actions";
-import { endOfMonth, format, isWithinInterval, startOfMonth } from "date-fns";
+import useFinanceStore from '../actions';
+import { endOfMonth, format, isWithinInterval, startOfMonth } from 'date-fns';
 import { getCategory } from './category';
-
 
 /**
  * Creates a new transaction with proper typing and default values
  */
 export function createTransaction(input: TransactionInput): Transaction {
   const now = new Date();
-  
+
   // Default transaction status is 'COMPLETED' unless specified in metadata
   const status = (input.metadata?.status as TransactionStatus) || 'COMPLETED';
-  
+
   const transaction: Transaction = {
     // Generate a unique ID for the transaction
 
     id: Math.random().toString(),
-    
+
     // Required fields from input
     type: input.type,
     amount: input.amount,
     categoryId: input.categoryId,
     category: getCategory(input.categoryId),
     status,
-    
+
     // Date and time (defaults to current if not provided)
     date: input.date || format(now, 'yyyy-MM-dd'),
     time: input.time || format(now, 'HH:mm'),
-    
+
     // Description fields
     title: input.title,
     description: input.description || '',
-    
+
     // Optional fields
     ...(input.paymentMethod && { paymentMethod: input.paymentMethod }),
     ...(input.location && { location: input.location }),
     ...(input.tags && { tags: input.tags }),
     ...(input.receiptUrl && { receiptUrl: input.receiptUrl }),
     ...(typeof input.isEssential !== 'undefined' && { isEssential: input.isEssential }),
-    
+
     // Metadata
     ...(input.metadata && { metadata: input.metadata }),
-    
+
     // Recurrence settings
     ...(input.recurrence && {
       recurrence: {
         frequency: input.recurrence.frequency,
         endDate: input.recurrence.endDate,
         reminderEnabled: input.recurrence.reminderEnabled,
-        lastProcessed: now.toISOString().split('T')[0]
-      }
-    })
+        lastProcessed: now.toISOString().split('T')[0],
+      },
+    }),
   };
 
   return transaction;
 }
-
 
 export const getMonthlyTransactions = (
   transactions: Record<string, Transaction>,
@@ -65,11 +70,11 @@ export const getMonthlyTransactions = (
 ): Transaction[] => {
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
-  
-  return Object.values(transactions).filter(transaction => 
+
+  return Object.values(transactions).filter((transaction) =>
     isWithinInterval(new Date(transaction.date), {
       start: monthStart,
-      end: monthEnd
+      end: monthEnd,
     })
   );
 };
@@ -121,7 +126,7 @@ const validateTransaction = (
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
@@ -130,7 +135,7 @@ const createBaseTransaction = (
   type: TransactionType
 ): Transaction => {
   const now = new Date();
-  
+
   return {
     id: Math.floor(Math.random() * 1000000).toString(),
     date: params.date || now.toISOString().split('T')[0],
@@ -147,7 +152,7 @@ const createBaseTransaction = (
     receiptUrl: params.receiptUrl,
     isEssential: params.isEssential,
     metadata: params.metadata,
-    category: getCategory(params.categoryId)
+    category: getCategory(params.categoryId),
   };
 };
 
@@ -157,7 +162,7 @@ export const addExpense = (
   params: CreateTransactionParams
 ): Transaction | null => {
   const validation = validateTransaction(params, store.get().categories);
-  
+
   if (!validation.isValid) {
     console.error('Transaction validation failed:', validation.errors);
     return null;
@@ -170,10 +175,10 @@ export const addExpense = (
   }
 
   const transaction = createBaseTransaction(params, TransactionType.EXPENSE);
-  
+
   // Update store
   store.transactions[transaction.id].set(transaction);
-  
+
   // Update lastUpdated timestamp
   store.metadata.lastUpdated.set(new Date().toISOString());
 
@@ -185,7 +190,7 @@ export const addIncome = (
   params: CreateTransactionParams
 ): Transaction | null => {
   const validation = validateTransaction(params, store.get().categories);
-  
+
   if (!validation.isValid) {
     console.error('Transaction validation failed:', validation.errors);
     return null;
@@ -198,10 +203,10 @@ export const addIncome = (
   }
 
   const transaction = createBaseTransaction(params, TransactionType.INCOME);
-  
+
   // Update store
   store.transactions[transaction.id].set(transaction);
-  
+
   // Update lastUpdated timestamp
   store.metadata.lastUpdated.set(new Date().toISOString());
 
@@ -239,7 +244,7 @@ export const updateTransaction = (
     amount: currentTransaction.amount,
     categoryId: currentTransaction.categoryId,
     description: currentTransaction.description,
-    ...updates
+    ...updates,
   };
 
   const validation = validateTransaction(updatedParams, store.get().categories);
@@ -251,7 +256,7 @@ export const updateTransaction = (
   const updatedTransaction = {
     ...currentTransaction,
     ...updatedParams,
-    amount: Number(updatedParams.amount.toFixed(2))
+    amount: Number(updatedParams.amount.toFixed(2)),
   };
 
   store.transactions[transactionId].set(updatedTransaction);
@@ -265,19 +270,15 @@ export const useGetTransactionsByDateRange = (
   startDate: string,
   endDate: string
 ): Transaction[] => {
-  const { store } = useFinanceStore()
+  const { store } = useFinanceStore();
   const transactions = store.get().transactions;
   return Object.values(transactions).filter(
-    transaction => transaction.date >= startDate && transaction.date <= endDate
+    (transaction) => transaction.date >= startDate && transaction.date <= endDate
   );
 };
 
-export const useGetTransactionsByCategory = (
-  categoryId: string
-): Transaction[] => {
-  const { store } = useFinanceStore()
+export const useGetTransactionsByCategory = (categoryId: string): Transaction[] => {
+  const { store } = useFinanceStore();
   const transactions = store.get().transactions;
-  return Object.values(transactions).filter(
-    transaction => transaction.categoryId === categoryId
-  );
+  return Object.values(transactions).filter((transaction) => transaction.categoryId === categoryId);
 };

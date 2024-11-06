@@ -1,31 +1,28 @@
-import { memo, useCallback, useRef } from 'react'
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import Animated, {
-  LinearTransition
-} from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import { observer, useObservable } from '@legendapp/state/react'
-import { BottomSheet } from 'src/components/bottom'
-import useFinanceStore from 'src/store/finance/actions'
-import { TransactionType } from 'src/store/finance/types'
-import TransactionCard from 'src/components/transaction.card'
-import TransactionForm from 'src/components/transaction.form'
-
+import { memo, useCallback, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { LinearTransition } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
+import { observer, useObservable } from '@legendapp/state/react';
+import { BottomSheet } from 'src/components/bottom';
+import useFinanceStore from 'src/store/finance/actions';
+import { TransactionType } from 'src/store/finance/types';
+import TransactionCard from 'src/components/transaction.card';
+import TransactionForm from 'src/components/transaction.form';
 
 const IncomePage = () => {
-  const { useGetTransactionsByCategoryId, getTransactions } = useFinanceStore()
-  const renderCount = ++useRef(0).current
-  console.log(renderCount)
+  const { useGetTransactionsByCategoryId, getTransactions } = useFinanceStore();
+  const renderCount = ++useRef(0).current;
+  console.log(renderCount);
 
   const handleDeleteIncome = useCallback((id: string) => {
-    console.log(id)
-  }, [])
+    console.log(id);
+  }, []);
 
   // const incomeData = useGetTransactionsByCategoryId(TransactionType.INCOME)
-  const transactions = getTransactions(new Date())
+  const transactions = getTransactions(new Date());
 
-  const showNewIncomeForm$ = useObservable(false)
+  const showNewIncomeForm$ = useObservable(false);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
@@ -73,9 +70,13 @@ const IncomePage = () => {
             </Text>
           </View>
         ) : (
-          <Animated.View layout={ LinearTransition.springify()}>
+          <Animated.View layout={LinearTransition.springify()}>
             {transactions
-              .sort((a, b) => new Date(b.date + 'T' + b.time).getTime() - new Date(a.date + 'T' + a.time).getTime())
+              .sort(
+                (a, b) =>
+                  new Date(b.date + 'T' + b.time).getTime() -
+                  new Date(a.date + 'T' + a.time).getTime()
+              )
               .map((income) => (
                 <TransactionCard
                   key={income.id}
@@ -92,15 +93,15 @@ const IncomePage = () => {
         onClose={() => showNewIncomeForm$.set(false)}
       >
         <TransactionForm
-         showForm={showNewIncomeForm$} 
-         type={TransactionType.INCOME}
-         onSubmit={(transaction) => {
-           console.log(transaction)
-         }}
+          showForm={showNewIncomeForm$}
+          type={TransactionType.INCOME}
+          onSubmit={(transaction) => {
+            console.log(transaction);
+          }}
         />
       </BottomSheet>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default memo(observer(IncomePage))
+export default memo(observer(IncomePage));

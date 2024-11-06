@@ -1,4 +1,4 @@
-import { hairlineWidth } from "nativewind/theme";
+import { hairlineWidth } from 'nativewind/theme';
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -174,16 +174,16 @@ module.exports = {
           error: 'rgb(var(--color-indicator-error)/<alpha-value>)',
         },
         black: {
-          DEFAULT: "#000",
-          100: "#1E1E2D",
-          200: "#232533",
+          DEFAULT: '#000',
+          100: '#1E1E2D',
+          200: '#232533',
         },
         gray: {
-          100: "#CDCDE0",
+          100: '#CDCDE0',
         },
         light: {
-          DEFAULT: "#007aff"
-        }
+          DEFAULT: '#007aff',
+        },
       },
       fontFamily: {
         heading: undefined,
@@ -197,21 +197,21 @@ module.exports = {
         sansSerif: ['sans-serif', 'sans-serif'],
         monospace: ['monospace', 'monospace'],
         roboto: ['Roboto', 'sans-serif'],
-        pthin: ["Poppins-Thin", "sans-serif"],
-        pextralight: ["Poppins-ExtraLight", "sans-serif"],
-        plight: ["Poppins-Light", "sans-serif"],
-        pregular: ["Poppins-Regular", "sans-serif"],
-        pmedium: ["Poppins-Medium", "sans-serif"],
-        psemibold: ["Poppins-SemiBold", "sans-serif"],
-        pbold: ["Poppins-Bold", "sans-serif"],
-        pextrabold: ["Poppins-ExtraBold", "sans-serif"],
-        pblack: ["Poppins-Black", "sans-serif"],
-        rthin: ["roboto-thin", "sans-serif"],
-        rregular: ["roboto-regular", "sans-serif"],
-        rmedium: ["roboto-medium", "sans-serif"],
-        rbold: ["roboto-bold", "sans-serif"],
-        aregular: ["Archivo-Regular", "sans-serif"],
-        plregular: ["Playfair-Regular", "sans-serif"],
+        pthin: ['Poppins-Thin', 'sans-serif'],
+        pextralight: ['Poppins-ExtraLight', 'sans-serif'],
+        plight: ['Poppins-Light', 'sans-serif'],
+        pregular: ['Poppins-Regular', 'sans-serif'],
+        pmedium: ['Poppins-Medium', 'sans-serif'],
+        psemibold: ['Poppins-SemiBold', 'sans-serif'],
+        pbold: ['Poppins-Bold', 'sans-serif'],
+        pextrabold: ['Poppins-ExtraBold', 'sans-serif'],
+        pblack: ['Poppins-Black', 'sans-serif'],
+        rthin: ['roboto-thin', 'sans-serif'],
+        rregular: ['roboto-regular', 'sans-serif'],
+        rmedium: ['roboto-medium', 'sans-serif'],
+        rbold: ['roboto-bold', 'sans-serif'],
+        aregular: ['Archivo-Regular', 'sans-serif'],
+        plregular: ['Playfair-Regular', 'sans-serif'],
       },
       fontWeight: {
         extrablack: '950',

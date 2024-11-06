@@ -1,33 +1,33 @@
 // Transaction Related Enums
 export enum TransactionType {
   EXPENSE = 'EXPENSE',
-  INCOME = 'INCOME', 
+  INCOME = 'INCOME',
   TRANSFER = 'TRANSFER',
   SAVINGS = 'SAVINGS',
   INVESTMENT = 'INVESTMENT',
-  DEBT_PAYMENT = 'DEBT_PAYMENT'
+  DEBT_PAYMENT = 'DEBT_PAYMENT',
 }
 
 export enum TransactionStatus {
   PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED', 
+  COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 // Category Related Enums
 export enum CategoryType {
   INCOME = 'income',
   EXPENSE = 'expense',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 export enum IncomeCategory {
   SALARY = 'SALARY',
-  BUSINESS = 'BUSINESS', 
+  BUSINESS = 'BUSINESS',
   INVESTMENTS = 'INVESTMENTS',
   SIDE_HUSTLE = 'SIDE_HUSTLE',
-  GIFTS = 'GIFTS'
+  GIFTS = 'GIFTS',
 }
 
 export enum ExpenseGroup {
@@ -39,10 +39,10 @@ export enum ExpenseGroup {
   INSURANCE = 'INSURANCE',
   TRANSPORTATION = 'TRANSPORTATION',
   DEBT = 'DEBT',
-  
+
   // Discretionary Expenses
   ENTERTAINMENT = 'ENTERTAINMENT',
-  SHOPPING = 'SHOPPING'
+  SHOPPING = 'SHOPPING',
 }
 
 // Budget Related Enums
@@ -50,14 +50,14 @@ export enum BudgetRuleType {
   RULE_50_30_20 = '50/30/20 Rule', // Needs/Wants/Savings
   RULE_70_20_10 = '70/20/10 Rule', // Living/Savings/Debt
   RULE_15_65_20 = '15/65/20 Rule', // Savings/Living/Debt
-  CUSTOM = 'Custom Rule'
+  CUSTOM = 'Custom Rule',
 }
 
 export enum RecurrenceFrequency {
   DAILY = 'daily',
   WEEKLY = 'weekly',
   MONTHLY = 'monthly',
-  YEARLY = 'yearly'
+  YEARLY = 'yearly',
 }
 
 // Category IDs
@@ -67,7 +67,7 @@ export enum IncomeCategoryId {
   INVESTMENTS = 'income_investments',
   SIDE_HUSTLE = 'income_side_hustle',
   GIFTS = 'income_gifts',
-  CUSTOM = 'custom_income'
+  CUSTOM = 'custom_income',
 }
 
 export enum ExpenseCategoryId {
@@ -80,13 +80,13 @@ export enum ExpenseCategoryId {
   INSURANCE = 'expense_insurance',
   TRANSPORTATION = 'expense_transportation',
   DEBT = 'expense_debt',
-  
+
   // Discretionary Expenses
   ENTERTAINMENT = 'expense_entertainment',
   SHOPPING = 'expense_shopping',
   // EDUCATION = 'expense_education',
-  
-  CUSTOM = 'custom_expense'
+
+  CUSTOM = 'custom_expense',
 }
 
 export type CategoryId = IncomeCategoryId | ExpenseCategoryId | string;
@@ -111,30 +111,29 @@ export interface Category {
   };
 }
 
-
 export interface Transaction {
   id: string;
   type: TransactionType;
   amount: number;
   categoryId: CategoryId;
   status: TransactionStatus;
-  category:Category
-  
+  category: Category;
+
   // Timing
   date: string;
   time: string;
-  
+
   // Description
   title: string;
   description: string;
-  
+
   // Optional Fields
   paymentMethod?: string;
   location?: string;
   tags?: string[];
   receiptUrl?: string;
   isEssential?: boolean;
-  
+
   // Additional Data
   metadata?: Record<string, unknown>;
   recurrence?: {
@@ -144,7 +143,6 @@ export interface Transaction {
     lastProcessed?: string;
   };
 }
-
 
 export type TransactionInput = {
   type: TransactionType;
@@ -229,10 +227,13 @@ export interface FinanceInsights {
   }[];
   trends: {
     monthly: Record<string, number>;
-    categoryTrends: Record<string, {
-      trend: number;
-      average: number;
-    }>;
+    categoryTrends: Record<
+      string,
+      {
+        trend: number;
+        average: number;
+      }
+    >;
   };
 }
 
@@ -250,7 +251,6 @@ export interface FinanceStore {
     timezone: string;
   };
 }
-
 
 export interface FinanceAlerts {
   categoryOverspend: string[];
@@ -334,8 +334,8 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     budgetPercentage: 30,
     metadata: {
       description: 'Housing and mortgage related expenses',
-      priority: 1
-    }
+      priority: 1,
+    },
   },
   [ExpenseCategoryId.RENT]: {
     id: ExpenseCategoryId.RENT,
@@ -348,8 +348,8 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     budgetPercentage: 25,
     metadata: {
       description: 'Monthly rent payments',
-      priority: 1
-    }
+      priority: 1,
+    },
   },
   [ExpenseCategoryId.UTILITIES]: {
     id: ExpenseCategoryId.UTILITIES,
@@ -359,7 +359,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     subgroup: ExpenseGroup.UTILITIES,
     isDefault: true,
     color: '#A0AEC0',
-    budgetPercentage: 5
+    budgetPercentage: 5,
   },
   [ExpenseCategoryId.GROCERIES]: {
     id: ExpenseCategoryId.GROCERIES,
@@ -369,7 +369,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     subgroup: ExpenseGroup.FOOD,
     isDefault: true,
     color: '#48BB78',
-    budgetPercentage: 10
+    budgetPercentage: 10,
   },
   [ExpenseCategoryId.HEALTHCARE]: {
     id: ExpenseCategoryId.HEALTHCARE,
@@ -379,7 +379,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     subgroup: ExpenseGroup.HEALTHCARE,
     isDefault: true,
     color: '#E53E3E',
-    budgetPercentage: 8
+    budgetPercentage: 8,
   },
   [ExpenseCategoryId.INSURANCE]: {
     id: ExpenseCategoryId.INSURANCE,
@@ -389,7 +389,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     subgroup: ExpenseGroup.INSURANCE,
     isDefault: true,
     color: '#805AD5',
-    budgetPercentage: 5
+    budgetPercentage: 5,
   },
   [ExpenseCategoryId.TRANSPORTATION]: {
     id: ExpenseCategoryId.TRANSPORTATION,
@@ -399,7 +399,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     subgroup: ExpenseGroup.TRANSPORTATION,
     isDefault: true,
     color: '#3182CE',
-    budgetPercentage: 7
+    budgetPercentage: 7,
   },
   [ExpenseCategoryId.DEBT]: {
     id: ExpenseCategoryId.DEBT,
@@ -409,7 +409,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     subgroup: ExpenseGroup.DEBT,
     isDefault: true,
     color: '#DD6B20',
-    budgetPercentage: 10
+    budgetPercentage: 10,
   },
   [ExpenseCategoryId.ENTERTAINMENT]: {
     id: ExpenseCategoryId.ENTERTAINMENT,
@@ -419,7 +419,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     subgroup: ExpenseGroup.ENTERTAINMENT,
     isDefault: true,
     color: '#9F7AEA',
-    budgetPercentage: 5
+    budgetPercentage: 5,
   },
   [ExpenseCategoryId.SHOPPING]: {
     id: ExpenseCategoryId.SHOPPING,
@@ -429,7 +429,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     subgroup: ExpenseGroup.SHOPPING,
     isDefault: true,
     color: '#F6AD55',
-    budgetPercentage: 5
+    budgetPercentage: 5,
   },
   [ExpenseCategoryId.CUSTOM]: {
     id: ExpenseCategoryId.CUSTOM,
@@ -437,8 +437,8 @@ export const DEFAULT_EXPENSE_CATEGORIES: Record<ExpenseCategoryId, Category> = {
     icon: '✨',
     type: CategoryType.EXPENSE,
     isDefault: false,
-    color: '#CBD5E0'
-  }
+    color: '#CBD5E0',
+  },
 };
 
 export const DEFAULT_INCOME_CATEGORIES: Record<IncomeCategoryId, Category> = {
@@ -449,7 +449,7 @@ export const DEFAULT_INCOME_CATEGORIES: Record<IncomeCategoryId, Category> = {
     type: CategoryType.INCOME,
     subgroup: ExpenseGroup.HOUSING,
     isDefault: true,
-    color: '#48BB78'
+    color: '#48BB78',
   },
   [IncomeCategoryId.BUSINESS]: {
     id: IncomeCategoryId.BUSINESS,
@@ -458,7 +458,7 @@ export const DEFAULT_INCOME_CATEGORIES: Record<IncomeCategoryId, Category> = {
     type: CategoryType.INCOME,
     subgroup: ExpenseGroup.HOUSING,
     isDefault: true,
-    color: '#4299E1'
+    color: '#4299E1',
   },
   [IncomeCategoryId.INVESTMENTS]: {
     id: IncomeCategoryId.INVESTMENTS,
@@ -467,7 +467,7 @@ export const DEFAULT_INCOME_CATEGORIES: Record<IncomeCategoryId, Category> = {
     type: CategoryType.INCOME,
     subgroup: ExpenseGroup.HOUSING,
     isDefault: true,
-    color: '#805AD5'
+    color: '#805AD5',
   },
   [IncomeCategoryId.SIDE_HUSTLE]: {
     id: IncomeCategoryId.SIDE_HUSTLE,
@@ -476,7 +476,7 @@ export const DEFAULT_INCOME_CATEGORIES: Record<IncomeCategoryId, Category> = {
     type: CategoryType.INCOME,
     subgroup: ExpenseGroup.HOUSING,
     isDefault: true,
-    color: '#ED64A6'
+    color: '#ED64A6',
   },
   [IncomeCategoryId.GIFTS]: {
     id: IncomeCategoryId.GIFTS,
@@ -485,7 +485,7 @@ export const DEFAULT_INCOME_CATEGORIES: Record<IncomeCategoryId, Category> = {
     type: CategoryType.INCOME,
     subgroup: ExpenseGroup.HOUSING,
     isDefault: true,
-    color: '#F6AD55'
+    color: '#F6AD55',
   },
   [IncomeCategoryId.CUSTOM]: {
     id: IncomeCategoryId.CUSTOM,
@@ -493,6 +493,6 @@ export const DEFAULT_INCOME_CATEGORIES: Record<IncomeCategoryId, Category> = {
     icon: '✨',
     type: CategoryType.INCOME,
     isDefault: false,
-    color: '#CBD5E0'
-  }
+    color: '#CBD5E0',
+  },
 };

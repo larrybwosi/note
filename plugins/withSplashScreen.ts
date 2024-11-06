@@ -1,9 +1,14 @@
-import { ConfigPlugin, withStringsXml, AndroidConfig, withAndroidStyles } from "expo/config-plugins"
+import {
+  ConfigPlugin,
+  withStringsXml,
+  AndroidConfig,
+  withAndroidStyles,
+} from 'expo/config-plugins';
 
 export const withSplashScreen: ConfigPlugin = (config) => {
-  config = withAndroidSplashScreen(config)
-  return config
-}
+  config = withAndroidSplashScreen(config);
+  return config;
+};
 
 /**
  * Android implementation of the config plugin - the only platform needed for this plugin.
@@ -12,10 +17,10 @@ export const withSplashScreen: ConfigPlugin = (config) => {
  * add `withIosSplashScreen` for the iOS implementation.
  */
 const withAndroidSplashScreen: ConfigPlugin = (config) => {
-  config = withCustomStylesXml(config)
-  config = withCustomStringsXml(config)
-  return config
-}
+  config = withCustomStylesXml(config);
+  config = withCustomStringsXml(config);
+  return config;
+};
 
 /**
  * Modifies the `android/app/src/main/res/values/strings.xml` file to add the following string:
@@ -27,17 +32,17 @@ const withCustomStringsXml: ConfigPlugin = (config) =>
     modConfig.modResults = AndroidConfig.Strings.setStringItem(
       [
         {
-          _: "true",
+          _: 'true',
           $: {
-            name: "expo_splash_screen_status_bar_translucent",
-            translatable: "false",
+            name: 'expo_splash_screen_status_bar_translucent',
+            translatable: 'false',
           },
         },
       ],
-      modConfig.modResults,
-    )
-    return modConfig
-  })
+      modConfig.modResults
+    );
+    return modConfig;
+  });
 
 /**
  * Modifies the `android/app/src/main/res/values/styles.xml` file to append the
@@ -49,12 +54,12 @@ const withCustomStylesXml: ConfigPlugin = (config) =>
   withAndroidStyles(config, async (modConfig) => {
     modConfig.modResults = AndroidConfig.Styles.assignStylesValue(modConfig.modResults, {
       add: true,
-      name: "android:windowIsTranslucent",
-      value: "true",
+      name: 'android:windowIsTranslucent',
+      value: 'true',
       parent: {
-        name: "Theme.App.SplashScreen",
-        parent: "AppTheme",
+        name: 'Theme.App.SplashScreen',
+        parent: 'AppTheme',
       },
-    })
-    return modConfig
-  })
+    });
+    return modConfig;
+  });

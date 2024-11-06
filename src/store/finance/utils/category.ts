@@ -1,20 +1,23 @@
-import { 
-  CategoryId, 
-  CategoryType, 
-  ExpenseGroup, 
-  FinanceStore, 
+import {
+  CategoryId,
+  CategoryType,
+  ExpenseGroup,
+  FinanceStore,
   IncomeCategory,
   Category,
   DEFAULT_EXPENSE_CATEGORIES,
   DEFAULT_INCOME_CATEGORIES,
   IncomeCategoryId,
-  ExpenseCategoryId
-} from "../types";
+  ExpenseCategoryId,
+} from '../types';
 
-export const createCategory = (partial: Omit<Category, 'id' | 'isDefault' | 'isArchived'>): Category => {
-  const id = partial.type === CategoryType.INCOME 
-    ? `income_${Math.floor(Math.random() * 1000000)}`
-    : `expense_${Math.floor(Math.random() * 1000000)}`;
+export const createCategory = (
+  partial: Omit<Category, 'id' | 'isDefault' | 'isArchived'>
+): Category => {
+  const id =
+    partial.type === CategoryType.INCOME
+      ? `income_${Math.floor(Math.random() * 1000000)}`
+      : `expense_${Math.floor(Math.random() * 1000000)}`;
 
   return {
     id,
@@ -28,27 +31,22 @@ export const createCategory = (partial: Omit<Category, 'id' | 'isDefault' | 'isA
     budgetPercentage: partial.budgetPercentage,
     monthlyLimit: partial.monthlyLimit,
     warningThreshold: partial.warningThreshold,
-    metadata: partial.metadata
+    metadata: partial.metadata,
   };
 };
 
-export const isCategoryValid = (categoryId: CategoryId, store: FinanceStore): boolean => 
+export const isCategoryValid = (categoryId: CategoryId, store: FinanceStore): boolean =>
   categoryId in store.categories;
 
-export const getCategoriesByType = (
-  store: FinanceStore,
-  type: CategoryType
-): Category[] => 
-  Object.values(store.categories).filter(cat => cat.type === type);
+export const getCategoriesByType = (store: FinanceStore, type: CategoryType): Category[] =>
+  Object.values(store.categories).filter((cat) => cat.type === type);
 
 export const getCategoriesBySubgroup = (
   store: FinanceStore,
   type: CategoryType,
   subgroup: ExpenseGroup | IncomeCategory
-): Category[] => 
-  Object.values(store.categories).filter(
-    cat => cat.type === type && cat.subgroup === subgroup
-  );
+): Category[] =>
+  Object.values(store.categories).filter((cat) => cat.type === type && cat.subgroup === subgroup);
 
 // Helper function to get all categories in a subgroup
 export const getSubgroupCategories = (
@@ -57,10 +55,9 @@ export const getSubgroupCategories = (
   subgroup: ExpenseGroup | IncomeCategory
 ): Category[] => {
   return Array.from(store.values()).filter(
-    category => category.type === type && category.subgroup === subgroup
+    (category) => category.type === type && category.subgroup === subgroup
   );
 };
-
 
 // Custom categories storage (for user-defined categories)
 let customCategories: Record<string, Category> = {};
@@ -75,12 +72,12 @@ export function getCategory(categoryId: CategoryId): Category {
   if (categoryId in ExpenseCategoryId) {
     return DEFAULT_EXPENSE_CATEGORIES[categoryId as ExpenseCategoryId];
   }
-  
+
   // Check income categories
   if (categoryId in IncomeCategoryId) {
     return DEFAULT_INCOME_CATEGORIES[categoryId as IncomeCategoryId];
   }
-  
+
   // Check custom categories
   return customCategories[categoryId];
 }
@@ -100,18 +97,16 @@ export function setCustomCategory(category: Category): void {
  */
 export function useGetCategoriesByType(type: CategoryType): Category[] {
   const categories: Category[] = [];
-  
+
   if (type === CategoryType.EXPENSE) {
     categories.push(...Object.values(DEFAULT_EXPENSE_CATEGORIES));
   } else {
     categories.push(...Object.values(DEFAULT_INCOME_CATEGORIES));
   }
-  
+
   // Add custom categories of the specified type
-  categories.push(
-    ...Object.values(customCategories).filter(cat => cat.type === type)
-  );
-  
+  categories.push(...Object.values(customCategories).filter((cat) => cat.type === type));
+
   return categories;
 }
 
@@ -123,6 +118,6 @@ export function getAllCategories(): Category[] {
   return [
     ...Object.values(DEFAULT_EXPENSE_CATEGORIES),
     ...Object.values(DEFAULT_INCOME_CATEGORIES),
-    ...Object.values(customCategories)
+    ...Object.values(customCategories),
   ];
 }

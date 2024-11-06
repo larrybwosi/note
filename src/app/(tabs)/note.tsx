@@ -10,13 +10,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import {
-  AntDesign,
-  Feather,
-  MaterialIcons,
-  Ionicons,
-  FontAwesome,
-} from '@expo/vector-icons';
+import { AntDesign, Feather, MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import AddNoteModal from 'src/components/note.add';
 
@@ -37,7 +31,7 @@ const themes = {
     secondary: '#0984e3',
     accent: '#6c5ce7',
     border: '#636e72',
-  }
+  },
 };
 
 interface Note {
@@ -110,7 +104,7 @@ const NotionEditor: React.FC = () => {
 
   // Quick Actions FAB
   const QuickActionsFAB: React.FC = () => (
-    <TouchableOpacity 
+    <TouchableOpacity
       className="absolute bottom-6 right-6 bg-blue-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
       onPress={() => setIsAddingNote(true)}
     >
@@ -134,7 +128,7 @@ const NotionEditor: React.FC = () => {
 
   // Tag component
   const Tag: React.FC<{ label: string; color: string }> = ({ label, color }) => (
-    <View 
+    <View
       className="flex-row items-center px-3 py-1 rounded-full mr-2 mb-2"
       style={{ backgroundColor: color }}
     >
@@ -144,7 +138,7 @@ const NotionEditor: React.FC = () => {
 
   // Note Block component
   const NoteBlock: React.FC<{ note: Note }> = ({ note }) => (
-    <Animated.View 
+    <Animated.View
       className="bg-white dark:bg-gray-800 rounded-lg shadow-md m-4 overflow-hidden"
       style={{ opacity: fadeAnim }}
     >
@@ -162,11 +156,7 @@ const NotionEditor: React.FC = () => {
 
   // Onboarding Modal
   const OnboardingModal: React.FC = () => (
-    <Modal
-      visible={showOnboarding}
-      animationType="slide"
-      transparent={true}
-    >
+    <Modal visible={showOnboarding} animationType="slide" transparent={true}>
       <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
         <View className="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 w-5/6">
           <Text className="text-2xl font-bold mb-4 dark:text-white">Welcome to Notes!</Text>
@@ -174,10 +164,18 @@ const NotionEditor: React.FC = () => {
             Let's get you started with the basics:
           </Text>
           <View className="mb-4">
-            <Text className="text-gray-600 dark:text-gray-300 mb-2">1. Tap the + button to create a new note</Text>
-            <Text className="text-gray-600 dark:text-gray-300 mb-2">2. Use the toolbar to format your text</Text>
-            <Text className="text-gray-600 dark:text-gray-300 mb-2">3. Add tags to organize your notes</Text>
-            <Text className="text-gray-600 dark:text-gray-300">4. Use the search bar to find notes quickly</Text>
+            <Text className="text-gray-600 dark:text-gray-300 mb-2">
+              1. Tap the + button to create a new note
+            </Text>
+            <Text className="text-gray-600 dark:text-gray-300 mb-2">
+              2. Use the toolbar to format your text
+            </Text>
+            <Text className="text-gray-600 dark:text-gray-300 mb-2">
+              3. Add tags to organize your notes
+            </Text>
+            <Text className="text-gray-600 dark:text-gray-300">
+              4. Use the search bar to find notes quickly
+            </Text>
           </View>
           <TouchableOpacity
             className="bg-blue-500 rounded-lg py-3 px-6 items-center"
@@ -197,7 +195,7 @@ const NotionEditor: React.FC = () => {
   //     animationType="slide"
   //     transparent={true}
   //   >
-  //     <KeyboardAvoidingView 
+  //     <KeyboardAvoidingView
   //       behavior={Platform.OS === "ios" ? "padding" : "height"}
   //       className="flex-1 justify-end"
   //     >
@@ -264,7 +262,7 @@ const NotionEditor: React.FC = () => {
         onSave={handleAddNote}
         onClose={() => setIsAddingNote(false)}
       />
-      
+
       {/* Header */}
       <View className="flex-row items-center justify-between p-4 bg-white dark:bg-gray-800">
         <TouchableOpacity onPress={() => setIsMenuOpen(!isMenuOpen)}>
@@ -285,14 +283,14 @@ const NotionEditor: React.FC = () => {
       {/* Main Content */}
       <ScrollView className="flex-1">
         {notes
-          .filter(note => 
-            note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            note.content.toLowerCase().includes(searchQuery.toLowerCase())
+          .filter(
+            (note) =>
+              note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              note.content.toLowerCase().includes(searchQuery.toLowerCase())
           )
           .map((note, index) => (
             <NoteBlock key={index} note={note} />
-          ))
-        }
+          ))}
       </ScrollView>
 
       {/* Toolbar */}

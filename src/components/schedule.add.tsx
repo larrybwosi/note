@@ -1,58 +1,57 @@
-import { observer, useObservable } from "@legendapp/state/react"
-import { Text } from "react-native"
-import { Modal, TextInput, TouchableOpacity, View, ScrollView } from "react-native"
-import Animated, { SlideInRight, SlideOutLeft } from "react-native-reanimated"
-import { TASK_TYPES, PRIORITY_LEVELS, RECURRENCE_PATTERNS } from "../storage/schedule"
-import useScheduleStore from "src/store/shedule/actions"
-import { scheduleStore } from "src/store/shedule/store"
-import DateTimePickerComponent from "./date.time";
-
+import { observer, useObservable } from '@legendapp/state/react';
+import { Text } from 'react-native';
+import { Modal, TextInput, TouchableOpacity, View, ScrollView } from 'react-native';
+import Animated, { SlideInRight, SlideOutLeft } from 'react-native-reanimated';
+import { TASK_TYPES, PRIORITY_LEVELS, RECURRENCE_PATTERNS } from '../storage/schedule';
+import useScheduleStore from 'src/store/shedule/actions';
+import { scheduleStore } from 'src/store/shedule/store';
+import DateTimePickerComponent from './date.time';
 
 const priorityColors = {
   Low: {
-    bg: "bg-emerald-500",
-    text: "text-emerald-500",
-    light: "bg-emerald-100",
-    border: "border-emerald-500",
+    bg: 'bg-emerald-500',
+    text: 'text-emerald-500',
+    light: 'bg-emerald-100',
+    border: 'border-emerald-500',
   },
   Medium: {
-    bg: "bg-blue-500",
-    text: "text-blue-500",
-    light: "bg-blue-100",
-    border: "border-blue-500",
+    bg: 'bg-blue-500',
+    text: 'text-blue-500',
+    light: 'bg-blue-100',
+    border: 'border-blue-500',
   },
   High: {
-    bg: "bg-amber-500",
-    text: "text-amber-500",
-    light: "bg-amber-100",
-    border: "border-amber-500",
+    bg: 'bg-amber-500',
+    text: 'text-amber-500',
+    light: 'bg-amber-100',
+    border: 'border-amber-500',
   },
   Critical: {
-    bg: "bg-rose-500",
-    text: "text-rose-500",
-    light: "bg-rose-100",
-    border: "border-rose-500",
-  }
-}
+    bg: 'bg-rose-500',
+    text: 'text-rose-500',
+    light: 'bg-rose-100',
+    border: 'border-rose-500',
+  },
+};
 
 const typeColors = {
-  Work: { bg: "bg-blue-100", text: "text-blue-600" },
-  Personal: { bg: "bg-green-100", text: "text-green-600" },
-  Health: { bg: "bg-rose-100", text: "text-rose-600" },
-  Learning: { bg: "bg-purple-100", text: "text-purple-600" },
-  Social: { bg: "bg-amber-100", text: "text-amber-600" },
-  Urgent: { bg: "bg-red-100", text: "text-red-600" }
-}
+  Work: { bg: 'bg-blue-100', text: 'text-blue-600' },
+  Personal: { bg: 'bg-green-100', text: 'text-green-600' },
+  Health: { bg: 'bg-rose-100', text: 'text-rose-600' },
+  Learning: { bg: 'bg-purple-100', text: 'text-purple-600' },
+  Social: { bg: 'bg-amber-100', text: 'text-amber-600' },
+  Urgent: { bg: 'bg-red-100', text: 'text-red-600' },
+};
 
 const AddItem = () => {
-  const isEvent = scheduleStore.newItem.scheduleType.get() === 'event'
-  const showDatePicker$ = useObservable(false)
-  const showTimePicker$ = useObservable(false)
-  const showDatePicker = showDatePicker$.get()
-  const showTimePicker = showDatePicker$.get()
+  const isEvent = scheduleStore.newItem.scheduleType.get() === 'event';
+  const showDatePicker$ = useObservable(false);
+  const showTimePicker$ = useObservable(false);
+  const showDatePicker = showDatePicker$.get();
+  const showTimePicker = showDatePicker$.get();
 
-  const { addItem, resetForm } = useScheduleStore()
-  return(
+  const { addItem, resetForm } = useScheduleStore();
+  return (
     <Modal
       visible={scheduleStore.isAddingItem.get()}
       transparent
@@ -60,7 +59,7 @@ const AddItem = () => {
       onRequestClose={resetForm}
     >
       <View className="flex-1 justify-end bg-black/50">
-        <Animated.View 
+        <Animated.View
           entering={SlideInRight}
           exiting={SlideOutLeft}
           className="bg-white dark:bg-gray-800 rounded-t-3xl p-6 h-5/6"
@@ -80,7 +79,9 @@ const AddItem = () => {
                   {['task', 'event'].map((type) => (
                     <TouchableOpacity
                       key={type}
-                      onPress={() => scheduleStore.newItem.scheduleType.set(type as 'task' | 'event')}
+                      onPress={() =>
+                        scheduleStore.newItem.scheduleType.set(type as 'task' | 'event')
+                      }
                       className={`flex-1 p-4 rounded-xl border ${
                         scheduleStore.newItem.scheduleType.get() === type
                           ? 'border-violet-600 bg-violet-50 dark:bg-violet-900/30'
@@ -311,8 +312,11 @@ const AddItem = () => {
                   placeholder="Enter tags..."
                   value={scheduleStore.newItem?.tags?.get()?.join(', ')}
                   onChangeText={(text) => {
-                    const tags = text.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
-                    scheduleStore.newItem.tags.set(tags)
+                    const tags = text
+                      .split(',')
+                      .map((tag) => tag.trim())
+                      .filter((tag) => tag.length > 0);
+                    scheduleStore.newItem.tags.set(tags);
                   }}
                   placeholderTextColor="#9CA3AF"
                 />
@@ -348,9 +352,7 @@ const AddItem = () => {
               <TouchableOpacity
                 onPress={addItem}
                 className={`flex-1 p-4 rounded-xl ${
-                  isFormValid() 
-                    ? 'bg-cyan-600 dark:bg-cyan-400' 
-                    : 'bg-cyan-100 dark:bg-cyan-900/30'
+                  isFormValid() ? 'bg-cyan-600 dark:bg-cyan-400' : 'bg-cyan-100 dark:bg-cyan-900/30'
                 }`}
                 disabled={!isFormValid()}
               >
@@ -363,24 +365,24 @@ const AddItem = () => {
         </Animated.View>
       </View>
     </Modal>
-  )
-}
+  );
+};
 
 // Form validation function
 const isFormValid = () => {
-  const newItem = scheduleStore.newItem
-  const isEvent = newItem.scheduleType.get() === 'event'
-  
-  const hasRequiredFields = 
+  const newItem = scheduleStore.newItem;
+  const isEvent = newItem.scheduleType.get() === 'event';
+
+  const hasRequiredFields =
     newItem?.title?.get()?.trim() !== '' &&
     newItem?.duration?.get()! > 0 &&
-    newItem?.startDate?.get() !== null
+    newItem?.startDate?.get() !== null;
 
   if (isEvent) {
-    return hasRequiredFields && newItem.location?.get()?.trim() !== ''
+    return hasRequiredFields && newItem.location?.get()?.trim() !== '';
   }
 
-  return hasRequiredFields
-}
+  return hasRequiredFields;
+};
 
-export default observer(AddItem)
+export default observer(AddItem);

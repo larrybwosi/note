@@ -4,7 +4,14 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Feather } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { IncomeEntry } from 'src/storage';
-import { runOnJS, useSharedValue, withSpring, withTiming, withSequence, useAnimatedStyle } from 'react-native-reanimated';
+import {
+  runOnJS,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  withSequence,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { interpolate } from 'react-native-reanimated';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -20,21 +27,12 @@ const IncomeCard = ({ income, onDelete }: { income: IncomeEntry; onDelete: () =>
     .activeOffsetX(-10)
     .onUpdate((event) => {
       translateX.value = Math.min(0, event.translationX);
-      
+
       // Add subtle rotation based on drag distance
-      rotation.value = interpolate(
-        event.translationX,
-        [-200, 0],
-        [-10, 0]
-      );
-      
+      rotation.value = interpolate(event.translationX, [-200, 0], [-10, 0]);
+
       // Slightly scale down as user drags
-      scale.value = interpolate(
-        Math.abs(event.translationX),
-        [0, 200],
-        [1, 0.95],
-        'clamp'
-      );
+      scale.value = interpolate(Math.abs(event.translationX), [0, 200], [1, 0.95], 'clamp');
     })
     .onEnd(() => {
       if (translateX.value < DELETE_THRESHOLD) {
@@ -50,24 +48,28 @@ const IncomeCard = ({ income, onDelete }: { income: IncomeEntry; onDelete: () =>
             duration: 300,
           })
         );
-        
+
         // Rotate and scale down while sliding out
         rotation.value = withTiming(-45, {
           duration: 300,
         });
-        
+
         scale.value = withTiming(0.5, {
           duration: 300,
         });
-        
+
         // Fade out
-        opacity.value = withTiming(0, {
-          duration: 300,
-        }, (finished) => {
-          if (finished) {
-            runOnJS(onDelete)();
+        opacity.value = withTiming(
+          0,
+          {
+            duration: 300,
+          },
+          (finished) => {
+            if (finished) {
+              runOnJS(onDelete)();
+            }
           }
-        });
+        );
       } else {
         // Spring back to original position
         translateX.value = withSpring(0, {
@@ -83,26 +85,14 @@ const IncomeCard = ({ income, onDelete }: { income: IncomeEntry; onDelete: () =>
     transform: [
       { translateX: translateX.value },
       { scale: scale.value },
-      { rotate: `${rotation.value}deg` }
+      { rotate: `${rotation.value}deg` },
     ],
     opacity: opacity.value,
   }));
 
   const deleteIconStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      translateX.value,
-      [-100, -50],
-      [1, 0],
-      'clamp'
-    ),
-    transform: [
-      { scale: interpolate(
-        translateX.value,
-        [-100, -50],
-        [1.2, 0.8],
-        'clamp'
-      )}
-    ]
+    opacity: interpolate(translateX.value, [-100, -50], [1, 0], 'clamp'),
+    transform: [{ scale: interpolate(translateX.value, [-100, -50], [1.2, 0.8], 'clamp') }],
   }));
 
   const getStatusStyles = (status: string) => {
@@ -119,16 +109,13 @@ const IncomeCard = ({ income, onDelete }: { income: IncomeEntry; onDelete: () =>
   return (
     <View className="mb-4">
       {/* Delete Icon Background */}
-      <Animated.View 
-        className="absolute right-5 top-1/2 -translate-y-3"
-        style={deleteIconStyle}
-      >
+      <Animated.View className="absolute right-5 top-1/2 -translate-y-3" style={deleteIconStyle}>
         <Feather name="trash-2" size={24} color="#EF4444" />
       </Animated.View>
 
       {/* Card Content */}
       <GestureDetector gesture={panGesture}>
-        <Animated.View 
+        <Animated.View
           className="bg-white rounded-2xl shadow-md border border-gray-100"
           style={cardStyle}
         >
@@ -136,18 +123,12 @@ const IncomeCard = ({ income, onDelete }: { income: IncomeEntry; onDelete: () =>
             {/* Header Section */}
             <View className="flex-row justify-between items-start mb-3">
               <View className="flex-1 mr-4">
-                <Text className="text-lg font-semibold text-gray-900 mb-1">
-                  {income.title}
-                </Text>
-                <Text className="text-sm text-gray-500">
-                  {income.description}
-                </Text>
+                <Text className="text-lg font-semibold text-gray-900 mb-1">{income.title}</Text>
+                <Text className="text-sm text-gray-500">{income.description}</Text>
               </View>
-              
-              <Text 
-                className={`text-lg font-bold ${
-                  income.isUp ? 'text-green-500' : 'text-red-500'
-                }`}
+
+              <Text
+                className={`text-lg font-bold ${income.isUp ? 'text-green-500' : 'text-red-500'}`}
               >
                 ${income.amount.toLocaleString()}
               </Text>
@@ -158,15 +139,11 @@ const IncomeCard = ({ income, onDelete }: { income: IncomeEntry; onDelete: () =>
               {/* Categories */}
               <View className="flex-row gap-2">
                 <View className="bg-blue-100 px-3 py-1 rounded-full">
-                  <Text className="text-xs font-medium text-blue-800">
-                    {income.category}
-                  </Text>
+                  <Text className="text-xs font-medium text-blue-800">{income.category}</Text>
                 </View>
-                
+
                 <View className={`px-3 py-1 rounded-full ${getStatusStyles(income.status)}`}>
-                  <Text className="text-xs font-medium">
-                    {income.status}
-                  </Text>
+                  <Text className="text-xs font-medium">{income.status}</Text>
                 </View>
               </View>
 
@@ -175,8 +152,8 @@ const IncomeCard = ({ income, onDelete }: { income: IncomeEntry; onDelete: () =>
                 <Text className="text-xs text-gray-500">
                   {format(new Date(`${income.date}T${income.time}`), 'MMM d, h:mm a')}
                 </Text>
-                
-                <Text 
+
+                <Text
                   className={`text-xs font-medium ${
                     income.isUp ? 'text-green-500' : 'text-red-500'
                   }`}

@@ -41,15 +41,15 @@ type TaskType = 'work' | 'meeting' | 'break' | 'exercise' | 'study' | 'personal'
 const getOccurrencesCount = (recurrence: string): number => {
   switch (recurrence) {
     case 'Daily':
-      return 7;  // Create notifications for a week
+      return 7; // Create notifications for a week
     case 'Weekly':
-      return 4;  // Create notifications for a month
+      return 4; // Create notifications for a month
     case 'Biweekly':
-      return 2;  // Create notifications for a month
+      return 2; // Create notifications for a month
     case 'Monthly':
-      return 1;  // Create notifications for one month
+      return 1; // Create notifications for one month
     default:
-      return 1;  // Single occurrence
+      return 1; // Single occurrence
   }
 };
 
@@ -68,9 +68,13 @@ const createScheduleNotification = async (
       sound: 'default',
     });
 
-    const icon = notificationConfig.taskIcons[item.type.toLowerCase() as TaskType] || notificationConfig.defaultIcon;
-    const color = notificationConfig.priorityColors[item.priority.toLowerCase() as 'high' | 'medium' | 'low'] || notificationConfig.defaultColor;
-    
+    const icon =
+      notificationConfig.taskIcons[item.type.toLowerCase() as TaskType] ||
+      notificationConfig.defaultIcon;
+    const color =
+      notificationConfig.priorityColors[item.priority.toLowerCase() as 'high' | 'medium' | 'low'] ||
+      notificationConfig.defaultColor;
+
     // Calculate notification date based on occurrence
     const getOccurrenceDate = (date: Date, occurrence: number, recurrence: string): Date => {
       switch (recurrence) {
@@ -142,9 +146,7 @@ const createScheduleNotification = async (
 // Enhanced handleAddItem function with notification support
 export const handleAddItem = async () => {
   const currentItems = scheduleStore.get().items;
-  const newId = currentItems.length > 0 
-    ? Math.max(...currentItems.map(i => i.id)) + 1 
-    : 1;
+  const newId = currentItems.length > 0 ? Math.max(...currentItems.map((i) => i.id)) + 1 : 1;
 
   const newItemData = scheduleStore.get().newItem;
   const startDate = newItemData.startDate || new Date();
@@ -206,7 +208,7 @@ export const handleAddItem = async () => {
     newItem.notificationIds = notificationIds;
 
     // Add item to store
-    scheduleStore.set(store => ({
+    scheduleStore.set((store) => ({
       ...store,
       items: [...store.items, newItem],
       isAddingItem: false,
@@ -219,10 +221,9 @@ export const handleAddItem = async () => {
         energy: 'Medium',
         tags: [],
         reminder: undefined,
-        startDate: new Date()
-      }
+        startDate: new Date(),
+      },
     }));
-
   } catch (error) {
     console.error('Error creating schedule item with notifications:', error);
     // Handle error appropriately (e.g., show error message to user)
@@ -232,19 +233,19 @@ export const handleAddItem = async () => {
 // Enhanced handleDeleteItem function
 export const handleDeleteItem = async (itemId: number) => {
   try {
-    const item = scheduleStore.get().items.find(i => i.id === itemId) as ScheduleItemWithNotifications;
-    
+    const item = scheduleStore
+      .get()
+      .items.find((i) => i.id === itemId) as ScheduleItemWithNotifications;
+
     if (item?.notificationIds?.length) {
       // Cancel all notifications associated with this item
-      await Promise.all(
-        item.notificationIds.map(id => notifee.cancelNotification(id))
-      );
+      await Promise.all(item.notificationIds.map((id) => notifee.cancelNotification(id)));
     }
-    
+
     // Remove item from store
-    scheduleStore.set(store => ({
+    scheduleStore.set((store) => ({
       ...store,
-      items: store.items.filter(i => i.id !== itemId)
+      items: store.items.filter((i) => i.id !== itemId),
     }));
   } catch (error) {
     console.error('Error deleting schedule item:', error);
@@ -257,9 +258,7 @@ export const updateItemNotifications = async (item: ScheduleItemWithNotification
   try {
     // Cancel existing notifications
     if (item.notificationIds?.length) {
-      await Promise.all(
-        item.notificationIds.map(id => notifee.cancelNotification(id))
-      );
+      await Promise.all(item.notificationIds.map((id) => notifee.cancelNotification(id)));
     }
 
     // Create new notifications
@@ -272,13 +271,9 @@ export const updateItemNotifications = async (item: ScheduleItemWithNotification
     }
 
     // Update item with new notification IDs
-    scheduleStore.set(store => ({
+    scheduleStore.set((store) => ({
       ...store,
-      items: store.items.map(i => 
-        i.id === item.id 
-          ? { ...i, notificationIds }
-          : i
-      )
+      items: store.items.map((i) => (i.id === item.id ? { ...i, notificationIds } : i)),
     }));
 
     return notificationIds;

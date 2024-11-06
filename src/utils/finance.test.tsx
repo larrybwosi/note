@@ -8,12 +8,12 @@ const FinanceManager: React.FC = () => {
   const handleAddExpense = () => {
     addTransaction({
       title: 'Grocery Shopping',
-      amount: 150.50,
+      amount: 150.5,
       type: TransactionType.EXPENSE,
       categoryId: 'food',
       isEssential: true,
       description: 'Weekly groceries',
-      tags: ['food', 'essentials']
+      tags: ['food', 'essentials'],
     });
   };
 
@@ -27,8 +27,8 @@ const FinanceManager: React.FC = () => {
       isEssential: false,
       recurrence: {
         frequency: RecurrenceFrequency.MONTHLY,
-        reminderEnabled: true
-      }
+        reminderEnabled: true,
+      },
     });
   };
 
@@ -61,7 +61,7 @@ const BudgetManager: React.FC = () => {
       ...store.budgetConfig,
       selectedRule: BudgetRuleType.RULE_50_30_20,
       monthlyIncome: 5000,
-      customRules: []
+      customRules: [],
     };
   };
 
@@ -75,8 +75,8 @@ const BudgetManager: React.FC = () => {
         { categoryId: 'food', percentage: 15 },
         { categoryId: 'savings', percentage: 25 },
         { categoryId: 'entertainment', percentage: 10 },
-        { categoryId: 'transportation', percentage: 20 }
-      ]
+        { categoryId: 'transportation', percentage: 20 },
+      ],
     };
   };
 
@@ -105,8 +105,8 @@ const SavingsGoalsManager: React.FC = () => {
       autoContribute: {
         enabled: true,
         amount: 250,
-        frequency: RecurrenceFrequency.MONTHLY
-      }
+        frequency: RecurrenceFrequency.MONTHLY,
+      },
     };
   };
 
@@ -141,7 +141,7 @@ const CategoryManager: React.FC = () => {
       color: '#4CAF50',
       type: CategoryType.CUSTOM,
       budgetPercentage: 100, // Track all income
-      warningThreshold: 0.8
+      warningThreshold: 0.8,
     };
   };
 
@@ -155,7 +155,7 @@ const CategoryManager: React.FC = () => {
       type: CategoryType.WANT,
       parentCategoryId: 'food',
       monthlyLimit: 300,
-      warningThreshold: 0.9
+      warningThreshold: 0.9,
     };
   };
 
@@ -190,7 +190,9 @@ const FinanceAnalysis: React.FC = () => {
     const { monthlySpendingByCategory } = store.insights;
     return Object.entries(monthlySpendingByCategory).map(([categoryId, amount]) => (
       <div key={categoryId}>
-        <p>{store.categories[categoryId].name}: ${amount}</p>
+        <p>
+          {store.categories[categoryId].name}: ${amount}
+        </p>
       </div>
     ));
   };

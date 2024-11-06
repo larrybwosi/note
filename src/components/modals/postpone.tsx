@@ -1,19 +1,19 @@
-import { Modal, Text, TextInput, TouchableOpacity, View } from "react-native"
-import { useObservable } from "@legendapp/state/react"
-import { colorScheme } from "nativewind"
-import { format } from "date-fns"
+import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useObservable } from '@legendapp/state/react';
+import { colorScheme } from 'nativewind';
+import { format } from 'date-fns';
 
-import useScheduleStore from "src/store/shedule/actions"
-import { scheduleStore } from "src/store/shedule/store"
-import DateTimePickerComponent from "../date.time"
-import { useModal } from "./provider"
+import useScheduleStore from 'src/store/shedule/actions';
+import { scheduleStore } from 'src/store/shedule/store';
+import DateTimePickerComponent from '../date.time';
+import { useModal } from './provider';
 
 const Postpone = () => {
-  const { postponeTask } = useScheduleStore()
+  const { postponeTask } = useScheduleStore();
   const {
     hide,
     props: { itemId },
-  } = useModal("postpone")
+  } = useModal('postpone');
 
   const state$ = useObservable({
     showPostponeModal: false,
@@ -22,15 +22,15 @@ const Postpone = () => {
     showTimePicker: false,
     newDate: new Date(),
     newTime: new Date(),
-    reason: "",
-  })
+    reason: '',
+  });
 
-  const { showDatePicker, showTimePicker, reason, newDate, showPostponeModal } = state$
+  const { showDatePicker, showTimePicker, reason, newDate, showPostponeModal } = state$;
 
   const handlePostpone = () => {
-    postponeTask(itemId, newDate.get(), reason.get(), "Unavailable", "Low")
-    hide()
-  }
+    postponeTask(itemId, newDate.get(), reason.get(), 'Unavailable', 'Low');
+    hide();
+  };
   return (
     <Modal
       visible={showPostponeModal.get()}
@@ -52,7 +52,7 @@ const Postpone = () => {
             className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl mb-4 border border-gray-200 dark:border-gray-600"
           >
             <Text className="text-gray-900 dark:text-white font-rmedium">
-              {format(scheduleStore.postponeData.newDate.get(), "PPP p")}
+              {format(scheduleStore.postponeData.newDate.get(), 'PPP p')}
             </Text>
           </TouchableOpacity>
 
@@ -77,7 +77,7 @@ const Postpone = () => {
             onChangeText={(text) => reason.set(text)}
             multiline
             numberOfLines={3}
-            placeholderTextColor={colorScheme.get() === "dark" ? "#9CA3AF" : "#6B7280"}
+            placeholderTextColor={colorScheme.get() === 'dark' ? '#9CA3AF' : '#6B7280'}
           />
 
           <View className="flex-row gap-3">
@@ -100,7 +100,7 @@ const Postpone = () => {
         </View>
       </View>
     </Modal>
-  )
-}
+  );
+};
 
-export default Postpone
+export default Postpone;

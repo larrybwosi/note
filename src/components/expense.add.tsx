@@ -19,20 +19,20 @@ export const EXPENSE_CATEGORIES = [
 ];
 
 const CATEGORY_ICONS = {
-  'Food': 'restaurant',
-  'Investments': 'trending-up',
-  'Entertainment': 'film',
-  'Transport': 'car',
-  'Utilities': 'build',
-  'Healthcare': 'medical',
-  'Debts': 'card',
-  'Shopping': 'cart',
-  'Personal': 'person',
+  Food: 'restaurant',
+  Investments: 'trending-up',
+  Entertainment: 'film',
+  Transport: 'car',
+  Utilities: 'build',
+  Healthcare: 'medical',
+  Debts: 'card',
+  Shopping: 'cart',
+  Personal: 'person',
 };
 
 const NewExpenseForm = observer(() => {
   const navigation = useNavigation();
-  
+
   useFocusEffect(
     useCallback(() => {
       navigation.getParent()?.setOptions({
@@ -47,22 +47,25 @@ const NewExpenseForm = observer(() => {
   );
 
   const handleAddExpense = useCallback(() => {
-    const newExpenseData = expenseStore.newExpense.get()
+    const newExpenseData = expenseStore.newExpense.get();
     if (newExpenseData.description && newExpenseData.amount) {
-      expenseStore.expenseData.set([...expenseStore.expenseData.get(), {
-        id: Math.max(...expenseStore.expenseData.get().map(e => e.id), 0) + 1,
-        ...newExpenseData as Omit<ExpenseEntry, 'id'>,
-      }])
-      expenseStore.showNewExpenseForm.set(false)
+      expenseStore.expenseData.set([
+        ...expenseStore.expenseData.get(),
+        {
+          id: Math.max(...expenseStore.expenseData.get().map((e) => e.id), 0) + 1,
+          ...(newExpenseData as Omit<ExpenseEntry, 'id'>),
+        },
+      ]);
+      expenseStore.showNewExpenseForm.set(false);
       expenseStore.newExpense.set({
         date: format(new Date(), 'yyyy-MM-dd'),
         time: format(new Date(), 'HH:mm'),
         category: 'Food',
         status: 'Pending',
-        isRecurring: false
-      })
+        isRecurring: false,
+      });
     }
-  }, [])
+  }, []);
 
   return (
     <View className="p-6 rounded-lg bg-white dark:bg-gray-800 shadow-lg mb-5 pb-3">
@@ -72,7 +75,7 @@ const NewExpenseForm = observer(() => {
           Add New Expense
         </Text>
       </View>
-      
+
       <View className="space-y-5">
         <View>
           <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
@@ -120,11 +123,11 @@ const NewExpenseForm = observer(() => {
                     : 'bg-gray-200 dark:bg-gray-700'
                 }`}
               >
-                <Ionicons 
-                  name={CATEGORY_ICONS[category]} 
-                  size={20} 
-                  color={expenseStore.newExpense.category.get() === category ? 'white' : '#6b7280'} 
-                  className="mr-2" 
+                <Ionicons
+                  name={CATEGORY_ICONS[category]}
+                  size={20}
+                  color={expenseStore.newExpense.category.get() === category ? 'white' : '#6b7280'}
+                  className="mr-2"
                 />
                 <Text
                   className={
@@ -146,23 +149,19 @@ const NewExpenseForm = observer(() => {
             className="px-6 py-3 bg-gray-200 dark:bg-gray-700 rounded-lg ml-4 flex-row items-center"
           >
             <Ionicons name="close-circle" size={20} color="#6b7280" className="mr-2" />
-            <Text className="text-gray-800 dark:text-gray-200 font-plregular">
-              Cancel
-            </Text>
+            <Text className="text-gray-800 dark:text-gray-200 font-plregular">Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleAddExpense}
             className="px-6 py-3 bg-blue-500 rounded-lg flex-row items-center"
           >
             <Ionicons name="checkmark-circle" size={20} color="white" className="mr-2" />
-            <Text className="text-white font-plregular">
-              Add Expense
-            </Text>
+            <Text className="text-white font-plregular">Add Expense</Text>
           </TouchableOpacity>
         </View>
       </View>
     </View>
-  )
-})
+  );
+});
 
 export default NewExpenseForm;

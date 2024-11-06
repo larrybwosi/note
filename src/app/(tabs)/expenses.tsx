@@ -1,57 +1,51 @@
-import React, { useCallback } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import React, { useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   LinearTransition,
-  SlideInRight, 
+  SlideInRight,
   SlideOutLeft,
   runOnJS,
-} from 'react-native-reanimated'
-import { Gesture, GestureDetector } from 'react-native-gesture-handler'
-import { format } from 'date-fns'
-import { Ionicons } from '@expo/vector-icons'
-import { computed } from '@legendapp/state'
-import { observer } from '@legendapp/state/react'
-import { expenseStore, ExpenseEntry } from 'src/storage'
-import { colorScheme } from 'nativewind'
-import { BottomSheet } from 'src/components/bottom'
-import NewExpenseForm from 'src/components/expense.add'
-
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { format } from 'date-fns';
+import { Ionicons } from '@expo/vector-icons';
+import { computed } from '@legendapp/state';
+import { observer } from '@legendapp/state/react';
+import { expenseStore, ExpenseEntry } from 'src/storage';
+import { colorScheme } from 'nativewind';
+import { BottomSheet } from 'src/components/bottom';
+import NewExpenseForm from 'src/components/expense.add';
 
 // Computed values
-const totalExpenses$ = computed(() => 
+const totalExpenses$ = computed(() =>
   expenseStore.expenseData.get().reduce((sum, entry) => sum + entry.amount, 0)
-)
+);
 
-const remainingBudget$ = computed(() => 
-  expenseStore.monthlyBudget.get() - totalExpenses$.get()
-)
-
+const remainingBudget$ = computed(() => expenseStore.monthlyBudget.get() - totalExpenses$.get());
 
 // Components
 const StatusBadge = ({ status }: { status: string }) => {
   const getStatusStyle = (status: string) => {
-    const baseStyle = 'px-2 py-1 rounded-full'
+    const baseStyle = 'px-2 py-1 rounded-full';
     switch (status) {
       case 'Completed':
-        return `${baseStyle} bg-green-100 dark:bg-green-900`
+        return `${baseStyle} bg-green-100 dark:bg-green-900`;
       case 'Pending':
-        return `${baseStyle} bg-yellow-100 dark:bg-yellow-900`
+        return `${baseStyle} bg-yellow-100 dark:bg-yellow-900`;
       case 'Failed':
-        return `${baseStyle} bg-red-100 dark:bg-red-900`
+        return `${baseStyle} bg-red-100 dark:bg-red-900`;
       default:
-        return `${baseStyle} bg-gray-100 dark:bg-gray-900`
+        return `${baseStyle} bg-gray-100 dark:bg-gray-900`;
     }
-  }
+  };
 
   return (
     <View className={getStatusStyle(status)}>
-      <Text className={`text-[10px] font-rregular ${getStatusClass(status)}`}>
-        {status}
-      </Text>
+      <Text className={`text-[10px] font-rregular ${getStatusClass(status)}`}>{status}</Text>
     </View>
-  )
-}
+  );
+};
 
 const ExpenseCard = ({ expense, onDelete }: { expense: ExpenseEntry; onDelete: () => void }) => {
   const deleteGesture = Gesture.Pan()
@@ -60,7 +54,7 @@ const ExpenseCard = ({ expense, onDelete }: { expense: ExpenseEntry; onDelete: (
       if (success) {
         runOnJS(onDelete)();
       }
-    })
+    });
 
   return (
     <GestureDetector gesture={deleteGesture}>
@@ -76,38 +70,34 @@ const ExpenseCard = ({ expense, onDelete }: { expense: ExpenseEntry; onDelete: (
               <Text className="font-rmedium text-lg text-gray-800 dark:text-gray-200">
                 {expense.description}
               </Text>
-              <Text className="text-sm text-gray-500 dark:text-gray-400">
-                {expense.category}
-              </Text>
+              <Text className="text-sm text-gray-500 dark:text-gray-400">{expense.category}</Text>
             </View>
             <Text className="font-bold text-lg text-red-500">
               -${expense.amount.toLocaleString()}
             </Text>
           </View>
-          
+
           <View className="flex-row justify-between items-center">
             <StatusBadge status={expense.status} />
             <View className="flex-row items-center space-x-2">
               <Text className="text-xs text-gray-500 dark:text-gray-400">
                 {format(new Date(`${expense.date}T${expense.time}`), 'PPp')}
               </Text>
-              {expense.isRecurring && (
-                <Ionicons name="repeat" size={16} color="#4B5563" />
-              )}
+              {expense.isRecurring && <Ionicons name="repeat" size={16} color="#4B5563" />}
             </View>
           </View>
         </View>
       </Animated.View>
     </GestureDetector>
-  )
-}
+  );
+};
 
 const MobileExpensePage = () => {
   const handleDeleteExpense = useCallback((id: number) => {
     expenseStore.expenseData.set(
-      expenseStore.expenseData.get().filter(expense => expense.id !== id)
-    )
-  }, [])
+      expenseStore.expenseData.get().filter((expense) => expense.id !== id)
+    );
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
@@ -115,7 +105,7 @@ const MobileExpensePage = () => {
         barStyle={colorScheme.get() === 'dark' ? 'light-content' : 'dark-content'}
         backgroundColor={colorScheme.get() === 'dark' ? '#111827' : '#F9FAFB'}
       />
-      
+
       <View className="p-4 border-b border-gray-200 dark:border-gray-800">
         <View className="flex-row justify-between items-center">
           <View>
@@ -138,7 +128,9 @@ const MobileExpensePage = () => {
           <Text className="text-sm font-aregular text-gray-500 dark:text-gray-400 mt-2">
             Remaining Budget
           </Text>
-          <Text className={`text-xl font-bold ${remainingBudget$.get() >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+          <Text
+            className={`text-xl font-bold ${remainingBudget$.get() >= 0 ? 'text-green-500' : 'text-red-500'}`}
+          >
             ${remainingBudget$.get().toLocaleString()}
           </Text>
         </View>
@@ -167,8 +159,13 @@ const MobileExpensePage = () => {
           </View>
         ) : (
           <Animated.View layout={LinearTransition.springify()}>
-            {expenseStore.expenseData.get()
-              .sort((a, b) => new Date(b.date + 'T' + b.time).getTime() - new Date(a.date + 'T' + a.time).getTime())
+            {expenseStore.expenseData
+              .get()
+              .sort(
+                (a, b) =>
+                  new Date(b.date + 'T' + b.time).getTime() -
+                  new Date(a.date + 'T' + a.time).getTime()
+              )
               .map((expense) => (
                 <ExpenseCard
                   key={expense.id}
@@ -187,20 +184,20 @@ const MobileExpensePage = () => {
         <NewExpenseForm />
       </BottomSheet>
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const getStatusClass = (status: string) => {
   switch (status) {
     case 'Completed':
-      return 'text-green-800 dark:text-green-200'
+      return 'text-green-800 dark:text-green-200';
     case 'Pending':
-      return 'text-yellow-800 dark:text-yellow-200'
+      return 'text-yellow-800 dark:text-yellow-200';
     case 'Failed':
-      return 'text-red-800 dark:text-red-200'
+      return 'text-red-800 dark:text-red-200';
     default:
-      return 'text-gray-800 dark:text-gray-200'
+      return 'text-gray-800 dark:text-gray-200';
   }
-}
+};
 
-export default observer(MobileExpensePage)
+export default observer(MobileExpensePage);

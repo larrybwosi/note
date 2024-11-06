@@ -1,8 +1,8 @@
-import { observable } from "@legendapp/state"
-import { ObservablePersistMMKV } from "@legendapp/state/persist-plugins/mmkv"
-import { synced } from "@legendapp/state/sync"
-import { addMinutes, format } from "date-fns"
-import { ScheduleItem, ScheduleStore } from "./types"
+import { observable } from '@legendapp/state';
+import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
+import { synced } from '@legendapp/state/sync';
+import { addMinutes, format } from 'date-fns';
+import { ScheduleItem, ScheduleStore } from './types';
 
 const initialScheduleState: ScheduleItem[] = [
   {
@@ -23,7 +23,7 @@ const initialScheduleState: ScheduleItem[] = [
     tags: ['planning', 'quarterly', 'team'],
     notes: 'Prepare quarterly metrics',
     scheduleType: 'event',
-    reminder: 15
+    reminder: 15,
   },
   {
     id: 2,
@@ -43,9 +43,9 @@ const initialScheduleState: ScheduleItem[] = [
     tags: ['exercise', 'health', 'routine'],
     notes: 'Remember to bring workout gear',
     reminder: 15,
-    scheduleType: 'task'
-  }
-]
+    scheduleType: 'task',
+  },
+];
 
 export const scheduleStore = observable(
   synced<ScheduleStore>({
@@ -75,7 +75,7 @@ export const scheduleStore = observable(
         reason: '',
         reasonCategory: 'Other',
         newDate: addMinutes(new Date(), 60),
-        impact: 'Low'
+        impact: 'Low',
       },
       performance: {
         completionRate: 85,
@@ -83,25 +83,25 @@ export const scheduleStore = observable(
         averageDelay: 12,
         streakDays: 5,
         focusTime: 240,
-        productiveHours: ['09:00', '10:00', '14:00', '15:00']
+        productiveHours: ['09:00', '10:00', '14:00', '15:00'],
       },
       settings: {
         workingHours: {
           start: '09:00',
-          end: '17:00'
+          end: '17:00',
         },
         breakDuration: 15,
         focusSessionDuration: 45,
         theme: 'light',
         notifications: true,
-        autoScheduleBreaks: true
+        autoScheduleBreaks: true,
       },
       view: 'day',
-      showCompleted: false
+      showCompleted: false,
     },
     persist: {
       name: 'schedule',
-      plugin: ObservablePersistMMKV
-    }
+      plugin: ObservablePersistMMKV,
+    },
   })
-)
+);

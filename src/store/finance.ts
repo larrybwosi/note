@@ -1,8 +1,8 @@
-import { observable } from "@legendapp/state";
-import { ObservablePersistMMKV } from "@legendapp/state/persist-plugins/mmkv";
-import { synced } from "@legendapp/state/sync";
-import { format } from "date-fns";
-import { v4 as uuidv4 } from "uuid";
+import { observable } from '@legendapp/state';
+import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
+import { synced } from '@legendapp/state/sync';
+import { format } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 
 // Category Interface
 interface Category {
@@ -14,7 +14,7 @@ interface Category {
 
 // Transaction Status
 export const TRANSACTION_STATUS = ['Pending', 'Completed', 'Failed', 'Cancelled'] as const;
-export type TransactionStatus = typeof TRANSACTION_STATUS[number];
+export type TransactionStatus = (typeof TRANSACTION_STATUS)[number];
 
 // Base Entry Interface
 export interface BaseEntry {
@@ -63,9 +63,14 @@ export const financeUtils = {
       title: partialEntry.title || '',
       description: partialEntry.description || '',
       amount: partialEntry.amount || 0,
-      category: partialEntry.category || { id: 'default', name: 'Uncategorized', icon: '❓', color: '#CCCCCC' },
+      category: partialEntry.category || {
+        id: 'default',
+        name: 'Uncategorized',
+        icon: '❓',
+        color: '#CCCCCC',
+      },
       status: partialEntry.status || 'Pending',
-      ...partialEntry
+      ...partialEntry,
     } as T;
   },
 
@@ -80,24 +85,29 @@ export const financeUtils = {
   },
 
   filterByCategory: <T extends BaseEntry>(entries: Record<string, T>, categoryId: string) => {
-    return Object.values(entries).filter(entry => entry.category.id === categoryId);
+    return Object.values(entries).filter((entry) => entry.category.id === categoryId);
   },
 
   addCategory: (store: FinanceStore<BaseEntry>, newCategory: Category) => {
     store.categories.push(newCategory);
   },
 
-  editCategory: (store: FinanceStore<BaseEntry>, categoryId: string, updates: Partial<Category>) => {
-    const category = store.categories.find(cat => cat.id === categoryId);
+  editCategory: (
+    store: FinanceStore<BaseEntry>,
+    categoryId: string,
+    updates: Partial<Category>
+  ) => {
+    const category = store.categories.find((cat) => cat.id === categoryId);
     if (category) Object.assign(category, updates);
   },
 
   deleteCategory: (store: FinanceStore<BaseEntry>, categoryId: string) => {
-    store.categories = store.categories.filter(cat => cat.id !== categoryId);
-    Object.values(store.entries).forEach(entry => {
-      if (entry.category.id === categoryId) entry.category = { id: 'default', name: 'Uncategorized', icon: '❓', color: '#CCCCCC' };
+    store.categories = store.categories.filter((cat) => cat.id !== categoryId);
+    Object.values(store.entries).forEach((entry) => {
+      if (entry.category.id === categoryId)
+        entry.category = { id: 'default', name: 'Uncategorized', icon: '❓', color: '#CCCCCC' };
     });
-  }
+  },
 };
 
 // Default Categories
@@ -121,9 +131,9 @@ export const incomeStore = observable(
       newEntry: financeUtils.createEntry(),
       showNewEntryForm: false,
       totalIncome: 0,
-      entries: {}
+      entries: {},
     },
-    persist: { name: 'income', plugin: ObservablePersistMMKV }
+    persist: { name: 'income', plugin: ObservablePersistMMKV },
   })
 );
 
@@ -136,8 +146,8 @@ export const expenseStore = observable(
       showNewEntryForm: false,
       newEntry: financeUtils.createEntry(),
       entries: {},
-      categoryBudgets: {}
+      categoryBudgets: {},
     },
-    persist: { name: 'expenses', plugin: ObservablePersistMMKV }
+    persist: { name: 'expenses', plugin: ObservablePersistMMKV },
   })
 );

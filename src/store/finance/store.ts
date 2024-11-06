@@ -1,12 +1,7 @@
-import { observable } from "@legendapp/state";
-import { ObservablePersistMMKV } from "@legendapp/state/persist-plugins/mmkv";
-import { synced } from "@legendapp/state/sync";
-import {
-  BudgetRuleType,
-  CategoryType,
-  FinanceStore,
-} from "./types";
-
+import { observable } from '@legendapp/state';
+import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
+import { synced } from '@legendapp/state/sync';
+import { BudgetRuleType, CategoryType, FinanceStore } from './types';
 
 const financeStore = () => {
   const initial: FinanceStore = {
@@ -16,7 +11,7 @@ const financeStore = () => {
     budgetConfig: {
       rule: BudgetRuleType.RULE_50_30_20,
       monthlyIncome: 0,
-      savingsGoals: {}
+      savingsGoals: {},
     },
     insights: {
       guiltFreeBalance: 0,
@@ -26,22 +21,22 @@ const financeStore = () => {
       unusualSpending: [],
       trends: {
         monthly: {},
-        categoryTrends: {}
-      }
+        categoryTrends: {},
+      },
     },
     alerts: {
       categoryOverspend: [],
       upcomingBills: [],
       savingsGoalProgress: {},
       unusualTransactions: [],
-      upcomingRecurringTransactions: []
+      upcomingRecurringTransactions: [],
     },
     metadata: {
       lastUpdated: new Date().toISOString(),
       version: '1.0.0',
       currency: 'USD',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    }
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    },
   };
 
   const store = observable(
@@ -49,14 +44,14 @@ const financeStore = () => {
       initial,
       persist: {
         name: 'finance',
-        plugin: ObservablePersistMMKV
-      }
+        plugin: ObservablePersistMMKV,
+      },
     })
   );
 
   return {
-    store
+    store,
   };
 };
 
-export default financeStore
+export default financeStore;
