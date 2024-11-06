@@ -2,20 +2,8 @@
 // markdown file and add links from here
 
 import { Platform } from "react-native"
-import {
-  SpaceGrotesk_300Light as spaceGroteskLight,
-  SpaceGrotesk_400Regular as spaceGroteskRegular,
-  SpaceGrotesk_500Medium as spaceGroteskMedium,
-  SpaceGrotesk_600SemiBold as spaceGroteskSemiBold,
-  SpaceGrotesk_700Bold as spaceGroteskBold,
-} from "@expo-google-fonts/space-grotesk"
 
 export const customFontsToLoad = {
-  spaceGroteskLight,
-  spaceGroteskRegular,
-  spaceGroteskMedium,
-  spaceGroteskSemiBold,
-  spaceGroteskBold,
   'roboto-regular': "https://cdn.sanity.io/files/mqczcmfz/production/56c5c0d38bde4c1f1549dda43db37b09c608aad3.ttf",
   'roboto-bold': "https://cdn.sanity.io/files/mqczcmfz/production/3f8e401d808f6ce84b542266726514ac8be73171.ttf",
   'roboto-medium': "https://cdn.sanity.io/files/mqczcmfz/production/3c6a09fcc6a454924c81af7dff94fc6d399ed79b.ttf",

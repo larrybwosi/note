@@ -34,9 +34,6 @@ const notificationConfig = {
   defaultColor: '#757575',
 };
 
-// Define a type for valid task types
-type TaskType = 'work' | 'meeting' | 'break' | 'exercise' | 'study' | 'personal';
-
 // Helper function to get occurrences count
 const getOccurrencesCount = (recurrence: string): number => {
   switch (recurrence) {
@@ -68,8 +65,8 @@ const createScheduleNotification = async (
       sound: 'default',
     });
 
-    const icon = notificationConfig.taskIcons[item.type.toLowerCase() as TaskType] || notificationConfig.defaultIcon;
-    const color = notificationConfig.priorityColors[item.priority.toLowerCase() as 'high' | 'medium' | 'low'] || notificationConfig.defaultColor;
+    const icon = notificationConfig.taskIcons[item.type.toLowerCase() as keyof typeof notificationConfig.taskIcons] || notificationConfig.defaultIcon;
+    const color = notificationConfig.priorityColors[item.priority.toLowerCase() as keyof typeof notificationConfig.priorityColors] || notificationConfig.defaultColor;
     
     // Calculate notification date based on occurrence
     const getOccurrenceDate = (date: Date, occurrence: number, recurrence: string): Date => {
@@ -105,7 +102,7 @@ const createScheduleNotification = async (
             item.location ? `📍 ${item.location}\n` : ''
           }⏱️ Duration: ${item.duration} minutes\n${
             item.tags.length > 0 ? `🏷️ ${item.tags.join(', ')}\n` : ''
-          }🔋 Energy Level: medium`,
+          }🔋 Energy Level: ${item.energy}`,
         },
         pressAction: {
           id: 'default',
@@ -167,6 +164,7 @@ export const handleAddItem = async () => {
     postponements: [],
     tags: newItemData.tags || [],
     notes: newItemData.notes || '',
+    energy: newItemData.energy || 'Medium',
     reminder: newItemData.reminder,
     notificationIds: [], // Initialize empty notification IDs array
   };

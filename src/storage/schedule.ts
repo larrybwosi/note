@@ -65,7 +65,6 @@ export interface ScheduleItem {
   // Performance tracking
   estimatedDuration: number
   actualDuration?: number
-  efficiency?: number // actualDuration/estimatedDuration
   
   // Dependencies and blocking
   blockedBy?: number[] // IDs of items that must be completed first
@@ -78,9 +77,10 @@ export interface ScheduleItem {
   // Additional metadata
   tags: string[]
   notes: string
-  energy: 'Low' | 'Medium' | 'High' // Required energy level
   reminder?: number // minutes before start
   scheduleType?: 'task' | 'event'
+  countdown?: number
+  deletedAt?: Date
 }
 
 interface ScheduleStore {
@@ -152,7 +152,6 @@ const initialScheduleState:ScheduleItem[] = [
     postponements: [],
     tags: ['planning', 'quarterly', 'team'],
     notes: 'Prepare quarterly metrics',
-    energy: 'High',
     scheduleType: 'event',
     reminder: 15
   },
@@ -182,7 +181,6 @@ const initialScheduleState:ScheduleItem[] = [
     ],
     tags: ['exercise', 'health', 'routine'],
     notes: 'Remember to bring workout gear',
-    energy: 'High',
     reminder: 15,
     scheduleType: 'task'
   }
@@ -211,7 +209,6 @@ export const scheduleStore = observable(
         priority: 'Medium',
         recurrence: 'None',
         duration: 30,
-        energy: 'Medium',
         tags: [],
         postponements: [],
         scheduleType: 'task',
@@ -280,7 +277,7 @@ export const calculatePerformanceMetrics = (items: ScheduleItem[]): PerformanceM
     completionRate,
     postponementRate,
     averageDelay,
-    streakDays: scheduleStore.get().performance.streakDays,
+    streakDays: scheduleStore.get().performance.streakDays, 
     focusTime: completed.reduce((acc, item) => acc + (item.actualDuration || 0), 0),
     productiveHours: scheduleStore.get().performance.productiveHours
   }

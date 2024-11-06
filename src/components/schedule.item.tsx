@@ -1,26 +1,23 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { View, Text, TouchableOpacity, Pressable } from 'react-native'
-import Animated, { 
-  FadeIn, 
-  FadeOut, 
-  Layout, 
+import Animated, {
+  FadeOut,
   SlideInRight,
   withSpring,
   useAnimatedStyle,
   withTiming,
-  interpolateColor,
   useSharedValue,
-  withSequence
+  withSequence,
+  LinearTransition
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
-import { format } from 'date-fns'
-import { handleDeleteItem } from 'src/storage/schedule.modify'
+import { format, isPast, isWithinInterval, addMinutes } from 'date-fns'
 import { ScheduleItem } from 'src/storage/schedule'
 
+import { deleteItem } from 'src/store/shedule/actions'
 
 interface ItemCardProps {
   item: ScheduleItem
-  onPostpone: (id: number) => void
   onComplete: (id: number) => void
   handlePostpone: (id: number) => void
   theme: 'light' | 'dark'
@@ -76,7 +73,6 @@ const priorityConfig = {
 
 export const ItemCard: React.FC<ItemCardProps> = ({ 
   item, 
-  onPostpone, 
   onComplete,
   theme,
   handlePostpone,
@@ -85,6 +81,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   const pressAnim = useSharedValue(1)
   const cardElevation = useSharedValue(2)
   const completedAnim = useSharedValue(item.completed ? 0.5 : 1)
+  const [status, setStatus] = useState<'upcoming' | 'in progress' | 'completed'>('upcoming')
 
   const handlePressIn = useCallback(() => {
     pressAnim.value = withSpring(0.98)
@@ -98,9 +95,26 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pressAnim.value }],
-    opacity: completedAnim.value,
     elevation: cardElevation.value,
   }))
+
+  useEffect(() => {
+    const updateStatus = () => {
+      const now = new Date()
+      if (isPast(item.startDate) && (!item.duration || isPast(addMinutes(item.startDate, item.duration)))) {
+        setStatus('completed')
+      } else if (isWithinInterval(now, { start: item.startDate, end: addMinutes(item.startDate, item.duration || 0) })) {
+        setStatus('in progress')
+      } else {
+        setStatus('upcoming')
+      }
+    }
+
+    updateStatus()
+    const interval = setInterval(updateStatus, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [item])
 
   const PriorityBadge = ({ priority }: { priority: ScheduleItem['priority'] }) => (
     <View className={`flex-row items-center px-2 py-1 rounded-lg ${priorityConfig[priority].bg} border ${priorityConfig[priority].border}`}>
@@ -116,23 +130,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     </View>
   )
 
-  const renderRightActions = () => (
-    <View className="flex-row gap-2 items-center pr-4">
-      <TouchableOpacity 
-        onPress={() => onComplete(item.id)}
-        className="bg-emerald-500 w-16 h-full justify-center items-center rounded-lg"
-      >
-        <Ionicons name="checkmark" size={24} color="white" />
-      </TouchableOpacity>
-      <TouchableOpacity 
-        onPress={() => handleDeleteItem(item.id)}
-        className="bg-rose-500 w-16 h-full justify-center items-center rounded-lg"
-      >
-        <Ionicons name="trash" size={24} color="white" />
-      </TouchableOpacity>
-    </View>
-  )
-
   const handleComplete = useCallback(() => {
     completedAnim.value = withSequence(
       withTiming(0.8, { duration: 100 }),
@@ -141,12 +138,22 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     onComplete(item.id)
   }, [item.id, onComplete])
 
+  const getStatusColor = () => {
+    switch (status) {
+      case 'in progress':
+        return 'text-blue-500 dark:text-blue-400'
+      case 'completed':
+        return 'text-green-500 dark:text-green-400'
+      default:
+        return 'text-gray-500 dark:text-gray-400'
+    }
+  }
 
   return (
     <Animated.View
       entering={SlideInRight.springify().damping(15)}
       exiting={FadeOut.duration(200)}
-      layout={Layout.springify()}
+      layout={LinearTransition.springify()}
       style={[animatedStyle]}
       className={`${customStyles.cardBg} p-5 rounded-2xl shadow-lg mb-4 border border-gray-100 dark:border-gray-700`}
     >
@@ -167,9 +174,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           </View>
           <TouchableOpacity 
             className="w-8 h-8 items-center justify-center"
-            onPress={() => onPostpone(item.id)}
+            onPress={handleComplete}
           >
-            <Ionicons name="time" size={20} color={theme === 'light' ? '#6B7280' : '#9CA3AF'} />
+            <Ionicons 
+              name={item.completed ? "checkmark-circle" : "checkmark-circle-outline"} 
+              size={20} 
+              color={item.completed ? (theme === 'light' ? '#10B981' : '#34D399') : (theme === 'light' ? '#6B7280' : '#9CA3AF')} 
+            />
           </TouchableOpacity>
         </View>
 
@@ -188,8 +199,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 color={theme === 'light' ? '#6B7280' : '#9CA3AF'} 
                 style={{ marginRight: 4 }} 
               />
-              <Text className="text-sm text-gray-500 dark:text-gray-400">
-                {format(item.startDate, 'HH:mm')}
+              <Text className={`text-sm ${getStatusColor()}`}>
+                {format(item.startDate, 'HH:mm')} - {status.charAt(0).toUpperCase() + status.slice(1)}
               </Text>
             </View>
             {item.duration && (
@@ -201,7 +212,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   style={{ marginRight: 4 }} 
                 />
                 <Text className="text-sm text-gray-500 dark:text-gray-400">
-                  {item.duration}min
+                  {item?.countdown! > 60 ? `${Math.floor(item?.countdown! / 60)}hr ${item?.countdown! % 60}min` : `${item?.countdown}min`}
                 </Text>
               </View>
             )}
@@ -217,19 +228,24 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         )}
 
         {/* Footer */}
-        <View className="flex-row items-center gap-2">
-        <TouchableOpacity 
-          onPress={() => handlePostpone(item.id)}
-          className="bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full"
-        >
-          <Text className="text-blue-600 font-rregular dark:text-blue-400 text-sm">Postpone</Text>
-        </TouchableOpacity>
-        {item.postponements && item.postponements.length > 0 && (
-          <Text className="text-xs text-gray-500 dark:text-gray-400">
-            Postponed {item.postponements.length}x
-          </Text>
-        )}
-      </View>
+        <View className="flex-row justify-between items-center">
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity 
+              onPress={() => handlePostpone(item.id)}
+              className="bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full"
+            >
+              <Text className="text-blue-600 font-rregular dark:text-blue-400 text-sm">Postpone</Text>
+            </TouchableOpacity>
+            {item.postponements && item.postponements.length > 0 && (
+              <Text className="text-xs text-gray-500 dark:text-gray-400">
+                Postponed {item.postponements.length}x
+              </Text>
+            )}
+          </View>
+          <TouchableOpacity onPress={async() => await deleteItem(item.id)}>
+            <Ionicons name='trash-outline' size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
 
       </Pressable>
     </Animated.View>

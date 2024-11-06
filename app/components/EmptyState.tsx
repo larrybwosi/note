@@ -4,8 +4,6 @@ import { Text, TextProps } from "./Text"
 import { useAppTheme } from "@/utils/useAppTheme"
 import type { ThemedStyle } from "@/theme"
 
-const sadFace = require("../../assets/images/sad-face.png")
-
 interface EmptyStateProps {
   /**
    * An optional prop that specifies the text/image set to use for the empty state.
@@ -122,7 +120,7 @@ export function EmptyState(props: EmptyStateProps) {
 
   const EmptyStatePresets = {
     generic: {
-      imageSource: sadFace,
+      
     } as EmptyStatePresetItem,
   } as const
 

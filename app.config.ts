@@ -55,15 +55,6 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-font",
-    [
-      "expo-build-properties",
-      {
-        "android": {
-          "newArchEnabled": true
-        }
-      }
-    ]
-
   ],
   experiments: {
     tsconfigPaths: true

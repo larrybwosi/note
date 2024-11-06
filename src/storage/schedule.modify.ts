@@ -1,6 +1,5 @@
 import { addMinutes, format, isBefore, isAfter } from "date-fns"
 import { calculatePerformanceMetrics, PostponementRecord, ScheduleItem, scheduleStore } from "./schedule"
-import { cancelScheduleNotifications, createRecurringNotification, createScheduleNotification } from "src/utils/notifications"
 
 /**
  * Confirms the postponement of a schedule item
@@ -74,7 +73,7 @@ const handleAddItem = async() => {
     title: newItemData.title || 'Untitled Task',
     description: newItemData.description || '',
     type: newItemData.type || 'Work',
-    startDate: startDate,
+    startDate,
     endDate: addMinutes(startDate, duration),
     duration: duration,
     priority: newItemData.priority || 'Medium',
@@ -92,50 +91,10 @@ const handleAddItem = async() => {
     postponements: [],
     tags: newItemData.tags || [],
     notes: newItemData.notes || '',
-    energy: newItemData.energy || 'Medium',
     reminder: newItemData.reminder
   };
 
   try {
-    // Calculate number of occurrences based on recurrence pattern
-    const getOccurrencesCount = (recurrence: string): number => {
-      switch (recurrence) {
-        case 'Daily':
-          return 7;  // Create notifications for a week
-        case 'Weekly':
-          return 4;  // Create notifications for a month
-        case 'Biweekly':
-          return 2;  // Create notifications for a month
-        case 'Monthly':
-          return 1;  // Create notifications for one month
-        default:
-          return 1;  // Single occurrence
-      }
-    };
-
-    // Schedule notifications
-    const notificationResult = await createRecurringNotification(
-      newItem,
-      newItem.recurrence as 'None' | 'Daily' | 'Weekly' | 'Biweekly' | 'Monthly',
-      getOccurrencesCount(newItem.recurrence)
-    );
-
-    if (notificationResult.success) {
-      // Store notification IDs in the schedule store for later management
-      const updatedItem = {
-        ...newItem,
-        notificationIds: notificationResult.notificationIds
-      };
-
-      // Add the new item with notification IDs
-      scheduleStore.items.push(updatedItem);
-      
-      console.log('Task and notifications created successfully');
-    } else {
-      console.error('Failed to create notifications:', notificationResult.error);
-      // Still add the item even if notifications fail
-      scheduleStore.items.push(newItem);
-    }
 
     // Reset the form
     scheduleStore.set(store => ({
@@ -158,9 +117,7 @@ const handleAddItem = async() => {
     checkSchedulingConflicts(newItem);
 
   } catch (error) {
-    console.error('Error creating task with notifications:', error);
-    // Still add the item even if there's an error
-    scheduleStore.items.push(newItem);
+    console.error('Error creating notifications:', error);
   }
 };
 
@@ -179,24 +136,6 @@ export const handleDeleteItem = async (itemId: number) => {
     items: store.items.filter(i => i.id !== itemId)
   }));
 };
-
- export const resetForm = () => {
-    scheduleStore.newItem.title.set('')
-    scheduleStore.newItem.description.set('')
-    scheduleStore.newItem.type.set('Work')
-    scheduleStore.newItem.priority.set('Medium')
-    scheduleStore.newItem.scheduleType.set('task')
-    scheduleStore.newItem.duration.set(30)
-    scheduleStore.newItem.location?.set('')
-    scheduleStore.newItem.tags.set([])
-    scheduleStore.newItem.notes.set('')
-    scheduleStore.newItem.energy.set('Medium')
-    scheduleStore.newItem.reminder.set(15)
-    scheduleStore.newItem.recurrence.set('None')
-    scheduleStore.isAddingItem.set(false)
-  }
-
-
 
 /**
  * Checks for scheduling conflicts with existing items

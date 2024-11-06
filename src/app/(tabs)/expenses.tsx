@@ -1,23 +1,18 @@
 import React, { useCallback } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StatusBar, Dimensions } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, {
   LinearTransition,
   SlideInRight, 
   SlideOutLeft,
-  withSpring,
-  useAnimatedStyle,
-  useSharedValue,
   runOnJS,
-  interpolate,
-  Extrapolation
 } from 'react-native-reanimated'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import { format } from 'date-fns'
 import { Ionicons } from '@expo/vector-icons'
 import { computed } from '@legendapp/state'
 import { observer } from '@legendapp/state/react'
-import { expenseStore, ExpenseEntry, ExpenseCategory } from 'src/storage'
+import { expenseStore, ExpenseEntry } from 'src/storage'
 import { colorScheme } from 'nativewind'
 import { BottomSheet } from 'src/components/bottom'
 import NewExpenseForm from 'src/components/expense.add'

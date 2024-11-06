@@ -1,16 +1,20 @@
-import { useEffect, useState } from "react"
-import { ViewStyle } from "react-native"
-import { Slot, SplashScreen, Stack } from "expo-router"
-import { GestureHandlerRootView } from "react-native-gesture-handler"
-// @mst replace-next-line
-import { useFonts } from "@expo-google-fonts/space-grotesk"
-import { customFontsToLoad } from "@/theme"
-import { colorScheme as colorSchemeNW } from "nativewind"
-// bf94542d-923b-4506-8a8b-b8a2baac45ca
-SplashScreen.preventAutoHideAsync()
-import './global.css'
+import { useEffect } from "react"
 import { enableReactTracking } from "@legendapp/state/config/enableReactTracking"
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
+import { colorScheme as colorSchemeNW } from "nativewind"
+import { SplashScreen, Stack } from "expo-router"
+import { ViewStyle } from "react-native"
+import { useFonts } from "expo-font"
+// @mst replace-next-line
+import { initializeNotifications } from "src/store/shedule/notifications"
+import { customFontsToLoad } from "@/theme"
+import './global.css'
+import ModalProvider from "src/components/modals/provider"
+// bf94542d-923b-4506-8a8b-b8a2baac45ca
+
+
+SplashScreen.preventAutoHideAsync()
 enableReactTracking({
   warnUnobserved: true,
 })
@@ -18,15 +22,16 @@ enableReactTracking({
 export default function Root() {
   const [loaded, fontError] = useFonts(customFontsToLoad)
 
-  useEffect(() => {
-    if (fontError) throw fontError
-  }, [fontError])
+
+// setInterval(checkOverdueTasks, 60 * 60 * 1000);
 
   useEffect(() => {
+    if (fontError) throw fontError
     if (loaded) {
       SplashScreen.hideAsync()
     }
-  }, [loaded])
+    initializeNotifications()
+  }, [loaded,fontError])
 
   if (!loaded) {
     return null
@@ -36,9 +41,11 @@ export default function Root() {
   return (
     <GestureHandlerRootView style={$root}>
       <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
+        <ModalProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+        </ModalProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   )

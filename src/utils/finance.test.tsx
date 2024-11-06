@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { BudgetRuleType, RecurrenceFrequency, TransactionType, useFinanceStore } from 'src/store/test';
+import { TransactionType } from 'src/store/finance/types';
 // Example React Component showing basic usage
 const FinanceManager: React.FC = () => {
-  const { store, addTransaction, updateInsights } = useFinanceStore();
+  const { store, addTransaction } = useFinanceStore();
 
   // Example: Adding a new transaction
   const handleAddExpense = () => {

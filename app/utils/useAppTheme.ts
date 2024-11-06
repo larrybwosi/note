@@ -9,7 +9,6 @@ import {
   lightTheme,
   darkTheme,
 } from "@/theme"
-import * as SystemUI from "expo-system-ui"
 
 type ThemeContextType = {
   themeScheme: ThemeContexts
@@ -28,7 +27,7 @@ const themeContextToTheme = (themeContext: ThemeContexts): Theme =>
   themeContext === "dark" ? darkTheme : lightTheme
 
 const setImperativeTheming = (theme: Theme) => {
-  SystemUI.setBackgroundColorAsync(theme.colors.background)
+  
 }
 
 export const useThemeProvider = (initialTheme: ThemeContexts = undefined) => {
