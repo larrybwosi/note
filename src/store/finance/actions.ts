@@ -158,6 +158,10 @@ export const useFinanceStore = () => {
 
   const calculateAllocations = () => calculateBudgetAllocations(store.budgetConfig.get());
 
+  const totalIncome = () => store.budgetConfig.get().monthlyIncome;
+  const currentBalance = () => store.insights.get().guiltFreeBalance;
+
+
   return {
     store,
     // Transaction Management

@@ -1,305 +1,330 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Modal,
-  Animated,
-  Platform,
-  KeyboardAvoidingView,
+  StatusBar,
 } from 'react-native';
-import { AntDesign, Feather, MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
-import AddNoteModal from 'src/components/note.add';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
+import { router } from 'expo-router';
+import { useObservable, observer } from '@legendapp/state/react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { observable } from '@legendapp/state';
+import Animated, { 
+  FadeInDown,
+  SlideInRight
+} from 'react-native-reanimated';
 
-// Define color themes
+// Enhanced color palette with professional gradients
+const colorSchemes = {
+  research: {
+    gradient: ['#4158D0', '#C850C0'],
+    accent: '#8B5CF6',
+  },
+  project: {
+    gradient: ['#0093E9', '#80D0C7'],
+    accent: '#3B82F6',
+  },
+  class: {
+    gradient: ['#8EC5FC', '#E0C3FC'],
+    accent: '#6366F1',
+  },
+  personal: {
+    gradient: ['#FAD961', '#F76B1C'],
+    accent: '#F59E0B',
+  },
+  ideas: {
+    gradient: ['#84FAB0', '#8FD3F4'],
+    accent: '#10B981',
+  }
+};
+
+// Enhanced themes
 const themes = {
   light: {
     background: '#ffffff',
-    text: '#2d3436',
-    primary: '#0984e3',
-    secondary: '#74b9ff',
-    accent: '#6c5ce7',
-    border: '#dfe6e9',
+    text: '#1F2937',
+    primary: '#3B82F6',
+    secondary: '#60A5FA',
+    accent: '#8B5CF6',
+    border: '#E5E7EB',
+    cardBg: '#F9FAFB',
+    error: '#EF4444',
+    success: '#10B981',
   },
   dark: {
-    background: '#2d3436',
-    text: '#dfe6e9',
-    primary: '#74b9ff',
-    secondary: '#0984e3',
-    accent: '#6c5ce7',
-    border: '#636e72',
+    background: '#111827',
+    text: '#F9FAFB',
+    primary: '#60A5FA',
+    secondary: '#3B82F6',
+    accent: '#8B5CF6',
+    border: '#374151',
+    cardBg: '#1F2937',
+    error: '#EF4444',
+    success: '#10B981',
   },
 };
+
+// Enhanced types
+type NoteCategory = 'research' | 'project' | 'class' | 'personal' | 'ideas';
 
 interface Note {
   id: string;
   title: string;
   content: string;
-  tags: Array<{ label: string; color: string }>;
-  createdAt: number;
+  tags: string[];
+  category: NoteCategory;
+  lastEdited: Date;
+  isBookmarked: boolean;
 }
 
-const NotionEditor: React.FC = () => {
-  // State management
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [newNote, setNewNote] = useState({ title: '', content: '', tags: [] });
-  const [isAddingNote, setIsAddingNote] = useState(false);
+// Global state
+const globalState = observable({
+  theme: 'light' as 'light' | 'dark',
+  notes: [] as Note[],
+  searchQuery: '',
+  showOnboarding: true,
+  isMenuOpen: false,
+  selectedCategory: 'all' as 'all' | NoteCategory,
+});
 
-  // Animations
-  const menuAnimation = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+const CleveryEditor: React.FC = observer(() => {
+  const state = useObservable(globalState);
 
-  // Load notes from AsyncStorage on component mount
   useEffect(() => {
-    loadNotes();
+    if (state.notes.length === 0) {
+      const mockNotes: Note[] = [
+        {
+          id: '1',
+          title: 'Research: AI in Healthcare',
+          content: 'Recent developments in AI are revolutionizing healthcare diagnostics...',
+          tags: ['AI', 'healthcare', 'research'],
+          category: 'research',
+          lastEdited: new Date(),
+          isBookmarked: true,
+        },
+        {
+          id: '2',
+          title: 'Project: Mobile App Architecture',
+          content: 'Key considerations for scalable mobile architecture...',
+          tags: ['mobile', 'architecture', 'development'],
+          category: 'project',
+          lastEdited: new Date(),
+          isBookmarked: false,
+        },
+        {
+          id: '3',
+          title: 'Advanced Data Structures',
+          content: 'Notes from today\'s lecture on balanced trees and heap implementations...',
+          tags: ['CS', 'algorithms', 'study'],
+          category: 'class',
+          lastEdited: new Date(),
+          isBookmarked: true,
+        },
+      ];
+      state.notes.set(mockNotes);
+    }
   }, []);
 
-  const loadNotes = async () => {
-    try {
-      // const savedNotes = await AsyncStorage.getItem('notes');
-      // if (savedNotes) {
-      //   setNotes(JSON.parse(savedNotes));
-      // }
-    } catch (error) {
-      console.error('Error loading notes:', error);
-    }
-  };
+  const theme = themes[state.theme.get()];
 
-  const saveNotes = async (updatedNotes: Note[]) => {
-    try {
-      console.log('Saving notes:', updatedNotes);
-      // await AsyncStorage.setItem('notes', JSON.stringify(updatedNotes));
-    } catch (error) {
-      console.error('Error saving notes:', error);
-    }
-  };
-
-  // Toolbar component for text formatting
-  const Toolbar: React.FC = () => (
-    <View className="flex-row items-center p-2 border-b border-gray-200 dark:border-gray-700">
-      <TouchableOpacity className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-        <MaterialIcons name="format-bold" size={20} color={themes[theme].text} />
-      </TouchableOpacity>
-      <TouchableOpacity className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-        <MaterialIcons name="format-italic" size={20} color={themes[theme].text} />
-      </TouchableOpacity>
-      <TouchableOpacity className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-        <MaterialIcons name="format-underlined" size={20} color={themes[theme].text} />
-      </TouchableOpacity>
-      <TouchableOpacity className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-        <MaterialIcons name="format-list-bulleted" size={20} color={themes[theme].text} />
-      </TouchableOpacity>
-      <TouchableOpacity className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-        <Feather name="image" size={20} color={themes[theme].text} />
-      </TouchableOpacity>
-    </View>
-  );
-
-  // Quick Actions FAB
-  const QuickActionsFAB: React.FC = () => (
-    <TouchableOpacity
-      className="absolute bottom-6 right-6 bg-blue-500 rounded-full w-14 h-14 items-center justify-center shadow-lg"
-      onPress={() => setIsAddingNote(true)}
+  const EmptyState: React.FC = () => (
+    <Animated.View 
+      entering={FadeInDown}
+      style={{
+        alignItems: 'center',
+        padding: 24,
+        marginTop: 40,
+      }}
     >
-      <AntDesign name="plus" size={24} color="#ffffff" />
-    </TouchableOpacity>
-  );
-
-  // Search Bar component
-  const SearchBar: React.FC = () => (
-    <View className="flex-row items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg mx-4 my-2">
-      <Feather name="search" size={20} color={themes[theme].text} />
-      <TextInput
-        className="flex-1 ml-2 text-base"
-        placeholder="Search notes..."
-        placeholderTextColor={themes[theme].secondary}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
-    </View>
-  );
-
-  // Tag component
-  const Tag: React.FC<{ label: string; color: string }> = ({ label, color }) => (
-    <View
-      className="flex-row items-center px-3 py-1 rounded-full mr-2 mb-2"
-      style={{ backgroundColor: color }}
-    >
-      <Text className="text-white text-sm">{label}</Text>
-    </View>
-  );
-
-  // Note Block component
-  const NoteBlock: React.FC<{ note: Note }> = ({ note }) => (
-    <Animated.View
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md m-4 overflow-hidden"
-      style={{ opacity: fadeAnim }}
-    >
-      <View className="p-4">
-        <Text className="text-xl font-bold mb-2 dark:text-white">{note.title}</Text>
-        <View className="flex-row flex-wrap mb-2">
-          {note.tags.map((tag, index) => (
-            <Tag key={index} label={tag.label} color={tag.color} />
-          ))}
-        </View>
-        <Text className="text-gray-600 dark:text-gray-300">{note.content}</Text>
+      <MaterialIcons name="note-add" size={80} color={theme.secondary} />
+      <Text style={{ 
+        fontSize: 24, 
+        fontWeight: 'bold',
+        color: theme.text,
+        marginTop: 24,
+        marginBottom: 12,
+      }}>
+        Start Your Journey
+      </Text>
+      <Text style={{ 
+        color: theme.secondary,
+        textAlign: 'center',
+        fontSize: 16,
+        marginBottom: 24,
+        lineHeight: 24,
+      }}>
+        Create your first note by tapping the + button below.
+        Organize your thoughts across different categories:
+      </Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+        {Object.keys(colorSchemes).map((category) => (
+          <Chip key={category} label={category} />
+        ))}
       </View>
     </Animated.View>
   );
 
-  // Onboarding Modal
-  const OnboardingModal: React.FC = () => (
-    <Modal visible={showOnboarding} animationType="slide" transparent={true}>
-      <View className="flex-1 justify-center items-center bg-black bg-opacity-50">
-        <View className="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 w-5/6">
-          <Text className="text-2xl font-bold mb-4 dark:text-white">Welcome to Notes!</Text>
-          <Text className="text-gray-600 dark:text-gray-300 mb-4">
-            Let's get you started with the basics:
-          </Text>
-          <View className="mb-4">
-            <Text className="text-gray-600 dark:text-gray-300 mb-2">
-              1. Tap the + button to create a new note
+  const Chip: React.FC<{ label: string }> = ({ label }) => (
+    <LinearGradient
+      colors={colorSchemes[label as NoteCategory]?.gradient || ['#CBD5E1', '#94A3B8']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+      }}
+    >
+      <Text style={{ color: '#ffffff', fontSize: 14, textTransform: 'capitalize' }}>
+        {label}
+      </Text>
+    </LinearGradient>
+  );
+
+  const NoteBlock: React.FC<{ note: Note }> = observer(({ note }) => (
+    <Animated.View
+      entering={SlideInRight}
+      className="m-4 rounded-2xl overflow-hidden shadow-md"
+    >
+      <LinearGradient
+        colors={colorSchemes[note.category].gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="p-5"
+      >
+        <View className="flex-row justify-between items-center mb-3">
+          <View className="flex-1">
+            <Text className="text-xl font-rbold text-white mb-1">
+              {note.title}
             </Text>
-            <Text className="text-gray-600 dark:text-gray-300 mb-2">
-              2. Use the toolbar to format your text
-            </Text>
-            <Text className="text-gray-600 dark:text-gray-300 mb-2">
-              3. Add tags to organize your notes
-            </Text>
-            <Text className="text-gray-600 dark:text-gray-300">
-              4. Use the search bar to find notes quickly
+            <Text className="text-xs text-white/80 capitalize font-rregular">
+              {note.category}
             </Text>
           </View>
-          <TouchableOpacity
-            className="bg-blue-500 rounded-lg py-3 px-6 items-center"
-            onPress={() => setShowOnboarding(false)}
+          {note.isBookmarked && (
+            <Ionicons name="bookmark" size={24} color="#ffffff" />
+          )}
+        </View>
+        <Text className="text-white mb-4 leading-6 font-plregular text-sm" numberOfLines={3}>
+          {note.content}
+        </Text>
+        <View className="flex-row flex-wrap gap-2">
+          {note.tags.map((tag, index) => (
+            <View key={index} className="bg-white/20 px-2.5 py-1 rounded-full">
+              <Text className="text-white text-xs">#{tag}</Text>
+            </View>
+          ))}
+        </View>
+        <Text className="text-white/80 text-xs mt-3 font-rthin">
+          Last edited: {note.lastEdited.toLocaleDateString()}
+        </Text>
+      </LinearGradient>
+    </Animated.View>
+  ));
+
+  const CategoryFilter: React.FC = () => (
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      className="py-2"
+      contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
+    >
+      <TouchableOpacity
+        onPress={() => state.selectedCategory.set('all')}
+        className={`px-4 py-2 rounded-full ${state.selectedCategory.get() === 'all' ? theme.accent : theme.cardBg}`}
+      >
+        <Text className={`${state.selectedCategory.get() === 'all' ? 'text-white' : theme.text}`}>
+          All
+        </Text>
+      </TouchableOpacity>
+      {Object.keys(colorSchemes).map((category) => (
+        <TouchableOpacity
+          key={category}
+          onPress={() => state.selectedCategory.set(category as NoteCategory)}
+          className={`px-4 py-2 rounded-full ${state.selectedCategory.get() === category ? theme.accent : theme.cardBg}`}
+        >
+          <Text 
+            className={`${state.selectedCategory.get() === category ? 'text-white' : theme.text} capitalize`}
           >
-            <Text className="text-white font-bold">Get Started</Text>
+            {category}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
+
+  const filteredNotes = state.notes.get()
+    .filter((note) => {
+      const matchesSearch = note.title.toLowerCase().includes(state.searchQuery.get().toLowerCase()) ||
+        note.content.toLowerCase().includes(state.searchQuery.get().toLowerCase());
+      const matchesCategory = state.selectedCategory.get() === 'all' || 
+        note.category === state.selectedCategory.get();
+      return matchesSearch && matchesCategory;
+    });
+
+  return (
+    <View className={`flex-1 ${state.theme.get() === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+      <StatusBar barStyle={state.theme.get() === 'dark' ? 'light-content' : 'dark-content'} />
+      <LinearGradient
+        colors={[theme.cardBg, theme.background]}
+        className="pt-4"
+      >
+        <View className="flex-row justify-between items-center p-4">
+          <TouchableOpacity onPress={() => state.isMenuOpen.set(!state.isMenuOpen.get())}>
+            <Ionicons name="menu" size={24} color={theme.text} />
+          </TouchableOpacity>
+          <Text className={`text-2xl font-rbold ${state.theme.get() === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            Dealio Notes
+          </Text>
+          <TouchableOpacity 
+            onPress={() => state.theme.set(state.theme.get() === 'light' ? 'dark' : 'light')}
+          >
+            <Ionicons 
+              name={state.theme.get() === 'light' ? 'moon' : 'sunny'} 
+              size={24} 
+              color={theme.text} 
+            />
           </TouchableOpacity>
         </View>
-      </View>
-    </Modal>
-  );
 
-  // Add Note Modal
-  // const AddNoteModal: React.FC = () => (
-  //   <Modal
-  //     visible={isAddingNote}
-  //     animationType="slide"
-  //     transparent={true}
-  //   >
-  //     <KeyboardAvoidingView
-  //       behavior={Platform.OS === "ios" ? "padding" : "height"}
-  //       className="flex-1 justify-end"
-  //     >
-  //       <View className="bg-white dark:bg-gray-800 rounded-t-3xl p-6 h-3/4">
-  //         <View className="flex-row justify-between items-center mb-4">
-  //           <Text className="text-2xl font-bold dark:text-white">New Note</Text>
-  //           <TouchableOpacity onPress={() => setIsAddingNote(false)}>
-  //             <AntDesign name="close" size={24} color={themes[theme].text} />
-  //           </TouchableOpacity>
-  //         </View>
-  //         <TextInput
-  //           className="text-xl font-semibold mb-2 dark:text-white"
-  //           placeholder="Title"
-  //           placeholderTextColor={themes[theme].secondary}
-  //           value={newNote.title}
-  //           onChangeText={(text) => setNewNote({ ...newNote, title: text })}
-  //         />
-  //         <TextInput
-  //           className="text-base mb-4 dark:text-white"
-  //           placeholder="Start typing your note..."
-  //           placeholderTextColor={themes[theme].secondary}
-  //           multiline
-  //           textAlignVertical="top"
-  //           numberOfLines={10}
-  //           value={newNote.content}
-  //           onChangeText={(text) => setNewNote({ ...newNote, content: text })}
-  //         />
-  //         <TouchableOpacity
-  //           className="bg-blue-500 rounded-lg py-3 px-6 items-center"
-  //           onPress={handleAddNote}
-  //         >
-  //           <Text className="text-white font-bold">Save Note</Text>
-  //         </TouchableOpacity>
-  //       </View>
-  //     </KeyboardAvoidingView>
-  //   </Modal>
-  // );
+        <View className={`flex-row items-center mx-4 my-4 ${state.theme.get() === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl p-3`}>
+          <Feather name="search" size={20} color={theme.text} />
+          <TextInput
+            className={`flex-1 ml-2 text-base ${state.theme.get() === 'dark' ? 'text-white' : 'text-gray-900'}`}
+            placeholder="Search notes..."
+            placeholderTextColor={theme.secondary}
+            value={state.searchQuery.get()}
+            onChangeText={(text) => state.searchQuery.set(text)}
+          />
+        </View>
 
-  const handleAddNote = () => {
-    if (newNote.title && newNote.content) {
-      const newNoteWithId: Note = {
-        ...newNote,
-        id: Date.now().toString(),
-        createdAt: Date.now(),
-        tags: [{ label: 'New', color: '#3498db' }], // Default tag
-      };
-      const updatedNotes = [...notes, newNoteWithId];
-      setNotes(updatedNotes);
-      saveNotes(updatedNotes);
-      setNewNote({ title: '', content: '', tags: [] });
-      setIsAddingNote(false);
-    }
-  };
+        <CategoryFilter />
+      </LinearGradient>
 
-  // Main render
-  return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
-      <OnboardingModal />
-      <AddNoteModal
-        isOpen={isAddingNote}
-        newNote={newNote}
-        setNewNote={setNewNote}
-        onSave={handleAddNote}
-        onClose={() => setIsAddingNote(false)}
-      />
-
-      {/* Header */}
-      <View className="flex-row items-center justify-between p-4 bg-white dark:bg-gray-800">
-        <TouchableOpacity onPress={() => setIsMenuOpen(!isMenuOpen)}>
-          <Ionicons name="menu" size={24} color={themes[theme].text} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-          {theme === 'light' ? (
-            <Ionicons name="moon" size={24} color={themes[theme].text} />
-          ) : (
-            <Ionicons name="sunny" size={24} color={themes[theme].text} />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Search */}
-      <SearchBar />
-
-      {/* Main Content */}
       <ScrollView className="flex-1">
-        {notes
-          .filter(
-            (note) =>
-              note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              note.content.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-          .map((note, index) => (
-            <NoteBlock key={index} note={note} />
-          ))}
+        {filteredNotes.length === 0 ? (
+          <EmptyState />
+        ) : (
+          filteredNotes.map((note) => (
+            <NoteBlock key={note.id} note={note} />
+          ))
+        )}
       </ScrollView>
 
-      {/* Toolbar */}
-      <Toolbar />
-
-      {/* Quick Actions */}
-      <QuickActionsFAB />
+      <TouchableOpacity
+        className={`absolute bottom-12 z-10 shadow-lg mb-3 p-3 right-6 w-15 h-15 rounded-lg flex-row ${state.theme.get() === 'dark' ? 'bg-blue-500' : 'bg-blue-600'} items-center justify-center shadow-lg`}
+        onPress={() => router.navigate('create.note')}
+      >
+        <Ionicons name="add" size={24} color="white" />
+        <Text className="text-white">Add new</Text>
+      </TouchableOpacity>
     </View>
   );
-};
+});
 
-export default NotionEditor;
+export default CleveryEditor;

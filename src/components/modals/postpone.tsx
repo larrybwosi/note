@@ -1,5 +1,5 @@
 import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useObservable } from '@legendapp/state/react';
+import { observer, useObservable } from '@legendapp/state/react';
 import { colorScheme } from 'nativewind';
 import { format } from 'date-fns';
 
@@ -11,10 +11,12 @@ import { useModal } from './provider';
 const Postpone = () => {
   const { postponeTask } = useScheduleStore();
   const {
+    isVisible,
     hide,
     props: { itemId },
   } = useModal('postpone');
 
+  console.log(isVisible)
   const state$ = useObservable({
     showPostponeModal: false,
     showDatePicker: false,
@@ -25,18 +27,19 @@ const Postpone = () => {
     reason: '',
   });
 
-  const { showDatePicker, showTimePicker, reason, newDate, showPostponeModal } = state$;
+  const { showDatePicker, showTimePicker, reason, newDate } = state$;
 
   const handlePostpone = () => {
     postponeTask(itemId, newDate.get(), reason.get(), 'Unavailable', 'Low');
     hide();
   };
+  
   return (
     <Modal
-      visible={showPostponeModal.get()}
+      visible={isVisible}
       transparent
       animationType="slide"
-      onRequestClose={() => showPostponeModal.set(false)}
+      onRequestClose={() => hide()}
     >
       <View className="flex-1 justify-end bg-black/60">
         <View className="bg-white dark:bg-gray-800 rounded-t-3xl p-6">
@@ -103,4 +106,4 @@ const Postpone = () => {
   );
 };
 
-export default Postpone;
+export default observer(Postpone);

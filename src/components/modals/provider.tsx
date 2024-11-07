@@ -1,9 +1,10 @@
 import { observable } from '@legendapp/state';
-import { useObservable } from '@legendapp/state/react';
-import React, { ReactNode, ComponentType, useState, useEffect } from 'react';
+import { observer, useObservable } from '@legendapp/state/react';
+import React, { ReactNode, ComponentType, useCallback, useMemo, useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableWithoutFeedback, Animated } from 'react-native';
 import Postpone from './postpone';
 import NewCategory from './new.category';
+import NewIncomeForm from '../income.form';
 
 // Base modal props that all modals will extend
 interface BaseModalProps {
@@ -22,23 +23,16 @@ interface NewCategoryModalProps extends BaseModalProps {
 }
 
 // Registry of all modal configurations
-interface ModalRegistry {
-  postpone: {
-    component: ComponentType<PostponeModalProps>;
-    props: Omit<PostponeModalProps, keyof BaseModalProps>;
-  };
-  newCategory: {
-    component: ComponentType<NewCategoryModalProps>;
-    props: Omit<NewCategoryModalProps, keyof BaseModalProps>;
-  };
-}
+type ModalRegistry = {
+  postpone: { component: ComponentType<PostponeModalProps>; props: Omit<PostponeModalProps, keyof BaseModalProps> };
+  newCategory: { component: ComponentType<NewCategoryModalProps>; props: Omit<NewCategoryModalProps, keyof BaseModalProps> };
+  newTransaction: { component: ComponentType ; props: {} };
+};
 
 // Type helpers
 type ModalName = keyof ModalRegistry;
 type ModalProps<T extends ModalName> = ModalRegistry[T]['props'];
-type ModalComponent<T extends ModalName> = ComponentType<
-  ModalRegistry[T]['props'] & BaseModalProps
->;
+type ModalComponent<T extends ModalName> = ComponentType<ModalRegistry[T]['props'] & BaseModalProps>;
 
 // Modal state management
 interface ModalState {
@@ -46,24 +40,15 @@ interface ModalState {
   props: ModalProps<ModalName> | null;
 }
 
-const modalState = observable<ModalState>({
-  activeModal: null,
-  props: null,
-});
+const modalState = observable<ModalState>({ activeModal: null, props: null });
 
 // Modal actions
 export const showModal = <T extends ModalName>(modalName: T, props: ModalProps<T>) => {
-  modalState.set({
-    activeModal: modalName,
-    props: props as ModalProps<ModalName>,
-  });
+  modalState.set({ activeModal: modalName, props: props as ModalProps<ModalName> });
 };
 
 export const hideModal = () => {
-  modalState.set({
-    activeModal: null,
-    props: null,
-  });
+  modalState.set({ activeModal: null, props: null });
 };
 
 // Custom Modal component
@@ -72,8 +57,7 @@ const CustomModal: React.FC<{ isVisible: boolean; onClose: () => void; children:
   onClose,
   children,
 }) => {
-  const [fadeAnim] = useState(new Animated.Value(0));
-
+  const fadeAnim = useMemo(() => new Animated.Value(0), []);
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: isVisible ? 1 : 0,
@@ -95,20 +79,11 @@ const CustomModal: React.FC<{ isVisible: boolean; onClose: () => void; children:
   );
 };
 
-// Custom Portal component
-const CustomPortal: React.FC<{ children: ReactNode }> = ({ children }) => {
-  return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      {children}
-    </View>
-  );
-};
-
 // Modal wrapper HOC with proper typing
 const withModalWrapper = <P extends BaseModalProps>(WrappedComponent: ComponentType<P>) => {
-  const ComponentWithDisplayName = (props: Omit<P, keyof BaseModalProps>) => {
-    const state = modalState.get();
-    const isVisible = state.activeModal !== null;
+  const ModalWrapper: React.FC<Omit<P, keyof BaseModalProps>> = (props) => {
+    const state = useObservable(modalState);
+    const isVisible = useMemo(() => state.get().activeModal !== null, [state]);
 
     return (
       <CustomModal isVisible={isVisible} onClose={hideModal}>
@@ -117,9 +92,8 @@ const withModalWrapper = <P extends BaseModalProps>(WrappedComponent: ComponentT
     );
   };
 
-  ComponentWithDisplayName.displayName = `WithModalWrapper(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
-
-  return ComponentWithDisplayName;
+  ModalWrapper.displayName = `WithModalWrapper(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+  return React.memo(ModalWrapper);
 };
 
 // Enhanced modal components
@@ -127,30 +101,23 @@ const EnhancedPostpone = withModalWrapper(Postpone);
 const EnhancedNewCategory = withModalWrapper(NewCategory);
 
 // Modal registry with components
-const MODAL_COMPONENTS: {
-  [K in ModalName]: ModalComponent<K>;
-} = {
-  postpone: EnhancedPostpone as ModalComponent<'postpone'>,
-  newCategory: EnhancedNewCategory as ModalComponent<'newCategory'>,
+const MODAL_COMPONENTS: { [K in ModalName]: ModalComponent<K> } = {
+  postpone: EnhancedPostpone,
+  newCategory: EnhancedNewCategory,
+  newTransaction: NewIncomeForm,
 };
 
 // Modal Provider Component
-const ModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+const ModalProvider: React.FC<{ children: ReactNode }> = observer(({ children }) => {
   const state = useObservable(modalState);
 
-  const renderActiveModal = () => {
+  const renderActiveModal = useCallback(() => {
     const { activeModal, props } = state.get();
     if (!activeModal || !props) return null;
 
     const ModalComponent = MODAL_COMPONENTS[activeModal] as ModalComponent<typeof activeModal>;
-    return (
-      <ModalComponent
-        {...(props as ModalProps<typeof activeModal>)}
-        isVisible={true}
-        onClose={hideModal}
-      />
-    );
-  };
+    return <ModalComponent {...(props as ModalProps<typeof activeModal>)} isVisible={true} onClose={hideModal} />;
+  }, [state]);
 
   return (
     <>
@@ -158,21 +125,21 @@ const ModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       <CustomPortal>{renderActiveModal()}</CustomPortal>
     </>
   );
-};
+});
+
+// Portal Component
+const CustomPortal: React.FC<{ children: ReactNode }> = ({ children }) => (
+  <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    {children}
+  </View>
+);
 
 // Updated useModal hook with dynamic return types
-export function useModal<T extends ModalName>(
-  modalName: T
-): {
-  show: (props: ModalProps<T>) => void;
-  hide: () => void;
-  isVisible: boolean;
-  props: ModalProps<T>;
-} {
+export function useModal<T extends ModalName>(modalName: T) {
   const state = useObservable(modalState);
 
   return {
-    show: (props: ModalProps<T>) => showModal(modalName, props),
+    show: useCallback((props: ModalProps<T>) => showModal(modalName, props), [modalName]),
     hide: hideModal,
     isVisible: state.get().activeModal === modalName,
     props: (state.get().props || {}) as ModalProps<T>,

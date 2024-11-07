@@ -13,7 +13,6 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import {
   Ionicons,
   MaterialCommunityIcons,

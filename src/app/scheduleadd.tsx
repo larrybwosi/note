@@ -2,10 +2,11 @@ import { observer, useObservable } from '@legendapp/state/react';
 import { Text } from 'react-native';
 import { TextInput, TouchableOpacity, View, ScrollView } from 'react-native';
 import Animated, { SlideInRight, SlideOutLeft } from 'react-native-reanimated';
-import { TASK_TYPES, PRIORITY_LEVELS, RECURRENCE_PATTERNS } from '../storage/schedule';
+// import { TASK_TYPES, PRIORITY_LEVELS, RECURRENCE_PATTERNS } from '../storage/schedule';
 import useScheduleStore from 'src/store/shedule/actions';
 import { scheduleStore } from 'src/store/shedule/store';
 import DateTimePickerComponent from 'src/components/date.time';
+import { PRIORITY_LEVELS, RECURRENCE_PATTERNS, TASK_TYPES } from 'src/store/shedule/types';
 
 const priorityColors = {
   Low: {
@@ -56,14 +57,14 @@ const AddItem = () => {
       <Animated.View
         entering={SlideInRight}
         exiting={SlideOutLeft}
-        className="bg-white dark:bg-gray-800 rounded-t-3xl p-6 h-5/6"
+        className="bg-white dark:bg-gray-800 rounded-t-3xl p-5"
       >
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text className="text-xl font-rbold text-gray-900 dark:text-white mb-4">
             {scheduleStore.editingItem.get() ? 'Edit Item' : 'Add New Item'}
           </Text>
 
-          <View className="space-y-4">
+          <View className="space-y-3">
             {/* Schedule Type Selection */}
             <View>
               <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">

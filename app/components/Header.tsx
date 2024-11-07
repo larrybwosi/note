@@ -7,7 +7,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { isRTL, translate } from '../i18n';
 import { $styles } from '../theme';
 import { ExtendedEdge, useSafeAreaInsetsStyle } from '../utils/useSafeAreaInsetsStyle';
 import { Icon, IconTypes } from './Icon';
@@ -179,7 +178,7 @@ export function Header(props: HeaderProps) {
 
   const $containerInsets = useSafeAreaInsetsStyle(safeAreaEdges);
 
-  const titleContent = titleTx ? translate(titleTx, titleTxOptions) : title;
+  const titleContent = title;
 
   return (
     <View style={[$container, $containerInsets, { backgroundColor }, $containerStyleOverride]}>
@@ -236,7 +235,7 @@ function HeaderAction(props: HeaderActionProps) {
   const { backgroundColor, icon, text, tx, txOptions, onPress, ActionComponent, iconColor } = props;
   const { themed } = useAppTheme();
 
-  const content = tx ? translate(tx, txOptions) : text;
+  const content = text;
 
   if (ActionComponent) return ActionComponent;
 
@@ -261,7 +260,7 @@ function HeaderAction(props: HeaderActionProps) {
         color={iconColor}
         onPress={onPress}
         containerStyle={themed([$actionIconContainer, { backgroundColor }])}
-        style={isRTL ? { transform: [{ rotate: '180deg' }] } : {}}
+        style={ {}}
       />
     );
   }

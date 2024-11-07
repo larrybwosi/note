@@ -1,7 +1,6 @@
-import { Memo, observer, useObservable, useComputed } from '@legendapp/state/react';
+import { Memo, observer, useComputed } from '@legendapp/state/react';
 import { useInterval } from 'usehooks-ts';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
-import RNDateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { currentTime } from '@legendapp/state/helpers/time';
 import { colorScheme as colorSchemeNW } from 'nativewind';
@@ -10,10 +9,11 @@ import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback } from 'react';
 
-import { markCompleted, postponeItem } from 'src/store/shedule/actions';
+import { markCompleted } from 'src/store/shedule/actions';
 import { ItemCard } from 'src/components/schedule.item';
 import { scheduleStore } from 'src/store/shedule/store';
-import AddItem from 'src/components/schedule.add';
+import { router } from 'expo-router';
+import { useModal } from 'src/components/modals/provider';
 
 const CALENDAR_THEME = {
   light: {
@@ -45,14 +45,7 @@ const CALENDAR_THEME = {
 };
 
 const CalendarApp = observer(function CalendarApp() {
-  const state$ = useObservable({
-    showPostponeModal: false,
-    selectedItemId: '' as any,
-    showDatePicker: false,
-    animation: {
-      streakScale: 1,
-    },
-  });
+  const { show }=useModal('postpone')
 
   const time = useComputed(() => format(currentTime.get().getTime(), 'hh:mm'));
   const theme = useComputed(() => colorSchemeNW.get());
@@ -68,24 +61,8 @@ const CalendarApp = observer(function CalendarApp() {
   }, []);
 
   const handlePostpone = useCallback((itemId: any) => {
-    state$.selectedItemId.set(itemId);
-    state$.showPostponeModal.set(true);
-  }, []);
-
-  const confirmPostpone = useCallback(() => {
-    if (state$.selectedItemId.get()) {
-      postponeItem(
-        state$.selectedItemId.get(),
-        scheduleStore.postponeData.newDate.get(),
-        scheduleStore.postponeData.reason.get(),
-        'Other',
-        'Low'
-      );
-    }
-    state$.showPostponeModal.set(false);
-    state$.selectedItemId.set(null);
-    scheduleStore.postponeData.reason.set('');
-    scheduleStore.postponeData.newDate.set(new Date());
+    show({itemId, date:new Date})
+    console.log(itemId)
   }, []);
 
   useInterval(() => {
@@ -153,7 +130,7 @@ const CalendarApp = observer(function CalendarApp() {
             </Text>
             <TouchableOpacity
               className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 rounded-full shadow-lg shadow-blue-600/30"
-              onPress={() => scheduleStore.isAddingItem.set(true)}
+              onPress={() => router.navigate('/scheduleadd')}
             >
               <Ionicons name="add" size={24} color="white" />
             </TouchableOpacity>

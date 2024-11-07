@@ -1,22 +1,29 @@
 import { useEffect } from 'react';
+import { enableReactNativeComponents } from "@legendapp/state/config/enableReactNativeComponents";
 import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colorScheme as colorSchemeNW } from 'nativewind';
 import { SplashScreen, Stack } from 'expo-router';
 import { ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
 // @mst replace-next-line
 import { initializeNotifications } from 'src/store/shedule/notifications';
+import ModalProvider from 'src/components/modals/provider';
 import { customFontsToLoad } from '@/theme';
 import './global.css';
-import ModalProvider from 'src/components/modals/provider';
+
 // bf94542d-923b-4506-8a8b-b8a2baac45ca
 
 SplashScreen.preventAutoHideAsync();
+
+enableReactNativeComponents();
 enableReactTracking({
   warnUnobserved: true,
+  auto: true,
 });
+
 
 export default function Root() {
   const [loaded, fontError] = useFonts(customFontsToLoad);
@@ -39,11 +46,19 @@ export default function Root() {
   return (
     <GestureHandlerRootView style={$root}>
       <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
-        <ModalProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
-        </ModalProvider>
+        <SafeAreaProvider>
+          <ModalProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="scheduleadd" options={{ headerShown: false }} />
+              <Stack.Screen name="create.transaction" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="create.profile" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="create.note" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="finance_setup" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
+            </Stack>
+          </ModalProvider>
+        </SafeAreaProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

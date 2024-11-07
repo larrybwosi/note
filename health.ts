@@ -2,7 +2,6 @@ import { observable } from '@legendapp/state';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 import { synced } from '@legendapp/state/sync';
 import { format } from 'date-fns';
-import { v4 as uuidv4 } from 'uuid';
 
 // Enums and Constants
 export const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Elite'] as const;
@@ -150,7 +149,7 @@ interface HealthStore {
 
 // Utility Functions
 export const healthUtils = {
-  generateId: () => uuidv4(),
+  generateId: () => Math.random().toString(36).slice(2),
 
   calculateBMI: (weight: number, height: number): number => {
     return +(weight / (height * height)).toFixed(1);

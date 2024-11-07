@@ -31,20 +31,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="expenses"
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome5 name="money-bill-alt" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="income"
-        options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="cash" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="finance"
         options={{
           tabBarIcon: ({ color, size }) => (
@@ -63,8 +49,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="note"
         options={{
-          tabBarIcon: ({ color, size }) => <Octicons name="note" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <FontAwesome5 name="sticky-note" size={size} color={color} />,
           tabBarLabel: 'Notes',
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          tabBarIcon: ({ color, size }) => <Octicons name="person" size={size} color={color} />,
+          tabBarLabel: 'Profile',
         }}
       />
     </Tabs>

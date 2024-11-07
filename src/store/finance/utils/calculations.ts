@@ -45,7 +45,7 @@ export const calculateExpensesByGroup = (
 
 // utils/budgetUtils.ts
 export const calculateBudgetAllocations = (budgetConfig: BudgetConfig): Record<string, number> => {
-  const { monthlyIncome, selectedRule, customRules } = budgetConfig;
+  const { monthlyIncome, rule, customRules } = budgetConfig;
 
   const rules = {
     [BudgetRuleType.RULE_15_65_20]: {
@@ -65,7 +65,7 @@ export const calculateBudgetAllocations = (budgetConfig: BudgetConfig): Record<s
     },
   };
 
-  if (selectedRule === BudgetRuleType.CUSTOM) {
+  if (rule === BudgetRuleType.CUSTOM) {
     return customRules.reduce(
       (acc, rule) => ({
         ...acc,
@@ -75,7 +75,7 @@ export const calculateBudgetAllocations = (budgetConfig: BudgetConfig): Record<s
     );
   }
 
-  return Object.entries(rules[selectedRule]).reduce(
+  return Object.entries(rules[rule]).reduce(
     (acc, [key, percentage]) => ({
       ...acc,
       [key]: monthlyIncome * percentage,
