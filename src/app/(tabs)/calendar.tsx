@@ -5,51 +5,107 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { currentTime } from '@legendapp/state/helpers/time';
 import { colorScheme as colorSchemeNW } from 'nativewind';
 import { format, differenceInMinutes } from 'date-fns';
-import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { markCompleted } from 'src/store/shedule/actions';
 import { ItemCard } from 'src/components/schedule.item';
 import { scheduleStore } from 'src/store/shedule/store';
 import { router } from 'expo-router';
 import { useModal } from 'src/components/modals/provider';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
-const CALENDAR_THEME = {
-  light: {
-    backgroundColor: '#ffffff',
-    calendarBackground: '#ffffff',
-    selectedDayBackgroundColor: '#3b82f6',
-    selectedDayTextColor: '#ffffff',
-    todayTextColor: '#2563eb',
-    dayTextColor: '#1f2937',
-    textDisabledColor: '#9ca3af',
-    dotColor: '#3b82f6',
-    selectedDotColor: '#ffffff',
-    arrowColor: '#3b82f6',
-    monthTextColor: '#1f2937',
-  },
-  dark: {
-    backgroundColor: '#111827',
-    calendarBackground: '#1f2937',
-    selectedDayBackgroundColor: '#60a5fa',
-    selectedDayTextColor: '#ffffff',
-    todayTextColor: '#60a5fa',
-    dayTextColor: '#f3f4f6',
-    textDisabledColor: '#6b7280',
-    dotColor: '#60a5fa',
-    selectedDotColor: '#ffffff',
-    arrowColor: '#60a5fa',
-    monthTextColor: '#f3f4f6',
-  },
-};
+// Separate components for better organization
+const Header = observer(({ streakCount = 5 }) => {
+  const time = useComputed(() => format(currentTime.get().getTime(), 'hh:mm'));
+  return (
+    <Animated.View 
+      entering={FadeInUp.duration(800)}
+      className="px-4 py-6 bg-white dark:bg-gray-800 shadow-xl rounded-b-3xl"
+    >
+      <LinearGradient
+        colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
+        className="absolute top-0 left-0 right-0 bottom-0 rounded-b-3xl"
+      />
+      <View className="flex-row justify-between items-center mb-4">
+        <View>
+          <Text className="text-sm font-rmedium text-gray-500 dark:text-gray-400 mb-1">
+            Welcome back
+          </Text>
+          <Text className="text-3xl font-rbold text-gray-900 dark:text-white">
+            My Schedule
+          </Text>
+        </View>
+        <View className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 rounded-2xl shadow-lg shadow-blue-500/20">
+          <Text className="text-lg font-rmedium text-white">
+            <Memo>{time}</Memo>
+          </Text>
+        </View>
+      </View>
+      <View className="flex-row items-center justify-between bg-amber-50 dark:bg-amber-900/30 p-4 rounded-2xl">
+        <View className="flex-row items-center">
+          <Ionicons name="star" size={24} color="#F59E0B" />
+          <Text className="ml-2 text-amber-700 dark:text-amber-300 font-rmedium text-base">
+            {streakCount} day streak
+          </Text>
+        </View>
+        <View className="bg-amber-500/20 p-2 rounded-xl">
+          <Text className="text-amber-600 dark:text-amber-400">🔥</Text>
+        </View>
+      </View>
+    </Animated.View>
+  );
+});
+
+const EmptyState = () => (
+  <View className="flex-1 justify-center items-center p-8">
+    <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-3xl shadow-inner">
+      <Ionicons name="calendar-outline" size={72} color="#9CA3AF" />
+    </View>
+    <Text className="text-xl font-rmedium text-gray-600 dark:text-gray-400 mt-6 text-center">
+      No tasks scheduled for today
+    </Text>
+    <Text className="text-sm text-gray-500 dark:text-gray-500 mt-2 text-center max-w-xs">
+      Take a moment to plan your day. Tap the + button to add a new task or event.
+    </Text>
+  </View>
+);
+
+const AddButton = ({ onPress }: { onPress: () => void }) => (
+  <TouchableOpacity
+    className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 rounded-full shadow-xl shadow-blue-600/30 active:scale-95 transform transition-all"
+    onPress={onPress}
+  >
+    <LinearGradient
+      colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+      className="absolute top-0 left-0 right-0 bottom-0 rounded-full"
+    />
+    <Ionicons name="add" size={24} color="white" />
+  </TouchableOpacity>
+);
+
+const TasksList = observer(({ items, onComplete, onPostpone, theme }: any) => (
+  <Animated.View 
+    className="space-y-4"
+    entering={FadeInUp.duration(800)}
+  >
+    {items.map((item: any) => (
+      <ItemCard
+        key={item.id}
+        item={item}
+        onComplete={onComplete}
+        handlePostpone={onPostpone}
+        theme={theme}
+      />
+    ))}
+  </Animated.View>
+));
 
 const CalendarApp = observer(function CalendarApp() {
-  const { show }=useModal('postpone')
-
-  const time = useComputed(() => format(currentTime.get().getTime(), 'hh:mm'));
+  const { show } = useModal('postpone');
   const theme = useComputed(() => colorSchemeNW.get());
-  const items = useComputed(() => scheduleStore.items.get());
+  const todayItems = useComputed(() => scheduleStore.items.get());
 
   const updateCountdowns = useCallback(() => {
     scheduleStore.items.set((prevItems) =>
@@ -61,95 +117,54 @@ const CalendarApp = observer(function CalendarApp() {
   }, []);
 
   const handlePostpone = useCallback((itemId: any) => {
-    show({itemId, date:new Date})
-    console.log(itemId)
-  }, []);
-
-  useInterval(() => {
-    currentTime.set(new Date());
-    updateCountdowns();
-  }, 60000); // Update every minute
+    show({ itemId, date: new Date() });
+  }, [show]);
 
   const handleCompleteItem = useCallback((id: number) => {
     markCompleted(id);
   }, []);
 
+  useInterval(() => {
+    currentTime.set(new Date());
+    updateCountdowns();
+  }, 60000);
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <ScrollView className="flex-1">
-        {/* Enhanced Header */}
-        <View className="px-4 py-6 bg-white dark:bg-gray-800 shadow-lg rounded-b-3xl">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-3xl font-rbold text-gray-900 dark:text-white">My Schedule</Text>
-            <View className="bg-blue-100 dark:bg-blue-900 px-4 py-2 rounded-xl">
-              <Text className="text-lg font-rmedium text-blue-600 dark:text-blue-300">
-                <Memo>{time}</Memo>
-              </Text>
-            </View>
-          </View>
-          <View className="flex-row items-center gap-2 bg-amber-50 dark:bg-amber-900/30 p-3 rounded-xl">
-            <View className="flex-row items-center">
-              <Ionicons name="star" size={20} color="#F59E0B" />
-              <Text className="ml-2 text-amber-700 dark:text-amber-300 font-rmedium">
-                5 day streak 🔥
-              </Text>
-            </View>
-          </View>
-        </View>
+      <ScrollView 
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        <Header />
 
-        {/* Enhanced Calendar */}
-        <Memo>
-          {() => (
-            <View className="mx-4 mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-              <Calendar
-                current={currentTime.get().toISOString()}
-                onMonthChange={(month: any) => currentTime.set(new Date(month.timestamp))}
-                onDayPress={(day: any) => currentTime.set(new Date(day.timestamp))}
-                onDayLongPress={(day: any) => currentTime.set(new Date(day.timestamp))}
-                theme={{
-                  ...(theme.get() === 'dark' ? CALENDAR_THEME.dark : CALENDAR_THEME.light),
-                  textDayFontFamily: 'roboto-bold',
-                  textMonthFontFamily: 'roboto-bold',
-                  textDayHeaderFontFamily: 'roboto-bold',
-                  textDayFontWeight: '400',
-                  textDayHeaderFontWeight: '600',
-                  textDayFontSize: 16,
-                  textMonthFontSize: 16,
-                  textDayHeaderFontSize: 14,
-                }}
-              />
-            </View>
-          )}
-        </Memo>
-
-        {/* Enhanced Tasks List */}
-        <View className="mx-4 mt-6 mb-4">
+        <View className="mx-4 mt-8">
           <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-2xl font-rmedium text-gray-900 dark:text-white">
-              Today's Schedule
-            </Text>
-            <TouchableOpacity
-              className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 rounded-full shadow-lg shadow-blue-600/30"
-              onPress={() => router.navigate('/scheduleadd')}
-            >
-              <Ionicons name="add" size={24} color="white" />
-            </TouchableOpacity>
+            <View>
+              <Text className="text-sm font-rmedium text-gray-500 dark:text-gray-400 mb-1">
+                {format(new Date(), 'EEEE, MMMM d')}
+              </Text>
+              <Text className="text-2xl font-rmedium text-gray-900 dark:text-white">
+                Today's Schedule
+              </Text>
+            </View>
+            <AddButton onPress={() => router.navigate('/scheduleadd')} />
           </View>
-          <Memo>
-            {() =>
-              items
-                .get()
-                .map((item) => (
-                  <ItemCard
-                    key={item.id}
-                    item={item}
-                    onComplete={handleCompleteItem}
-                    handlePostpone={handlePostpone}
-                    theme={theme.get() as any}
-                  />
-                ))
-            }
-          </Memo>
+
+          {todayItems.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <Memo>
+              {() => (
+                <TasksList
+                  items={todayItems.get()}
+                  onComplete={handleCompleteItem}
+                  onPostpone={handlePostpone}
+                  theme={theme.get()}
+                />
+              )}
+            </Memo>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

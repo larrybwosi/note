@@ -56,6 +56,7 @@ export interface ScheduleItem {
   reminder?: number;
   scheduleType?: 'task' | 'event';
   deletedAt?: Date;
+  countdown?: number;
 }
 
 export interface ScheduleStore {

@@ -12,9 +12,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { format, isPast, isWithinInterval, addMinutes } from 'date-fns';
-import { ScheduleItem } from 'src/storage/schedule';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { deleteItem } from 'src/store/shedule/actions';
+import { ScheduleItem } from 'src/store/shedule/types';
 
 interface ItemCardProps {
   item: ScheduleItem;
@@ -46,25 +47,29 @@ const defaultStyles = {
 
 const priorityConfig = {
   Low: {
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+    bg: ['#E6F9E8', '#C7F5CC'],
+    darkBg: ['rgba(16, 185, 129, 0.1)', 'rgba(16, 185, 129, 0.2)'],
     border: 'border-emerald-200 dark:border-emerald-700',
     text: 'text-emerald-700 dark:text-emerald-400',
     icon: 'leaf',
   },
   Medium: {
-    bg: 'bg-amber-50 dark:bg-amber-900/20',
+    bg: ['#FEF5E7', '#FCE7B6'],
+    darkBg: ['rgba(245, 158, 11, 0.1)', 'rgba(245, 158, 11, 0.2)'],
     border: 'border-amber-200 dark:border-amber-700',
     text: 'text-amber-700 dark:text-amber-400',
     icon: 'time',
   },
   High: {
-    bg: 'bg-rose-50 dark:bg-rose-900/20',
+    bg: ['#FEE7EF', '#FCCDE0'],
+    darkBg: ['rgba(225, 29, 72, 0.1)', 'rgba(225, 29, 72, 0.2)'],
     border: 'border-rose-200 dark:border-rose-700',
     text: 'text-rose-700 dark:text-rose-400',
     icon: 'alert-circle',
   },
   Critical: {
-    bg: 'bg-red-50 dark:bg-red-900/20',
+    bg: ['#FEE2E2', '#FCA5A5'],
+    darkBg: ['rgba(239, 68, 68, 0.1)', 'rgba(239, 68, 68, 0.2)'],
     border: 'border-red-200 dark:border-red-700',
     text: 'text-red-700 dark:text-red-400',
     icon: 'alert-circle',
@@ -119,25 +124,30 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     };
 
     updateStatus();
-    const interval = setInterval(updateStatus, 60000); // Update every minute
+    const interval = setInterval(updateStatus, 60000);
 
     return () => clearInterval(interval);
   }, [item]);
 
   const PriorityBadge = ({ priority }: { priority: ScheduleItem['priority'] }) => (
-    <View
-      className={`flex-row items-center px-2 py-1 rounded-lg ${priorityConfig[priority].bg} border ${priorityConfig[priority].border}`}
+    <LinearGradient
+      colors={theme === 'light' ? priorityConfig[priority].bg : priorityConfig[priority].darkBg}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      className="rounded-lg p-0.5"
     >
-      <Ionicons
-        name={priorityConfig[priority].icon as any}
-        size={12}
-        color={theme === 'light' ? '#374151' : '#E5E7EB'}
-        style={{ marginRight: 4 }}
-      />
-      <Text className={`text-xs font-rmedium ${priorityConfig[priority].text}`}>
-        {priority.charAt(0)?.toUpperCase() + priority.slice(1)}
-      </Text>
-    </View>
+      <View className="flex-row items-center px-2 py-1">
+        <Ionicons
+          name={priorityConfig[priority].icon as any}
+          size={12}
+          color={theme === 'light' ? '#374151' : '#E5E7EB'}
+          style={{ marginRight: 4 }}
+        />
+        <Text className={`text-xs font-rmedium ${priorityConfig[priority].text}`}>
+          {priority.charAt(0)?.toUpperCase() + priority.slice(1)}
+        </Text>
+      </View>
+    </LinearGradient>
   );
 
   const handleComplete = useCallback(() => {
@@ -165,105 +175,138 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       exiting={FadeOut.duration(200)}
       layout={LinearTransition.springify()}
       style={[animatedStyle]}
-      className={`${customStyles.cardBg} p-5 rounded-2xl shadow-lg mb-4 border border-gray-100 dark:border-gray-700`}
+      className="overflow-hidden rounded-2xl shadow-lg mb-4"
     >
-      <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} className="flex-1">
-        {/* Header */}
-        <View className="flex-row justify-between items-start mb-3">
-          <View className="flex-row items-center gap-2">
-            <PriorityBadge priority={item.priority} />
-            <View className={`px-2 py-1 rounded-lg bg-gray-100 `}>
-              <Text className={`text-xs font-medium font-rmedium`}>
-                {item.scheduleType?.toUpperCase()}
-              </Text>
+      <LinearGradient
+        colors={
+          theme === 'light'
+            ? ['#FFFFFF', '#F8FAFC']
+            : ['#1F2937', '#111827']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="p-5 border border-gray-100 dark:border-gray-700"
+      >
+        <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} className="flex-1">
+          {/* Header */}
+          <View className="flex-row justify-between items-start mb-3">
+            <View className="flex-row items-center gap-2">
+              <PriorityBadge priority={item.priority} />
+              <LinearGradient
+                colors={
+                  theme === 'light'
+                    ? ['#F3F4F6', '#E5E7EB']
+                    : ['rgba(107, 114, 128, 0.1)', 'rgba(107, 114, 128, 0.2)']
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="rounded-lg p-0.5"
+              >
+                <Text className="px-2 py-1 text-xs font-medium font-rmedium text-gray-600 dark:text-gray-300">
+                  {item.scheduleType?.toUpperCase()}
+                </Text>
+              </LinearGradient>
             </View>
-          </View>
-          <TouchableOpacity
-            className="w-8 h-8 items-center justify-center"
-            onPress={handleComplete}
-          >
-            <Ionicons
-              name={item.completed ? 'checkmark-circle' : 'checkmark-circle-outline'}
-              size={20}
-              color={
-                item.completed
-                  ? theme === 'light'
-                    ? '#10B981'
-                    : '#34D399'
-                  : theme === 'light'
-                    ? '#6B7280'
-                    : '#9CA3AF'
-              }
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Content */}
-        <View className="mb-3">
-          <Text className={`text-lg mb-1 font-rmedium text-gray-200`}>{item.title}</Text>
-          <View className="flex-row items-center gap-3">
-            <View className="flex-row items-center">
+            <TouchableOpacity
+              className="w-8 h-8 items-center justify-center"
+              onPress={handleComplete}
+            >
               <Ionicons
-                name="time-outline"
-                size={16}
-                color={theme === 'light' ? '#6B7280' : '#9CA3AF'}
-                style={{ marginRight: 4 }}
+                name={item.completed ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                size={20}
+                color={
+                  item.completed
+                    ? theme === 'light'
+                      ? '#10B981'
+                      : '#34D399'
+                    : theme === 'light'
+                      ? '#6B7280'
+                      : '#9CA3AF'
+                }
               />
-              <Text className={`text-sm ${getStatusColor()}`}>
-                {format(item.startDate, 'HH:mm')} -{' '}
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </Text>
-            </View>
-            {item.duration && (
+            </TouchableOpacity>
+          </View>
+
+          {/* Content */}
+          <View className="mb-3">
+            <Text className="text-lg mb-1 font-rmedium text-gray-800 dark:text-gray-100">
+              {item.title}
+            </Text>
+            <View className="flex-row items-center gap-3">
               <View className="flex-row items-center">
                 <Ionicons
-                  name="hourglass-outline"
+                  name="time-outline"
                   size={16}
                   color={theme === 'light' ? '#6B7280' : '#9CA3AF'}
                   style={{ marginRight: 4 }}
                 />
-                <Text className="text-sm text-gray-500 dark:text-gray-400">
-                  {item?.countdown! > 60
-                    ? `${Math.floor(item?.countdown! / 60)}hr ${item?.countdown! % 60}min`
-                    : `${item?.countdown}min`}
+                <Text className={`text-sm ${getStatusColor()}`}>
+                  {format(item.startDate, 'HH:mm')} -{' '}
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
                 </Text>
               </View>
-            )}
+              {item.duration && (
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="hourglass-outline"
+                    size={16}
+                    color={theme === 'light' ? '#6B7280' : '#9CA3AF'}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text className="text-sm text-gray-500 dark:text-gray-400">
+                    {item?.countdown! > 60
+                      ? `${Math.floor(item?.countdown! / 60)}hr ${item?.countdown! % 60}min`
+                      : `${item?.countdown}min`}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
 
-        {/* Location if exists */}
-        {item.location && (
-          <View className="flex-row items-center gap-1 mb-1">
-            <Ionicons name="location" size={14} color="#6B7280" />
-            <Text className="text-sm font-rregular text-gray-500 dark:text-gray-400">
-              {item.location}
-            </Text>
-          </View>
-        )}
-
-        {/* Footer */}
-        <View className="flex-row justify-between items-center">
-          <View className="flex-row items-center gap-2">
-            <TouchableOpacity
-              onPress={() => handlePostpone(item.id)}
-              className="bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full"
-            >
-              <Text className="text-blue-600 font-rregular dark:text-blue-400 text-sm">
-                Postpone
+          {/* Location if exists */}
+          {item.location && (
+            <View className="flex-row items-center gap-1 mb-3">
+              <Ionicons name="location" size={14} color="#6B7280" />
+              <Text className="text-sm font-rregular text-gray-500 dark:text-gray-400">
+                {item.location}
               </Text>
+            </View>
+          )}
+
+          {/* Footer */}
+          <View className="flex-row justify-between items-center">
+            <View className="flex-row items-center gap-2">
+              <TouchableOpacity
+                onPress={() => handlePostpone(item.id)}
+                className="overflow-hidden rounded-full"
+              >
+                <LinearGradient
+                  colors={
+                    theme === 'light'
+                      ? ['#EFF6FF', '#DBEAFE']
+                      : ['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.2)']
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  className="px-3 py-1.5"
+                >
+                  <Text className="text-blue-600 font-rregular dark:text-blue-400 text-sm">
+                    Postpone
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              {item.postponements && item.postponements.length > 0 && (
+                <Text className="text-xs text-gray-500 dark:text-gray-400">
+                  Postponed {item.postponements.length}x
+                </Text>
+              )}
+            </View>
+            <TouchableOpacity onPress={async () => await deleteItem(item.id)}>
+              <Ionicons name="trash-outline" size={20} color="#6B7280" />
             </TouchableOpacity>
-            {item.postponements && item.postponements.length > 0 && (
-              <Text className="text-xs text-gray-500 dark:text-gray-400">
-                Postponed {item.postponements.length}x
-              </Text>
-            )}
           </View>
-          <TouchableOpacity onPress={async () => await deleteItem(item.id)}>
-            <Ionicons name="trash-outline" size={20} color="#6B7280" />
-          </TouchableOpacity>
-        </View>
-      </Pressable>
+        </Pressable>
+      </LinearGradient>
     </Animated.View>
   );
 };

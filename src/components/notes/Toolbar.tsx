@@ -2,7 +2,6 @@ import React from 'react';
 import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface ToolbarProps {
   handleTextFormat: (format: 'bold' | 'italic' | 'underline' | 'highlight', value?: string) => void;
