@@ -38,6 +38,19 @@ interface StatusBadgeProps {
   status: TransactionStatus;
 }
 
+
+const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onDelete }) => {
+  const deleteGesture = Gesture.Pan()
+    .activeOffsetX(-50)
+    .onEnd((_, success) => {
+      if (success) {
+        runOnJS(onDelete)();
+      }
+    });
+
+  const isIncome = transaction.type === TransactionType.INCOME;
+  const transactionColor = getTransactionColor(transaction.type);
+
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const getStatusStyle = (status: TransactionStatus) => {
     switch (status) {
@@ -62,19 +75,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
     </View>
   );
 };
-
-const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onDelete }) => {
-  const deleteGesture = Gesture.Pan()
-    .activeOffsetX(-50)
-    .onEnd((_, success) => {
-      if (success) {
-        runOnJS(onDelete)();
-      }
-    });
-
-  const isIncome = transaction.type === TransactionType.INCOME;
-  const transactionColor = getTransactionColor(transaction.type);
-
   return (
     <GestureDetector gesture={deleteGesture}>
       <Animated.View
@@ -117,7 +117,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, onDelete
 
             <View className="flex-row items-center space-x-2">
               <Text className="text-xs text-gray-500 dark:text-gray-400">
-                {format(new Date(`${transaction?.date}T${transaction?.time}`), 'PPp')}
+                {format(transaction?.createdAt, 'PPp')}
               </Text>
               {transaction?.location && (
                 <Text className="text-xs text-gray-500 dark:text-gray-400">

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Pressable } from 'react-native';
 import Animated, {
   FadeOut,
@@ -16,12 +16,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { deleteItem } from 'src/store/shedule/actions';
 import { ScheduleItem } from 'src/store/shedule/types';
+import { colorScheme } from 'nativewind';
 
 interface ItemCardProps {
   item: ScheduleItem;
   onComplete: (id: number) => void;
   handlePostpone: (id: number) => void;
-  theme: 'light' | 'dark';
   customStyles?: {
     cardBg?: string;
     textColor?: string;
@@ -79,7 +79,6 @@ const priorityConfig = {
 export const ItemCard: React.FC<ItemCardProps> = ({
   item,
   onComplete,
-  theme,
   handlePostpone,
   customStyles = defaultStyles,
 }) => {
@@ -131,16 +130,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
   const PriorityBadge = ({ priority }: { priority: ScheduleItem['priority'] }) => (
     <LinearGradient
-      colors={theme === 'light' ? priorityConfig[priority].bg : priorityConfig[priority].darkBg}
+      colors={colorScheme.get() === 'light' ? priorityConfig[priority].bg : priorityConfig[priority].darkBg}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      className="rounded-lg p-0.5"
+      style={{borderRadius:8, zIndex:10, padding:1}}
     >
-      <View className="flex-row items-center px-2 py-1">
+      <View className="flex-row items-center px-2 py-1 rounded-lg">
         <Ionicons
           name={priorityConfig[priority].icon as any}
           size={12}
-          color={theme === 'light' ? '#374151' : '#E5E7EB'}
+          color={colorScheme.get() === 'light' ? '#374151' : '#E5E7EB'}
           style={{ marginRight: 4 }}
         />
         <Text className={`text-xs font-rmedium ${priorityConfig[priority].text}`}>
@@ -179,7 +178,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     >
       <LinearGradient
         colors={
-          theme === 'light'
+          colorScheme.get() === 'light'
             ? ['#FFFFFF', '#F8FAFC']
             : ['#1F2937', '#111827']
         }
@@ -194,13 +193,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               <PriorityBadge priority={item.priority} />
               <LinearGradient
                 colors={
-                  theme === 'light'
+                  colorScheme.get() === 'light'
                     ? ['#F3F4F6', '#E5E7EB']
                     : ['rgba(107, 114, 128, 0.1)', 'rgba(107, 114, 128, 0.2)']
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                className="rounded-lg p-0.5"
+                style={{borderRadius:8, padding:1, zIndex:19, shadowOpacity:1}}
               >
                 <Text className="px-2 py-1 text-xs font-medium font-rmedium text-gray-600 dark:text-gray-300">
                   {item.scheduleType?.toUpperCase()}
@@ -216,10 +215,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 size={20}
                 color={
                   item.completed
-                    ? theme === 'light'
+                    ? colorScheme.get() === 'light'
                       ? '#10B981'
                       : '#34D399'
-                    : theme === 'light'
+                    : colorScheme.get() === 'light'
                       ? '#6B7280'
                       : '#9CA3AF'
                 }
@@ -237,7 +236,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 <Ionicons
                   name="time-outline"
                   size={16}
-                  color={theme === 'light' ? '#6B7280' : '#9CA3AF'}
+                  color={colorScheme.get() === 'light' ? '#6B7280' : '#9CA3AF'}
                   style={{ marginRight: 4 }}
                 />
                 <Text className={`text-sm ${getStatusColor()}`}>
@@ -250,7 +249,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   <Ionicons
                     name="hourglass-outline"
                     size={16}
-                    color={theme === 'light' ? '#6B7280' : '#9CA3AF'}
+                    color={colorScheme.get() === 'light' ? '#6B7280' : '#9CA3AF'}
                     style={{ marginRight: 4 }}
                   />
                   <Text className="text-sm text-gray-500 dark:text-gray-400">
@@ -282,7 +281,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               >
                 <LinearGradient
                   colors={
-                    theme === 'light'
+                    colorScheme.get() === 'light'
                       ? ['#EFF6FF', '#DBEAFE']
                       : ['rgba(59, 130, 246, 0.1)', 'rgba(59, 130, 246, 0.2)']
                   }

@@ -1,9 +1,4 @@
 // types.ts
-export enum TransactionType {
-  INCOME = 'INCOME',
-  EXPENSE = 'EXPENSE',
-  TRANSFER = 'TRANSFER'
-}
 
 export enum BudgetRuleType {
   RULE_50_30_20 = '50/30/20 Rule', // Needs/Wants/Savings
@@ -64,6 +59,18 @@ export enum TransactionStatus {
   UPCOMING = 'UPCOMING',
 }
 
+export enum TransactionType {
+  INCOME = 'INCOME',
+  EXPENSE = 'EXPENSE',
+  TRANSFER = 'TRANSFER'
+}
+
+export interface Category {
+  name: string;
+  type: CategoryType;
+  budget?: number;
+}
+
 export interface Transaction {
   id: string;
   amount: number;
@@ -87,12 +94,6 @@ export interface Transaction {
     reminderEnabled: boolean;
     lastProcessed?: string;
   };
-}
-
-export interface Category {
-  name: string;
-  type: CategoryType;
-  budget?: number;
 }
 
 export interface BudgetConfig {

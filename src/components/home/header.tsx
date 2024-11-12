@@ -4,6 +4,7 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
+  SharedValue,
 } from 'react-native-reanimated';
 
 interface HeaderSectionProps {
@@ -11,10 +12,10 @@ interface HeaderSectionProps {
   name: string;
   greeting: string;
   quote: { quote: string; author: string };
-  scrollY: Animated.SharedValue<number>;
+  scrollY: SharedValue<number>;
 }
 
-export const HeaderSection = React.memo(({ timeOfDay, name, greeting, quote, scrollY }: HeaderSectionProps) => {
+const HeaderSection = React.memo(({ timeOfDay, name, greeting, quote, scrollY }: HeaderSectionProps) => {
   const welcomeScale = useAnimatedStyle(() => ({
     transform: [{ scale: interpolate(scrollY.value, [0, 100], [1, 0.8], Extrapolation.CLAMP) }],
     opacity: interpolate(scrollY.value, [0, 100], [1, 0], Extrapolation.CLAMP),
@@ -33,3 +34,6 @@ export const HeaderSection = React.memo(({ timeOfDay, name, greeting, quote, scr
     </Animated.View>
   );
 });
+
+HeaderSection.displayName = 'HeaderSection';
+export default HeaderSection;

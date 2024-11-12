@@ -1,13 +1,15 @@
 import { memo, useCallback, useMemo, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Alert, Platform, Modal } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withSequence, FadeIn, SlideInRight } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { observable, computed, observe, batch, ObservableObject } from '@legendapp/state';
+import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput, Alert, Platform, Modal } from 'react-native';
 import { useObservable, observer, useComputed, Memo, For } from '@legendapp/state/react';
-import { useProfile } from 'src/store/profile/actions';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { observable, batch } from '@legendapp/state';
+import { Ionicons } from '@expo/vector-icons';
+import { colorScheme } from 'nativewind';
 import { format } from 'date-fns';
+
+import { useProfile } from 'src/store/profile/actions';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -73,7 +75,7 @@ const ColorPickerButton = memo(({ color, isSelected, onPress }: { color: string;
 ));
 
 const ThemeModal = observer(({ settingsState, isVisible, onClose }: { isVisible: boolean; onClose: () => void, settingsState: any }) => {
-  const selectedMode = useComputed(() => settingsState.theme.mode.get());
+  const selectedMode = useComputed(() => colorScheme.get());
   const themeColor = useComputed(() => settingsState.theme.color.get());
 
   return (
@@ -91,12 +93,14 @@ const ThemeModal = observer(({ settingsState, isVisible, onClose }: { isVisible:
               <TouchableOpacity
                 key={mode.get()}
                 onPress={() => {
-                  settingsState.theme.mode.set(mode);
+                  colorScheme.set(mode.get() as "dark" | "light" | "system");
+                  console.log(mode.get())
+                  settingsState.set(mode.get())
                   onClose();
                 }}
-                className={`p-4 rounded-lg mb-2.5 ${selectedMode.get() === mode ? 'bg-indigo-600' : 'bg-gray-100'}`}
+                className={`p-4 rounded-lg mb-2.5 ${colorScheme.get() === mode.get() ? 'bg-indigo-600' : 'bg-gray-100'}`}
               >
-                <Text className={`text-lg font-rmedium ${selectedMode.get() === mode ? 'text-white' : 'text-black'}`}>
+                <Text className={`text-lg font-rmedium ${selectedMode.get() === mode.get() ? 'text-white' : 'text-black'}`}>
                   {mode.get().charAt(0).toUpperCase() + mode.get().slice(1)}
                 </Text>
               </TouchableOpacity>
@@ -191,7 +195,6 @@ const ProfileSettingsPage: React.FC = observer(() => {
       sleepGoal: 8,
     },
     theme: {
-      mode: 'system',
       color: ACCENT_COLORS[0].value,
       gradient: ACCENT_COLORS[0].gradient,
     },
@@ -232,7 +235,7 @@ const ProfileSettingsPage: React.FC = observer(() => {
   }, []);
 
   const gradientColors = useComputed(() => settingsState.theme.gradient.get());
-  const themeColor = useComputed(() => settingsState.theme.color.get());
+  const themeColor = useComputed(() => colorScheme.get());
 
   const GreetingMessage = observer(() => {
     const name = useComputed(() => personalInfo.name?.split(' ')[0]);
@@ -321,7 +324,7 @@ const ProfileSettingsPage: React.FC = observer(() => {
           className="flex-row items-center justify-between bg-gray-100 p-3 rounded-lg mb-2.5"
         >
           <Text className="text-base text-gray-800 font-rmedium">Theme Mode</Text>
-          <Text className="text-base text-gray-600 capitalize font-rregular">{settingsState.theme.mode.get()}</Text>
+          <Text className="text-base text-gray-600 capitalize font-rregular">{colorScheme.get()}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => isColorPickerVisible.set(true)}

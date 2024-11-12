@@ -30,7 +30,7 @@ export const WaterReminderSection = observer(({ onWaterLog }: WaterReminderSecti
 
   useEffect(() => {
     pulseAnim.value = withRepeat(
-      withSequence(withTiming(1.1, { duration: 1500 }), withTiming(1, { duration: 1500 })),
+      withSequence(withTiming(1.1, { duration: 2000 }), withTiming(1, { duration: 2000 })),
       -1,
       true
     );

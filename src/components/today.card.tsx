@@ -17,6 +17,7 @@ import Animated, {
 const TodayCard = () => {
   const isDarkMode = useColorScheme() === 'dark';
   const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
 
   useEffect(() => {
     scale.value = withRepeat(
@@ -24,10 +25,17 @@ const TodayCard = () => {
       -1,
       true
     );
+
+    opacity.value = withRepeat(
+      withSequence(withSpring(0.8), withSpring(1)),
+      -1,
+      true
+    );
   }, []);
 
   const circleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
+    opacity: opacity.value,
   }));
 
   const theme = {
@@ -109,7 +117,7 @@ const TodayCard = () => {
       {/* Bottom Gradient Bar */}
       <Animated.View
         entering={FadeInDown.duration(800).delay(600)}
-        className="mt-6 h-1 overflow-hidden rounded"
+        className="mt-6 h-2 overflow-hidden rounded-full"
       >
         <LinearGradient
           colors={theme.gradient}

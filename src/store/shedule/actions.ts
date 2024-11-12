@@ -1,4 +1,3 @@
-// actions.ts
 import { scheduleStore } from './store';
 import { ScheduleItem, PostponementRecord } from './types';
 import { addDays, isAfter, isBefore, addWeeks, addMonths, format, add, isValid } from 'date-fns';
@@ -35,7 +34,7 @@ const getNextRecurringDate = (date: Date, pattern: string): Date => {
 
 // Performance Metric Calculations
 const calculateStreakDays = (): number => {
-  const items = scheduleStore.get().items;
+  const items = scheduleStore.items.get();
   let streak = 0;
   const today = new Date();
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Reference } from './ts';

@@ -42,7 +42,7 @@ const CATEGORIES: Category[] = [
 ];
 
 // Memoized CategoryItem component to prevent unnecessary rerenders
-const CategoryItem = memo(({ category, isActive, onPress }: CategoryItemProps) => {
+const CategoryItem = memo(({ category, isActive, onPress }: any) => {
   const active = useSharedValue(isActive ? 1 : 0);
 
   useAnimatedReaction(
@@ -86,8 +86,8 @@ const CategoryItem = memo(({ category, isActive, onPress }: CategoryItemProps) =
       <Text
         className={`text-[15px] ${
           isActive 
-            ? 'font-semibold text-white' 
-            : 'font-medium text-gray-700'
+            ? 'font-aregular text-white' 
+            : 'font-amedium text-gray-700'
         }`}
       >
         {category.name}
@@ -120,7 +120,7 @@ export const CategorySelector = memo(({
 
   return (
     <View className="mb-4">
-      <Text className="text-base font-semibold mx-4 mb-3 text-gray-800">
+      <Text className="text-base font-amedium mx-4 mb-3 text-gray-800">
         Select Category
       </Text>
 

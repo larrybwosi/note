@@ -7,6 +7,8 @@ import useScheduleStore from 'src/store/shedule/actions';
 import { scheduleStore } from 'src/store/shedule/store';
 import DateTimePickerComponent from 'src/components/date.time';
 import { PRIORITY_LEVELS, RECURRENCE_PATTERNS, TASK_TYPES } from 'src/store/shedule/types';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 const priorityColors = {
   Low: {
@@ -36,12 +38,12 @@ const priorityColors = {
 };
 
 const typeColors = {
-  Work: { bg: 'bg-blue-100', text: 'text-blue-600' },
-  Personal: { bg: 'bg-green-100', text: 'text-green-600' },
-  Health: { bg: 'bg-rose-100', text: 'text-rose-600' },
-  Learning: { bg: 'bg-purple-100', text: 'text-purple-600' },
-  Social: { bg: 'bg-amber-100', text: 'text-amber-600' },
-  Urgent: { bg: 'bg-red-100', text: 'text-red-600' },
+  Work: { bg: 'bg-blue-100', text: 'text-blue-600  font-amedium' },
+  Personal: { bg: 'bg-green-100', text: 'text-green-600  font-amedium' },
+  Health: { bg: 'bg-rose-100', text: 'text-rose-600  font-amedium' },
+  Learning: { bg: 'bg-purple-100', text: 'text-purple-600  font-amedium' },
+  Social: { bg: 'bg-amber-100', text: 'text-amber-600  font-amedium' },
+  Urgent: { bg: 'bg-red-100', text: 'text-red-600  font-amedium' },
 };
 
 const AddItem = () => {
@@ -53,21 +55,21 @@ const AddItem = () => {
 
   const { addItem, resetForm } = useScheduleStore();
   return (
-    <View className="flex-1 justify-end bg-black/50">
+    <SafeAreaView className="flex-1 justify-end bg-black/50">
       <Animated.View
         entering={SlideInRight}
         exiting={SlideOutLeft}
         className="bg-white dark:bg-gray-800 rounded-t-3xl p-5"
       >
         <ScrollView showsVerticalScrollIndicator={false}>
-          <Text className="text-xl font-rbold text-gray-900 dark:text-white mb-4">
+          <Text className="text-xl font-abold text-gray-900 dark:text-white mb-4">
             {scheduleStore.editingItem.get() ? 'Edit Item' : 'Add New Item'}
           </Text>
 
           <View className="space-y-3">
             {/* Schedule Type Selection */}
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Type
               </Text>
               <View className="flex-row gap-3">
@@ -97,22 +99,8 @@ const AddItem = () => {
 
             {/* Title Input */}
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
-                Title *
-              </Text>
-              <TextInput
-                className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
-                placeholder="Enter title..."
-                value={scheduleStore.newItem.title.get()}
-                onChangeText={(text) => scheduleStore.newItem.title.set(text)}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
-
-            {/* Description Input */}
-            <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
-                Description
+              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
+                 Title *
               </Text>
               <TextInput
                 className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
@@ -125,9 +113,9 @@ const AddItem = () => {
               />
             </View>
 
-            {/* Task Type Selection */}
+            {/* Task Category Selection */}
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Category
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -146,7 +134,7 @@ const AddItem = () => {
                         className={`${
                           scheduleStore.newItem.type.get() === type
                             ? typeColors[type].text
-                            : 'text-gray-700 dark:text-gray-300'
+                            : 'text-gray-700 dark:text-gray-300 font-amedium text-sm'
                         }`}
                       >
                         {type}
@@ -159,7 +147,7 @@ const AddItem = () => {
 
             {/* Priority Selection */}
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Priority
               </Text>
               <View className="flex-row gap-2">
@@ -174,7 +162,7 @@ const AddItem = () => {
                     }`}
                   >
                     <Text
-                      className={`text-center font-medium ${
+                      className={`text-center text-sm font-amedium ${
                         scheduleStore.newItem.priority.get() === priority
                           ? priorityColors[priority].text
                           : 'text-gray-700 dark:text-gray-300'
@@ -199,7 +187,7 @@ const AddItem = () => {
             />
 
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Duration (minutes)
               </Text>
               <TextInput
@@ -214,7 +202,7 @@ const AddItem = () => {
 
             {/* Recurrence Pattern */}
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Recurrence
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -230,7 +218,7 @@ const AddItem = () => {
                       }`}
                     >
                       <Text
-                        className={`${
+                        className={`font-abold${ 
                           scheduleStore.newItem.recurrence.get() === pattern
                             ? 'text-teal-600 dark:text-teal-400'
                             : 'text-gray-700 dark:text-gray-300'
@@ -267,7 +255,7 @@ const AddItem = () => {
 
             {/* Reminder Setting */}
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Reminder (minutes before)
               </Text>
               <View className="flex-row gap-2">
@@ -297,7 +285,7 @@ const AddItem = () => {
 
             {/* Tags Input */}
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Tags (comma separated)
               </Text>
               <TextInput
@@ -317,7 +305,7 @@ const AddItem = () => {
 
             {/* Notes */}
             <View>
-              <Text className="text-sm font-plregular text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Notes
               </Text>
               <TextInput
@@ -335,10 +323,13 @@ const AddItem = () => {
           {/* Action Buttons */}
           <View className="flex-row gap-3 mt-6 mb-4">
             <TouchableOpacity
-              onPress={resetForm}
+              onPress={()=>{
+                resetForm()
+                router.back()
+              }}
               className="flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-xl"
             >
-              <Text className="text-center font-plregular text-gray-900 dark:text-white">
+              <Text className="text-center font-amedium text-gray-900 dark:text-white">
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -349,14 +340,14 @@ const AddItem = () => {
               }`}
               disabled={!isFormValid()}
             >
-              <Text className="text-center font-plregular text-white">
+              <Text className="text-center font-amedium text-white">
                 {scheduleStore.editingItem.get() ? 'Update' : 'Add'}
               </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </Animated.View>
-    </View>
+    </SafeAreaView>
   );
 };
 

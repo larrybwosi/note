@@ -54,6 +54,8 @@ export default function Root() {
               <Stack.Screen name="create.transaction" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="create.profile" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="create.note" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="ai.schedule" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="ai.transaction" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="finance_setup" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
             </Stack>

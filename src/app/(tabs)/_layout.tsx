@@ -22,6 +22,7 @@ export default function TabLayout() {
           height: 40,
         },
       })}
+      backBehavior='history'
     >
       <Tabs.Screen
         name="index"

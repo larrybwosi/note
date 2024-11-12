@@ -6,17 +6,12 @@ import { format } from 'date-fns';
 import useScheduleStore from 'src/store/shedule/actions';
 import { scheduleStore } from 'src/store/shedule/store';
 import DateTimePickerComponent from '../date.time';
-import { useModal } from './provider';
+import { PostponeProps, useModal } from './provider';
 
-const Postpone = () => {
+
+const Postpone = ({itemId, isVisible, close}:PostponeProps) => {
+
   const { postponeTask } = useScheduleStore();
-  const {
-    isVisible,
-    hide,
-    props: { itemId },
-  } = useModal('postpone');
-
-  console.log(isVisible)
   const state$ = useObservable({
     showPostponeModal: false,
     showDatePicker: false,
@@ -31,7 +26,7 @@ const Postpone = () => {
 
   const handlePostpone = () => {
     postponeTask(itemId, newDate.get(), reason.get(), 'Unavailable', 'Low');
-    hide();
+    close();
   };
   
   return (
@@ -39,7 +34,7 @@ const Postpone = () => {
       visible={isVisible}
       transparent
       animationType="slide"
-      onRequestClose={() => hide()}
+      onRequestClose={() => close()}
     >
       <View className="flex-1 justify-end bg-black/60">
         <View className="bg-white dark:bg-gray-800 rounded-t-3xl p-6">
@@ -85,7 +80,7 @@ const Postpone = () => {
 
           <View className="flex-row gap-3">
             <TouchableOpacity
-              onPress={() => hide()}
+              onPress={() => close()}
               className="flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-xl border border-gray-200 dark:border-gray-600"
             >
               <Text className="text-center font-plregular text-gray-900 dark:text-white">

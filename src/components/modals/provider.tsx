@@ -1,169 +1,200 @@
-import { observable } from '@legendapp/state';
-import { observer, useObservable } from '@legendapp/state/react';
-import React, { ReactNode, ComponentType, useCallback, useMemo, useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableWithoutFeedback, Animated } from 'react-native';
-import Postpone from './postpone';
+import { createContext, useState, useContext, useRef, createElement, useMemo, ReactNode } from 'react';
+import { Modal, View, StyleSheet, TouchableWithoutFeedback, Animated } from 'react-native';
 import NewCategory from './new.category';
-import NewIncomeForm from '../income.form';
+import Postpone from './postpone';
+import { colorScheme } from 'nativewind';
 
-// Base modal props that all modals will extend
-interface BaseModalProps {
-  isVisible: boolean;
-  onClose: () => void;
+export interface NewCategoryProps{
+  type:"INCOME"|"EXPENSES"
+  close:()=>void
 }
 
-// Modal-specific props interfaces
-interface PostponeModalProps extends BaseModalProps {
-  itemId: string;
-  date: Date;
+
+export interface PostponeProps {
+  itemId:string;
+  isVisible:boolean;
+  close:()=>void
 }
 
-interface NewCategoryModalProps extends BaseModalProps {
-  type: 'INCOME' | 'EXPENSE';
+// Modal configuration type that maps modal names to their prop types
+export interface ModalConfig {
+  NewCategory: NewCategoryProps;
+  Postpone: PostponeProps;
 }
 
-// Registry of all modal configurations
-type ModalRegistry = {
-  postpone: { component: ComponentType<PostponeModalProps>; props: Omit<PostponeModalProps, keyof BaseModalProps> };
-  newCategory: { component: ComponentType<NewCategoryModalProps>; props: Omit<NewCategoryModalProps, keyof BaseModalProps> };
-  newTransaction: { component: ComponentType ; props: {} };
+// Type for modal names derived from ModalConfig
+export type ModalName = keyof ModalConfig;
+
+// Type for the modal components mapping
+type ModalComponents = {
+  [K in ModalName]: React.FC<ModalConfig[K]>;
 };
 
-// Type helpers
-type ModalName = keyof ModalRegistry;
-type ModalProps<T extends ModalName> = ModalRegistry[T]['props'];
-type ModalComponent<T extends ModalName> = ComponentType<ModalRegistry[T]['props'] & BaseModalProps>;
-
-// Modal state management
-interface ModalState {
-  activeModal: ModalName | null;
-  props: ModalProps<ModalName> | null;
+// Modal context type with proper generic handling
+interface ModalContextType {
+  show: <T extends ModalName>(
+    modalName: T,
+    props?: Omit<ModalConfig[T], 'onClose'>
+  ) => void;
+  close: () => void;
 }
 
-const modalState = observable<ModalState>({ activeModal: null, props: null });
+// Modal state type with proper generic handling
+interface ModalState<T extends ModalName = ModalName> {
+  name: T | null;
+  props?: Omit<ModalConfig[T], 'onClose'>;
+}
 
-// Modal actions
-export const showModal = <T extends ModalName>(modalName: T, props: ModalProps<T>) => {
-  modalState.set({ activeModal: modalName, props: props as ModalProps<ModalName> });
+// Constants
+const ANIMATION_DURATION = 300;
+const INITIAL_SCALE = 0.8;
+
+// Define modal components mapping with proper types
+const modalComponents: ModalComponents = {
+  NewCategory,
+  Postpone,
 };
 
-export const hideModal = () => {
-  modalState.set({ activeModal: null, props: null });
-};
+// Create context with proper type
+const ModalContext = createContext<ModalContextType | null>(null);
 
-// Custom Modal component
-const CustomModal: React.FC<{ isVisible: boolean; onClose: () => void; children: ReactNode }> = ({
-  isVisible,
-  onClose,
-  children,
-}) => {
-  const fadeAnim = useMemo(() => new Animated.Value(0), []);
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: isVisible ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [isVisible]);
+// Provider Component with proper types
+interface ModalProviderProps {
+  children: ReactNode;
+}
 
-  if (!isVisible) return null;
+const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
+  const [modalState, setModalState] = useState<ModalState>({ name: null });
+  const animationValue = useRef(new Animated.Value(0)).current;
+  const isDark = colorScheme.get() === 'dark';
 
-  return (
-    <TouchableWithoutFeedback onPress={onClose}>
-      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-          <View style={styles.modalContainer}>{children}</View>
-        </TouchableWithoutFeedback>
-      </Animated.View>
-    </TouchableWithoutFeedback>
+  const animations = useMemo(
+    () => ({
+      show: Animated.timing(animationValue, {
+        toValue: 1,
+        duration: ANIMATION_DURATION,
+        useNativeDriver: true,
+      }),
+      hide: Animated.timing(animationValue, {
+        toValue: 0,
+        duration: ANIMATION_DURATION,
+        useNativeDriver: true,
+      }),
+    }),
+    [animationValue]
   );
-};
 
-// Modal wrapper HOC with proper typing
-const withModalWrapper = <P extends BaseModalProps>(WrappedComponent: ComponentType<P>) => {
-  const ModalWrapper: React.FC<Omit<P, keyof BaseModalProps>> = (props) => {
-    const state = useObservable(modalState);
-    const isVisible = useMemo(() => state.get().activeModal !== null, [state]);
+  const animatedStyles = useMemo(
+    () => ({
+      scale: animationValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: [INITIAL_SCALE, 1],
+      }),
+      opacity: animationValue,
+    }),
+    [animationValue]
+  );
 
-    return (
-      <CustomModal isVisible={isVisible} onClose={hideModal}>
-        <WrappedComponent {...(props as P)} isVisible={isVisible} onClose={hideModal} />
-      </CustomModal>
-    );
+  const show = <T extends ModalName>(
+    name: T,
+    props?: Omit<ModalConfig[T], 'onClose'>
+  ) => {
+    setModalState({ name, props });
+    animations.show.start();
   };
 
-  ModalWrapper.displayName = `WithModalWrapper(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
-  return React.memo(ModalWrapper);
-};
+  const close = () => {
+    animations.hide.start(() => {
+      setModalState({ name: null });
+    });
+  };
 
-// Enhanced modal components
-const EnhancedPostpone = withModalWrapper(Postpone);
-const EnhancedNewCategory = withModalWrapper(NewCategory);
+  const contextValue = useMemo(
+    () => ({ show, close }),
+    [] // Empty dependency array since show and close don't depend on any props
+  );
 
-// Modal registry with components
-const MODAL_COMPONENTS: { [K in ModalName]: ModalComponent<K> } = {
-  postpone: EnhancedPostpone,
-  newCategory: EnhancedNewCategory,
-  newTransaction: NewIncomeForm,
-};
+  const renderModal = () => {
+    if (!modalState.name) return null;
 
-// Modal Provider Component
-const ModalProvider: React.FC<{ children: ReactNode }> = observer(({ children }) => {
-  const state = useObservable(modalState);
+    const ModalComponent = modalComponents[modalState.name];
+    const modalProps = {
+      ...modalState.props,
+      onClose: close,
+    } as ModalConfig[typeof modalState.name];
 
-  const renderActiveModal = useCallback(() => {
-    const { activeModal, props } = state.get();
-    if (!activeModal || !props) return null;
-
-    const ModalComponent = MODAL_COMPONENTS[activeModal] as ModalComponent<typeof activeModal>;
-    return <ModalComponent {...(props as ModalProps<typeof activeModal>)} isVisible={true} onClose={hideModal} />;
-  }, [state]);
+    return createElement(ModalComponent, modalProps);
+  };
 
   return (
-    <>
+    <ModalContext.Provider value={contextValue}>
       {children}
-      <CustomPortal>{renderActiveModal()}</CustomPortal>
-    </>
+      {modalState.name && (
+        <Modal
+          visible={true}
+          animationType="none"
+          transparent={true}
+          statusBarTranslucent
+          onRequestClose={close}
+        >
+          <TouchableWithoutFeedback onPress={close}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback>
+                <Animated.View
+                  style={[
+                    styles.modalContent,
+                    isDark && styles.modalContentDark,
+                    {
+                      transform: [{ scale: animatedStyles.scale }],
+                      opacity: animatedStyles.opacity,
+                    },
+                  ]}
+                >
+                  {renderModal()}
+                </Animated.View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      )}
+    </ModalContext.Provider>
   );
-});
+};
 
-// Portal Component
-const CustomPortal: React.FC<{ children: ReactNode }> = ({ children }) => (
-  <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-    {children}
-  </View>
-);
+// Custom hook with proper return type
+export const useModal = (): ModalContextType => {
+  const context = useContext(ModalContext);
+  if (!context) {
+    throw new Error('useModal must be used within a ModalProvider');
+  }
+  return context;
+};
 
-// Updated useModal hook with dynamic return types
-export function useModal<T extends ModalName>(modalName: T) {
-  const state = useObservable(modalState);
-
-  return {
-    show: useCallback((props: ModalProps<T>) => showModal(modalName, props), [modalName]),
-    hide: hideModal,
-    isVisible: state.get().activeModal === modalName,
-    props: (state.get().props || {}) as ModalProps<T>,
-  };
-}
-
+// Styles
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
+  modalOverlay: {
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalContainer: {
+  modalContent: {
     backgroundColor: 'white',
     padding: 20,
-    borderRadius: 10,
-    width: '80%',
+    borderRadius: 16,
+    width: '90%',
     maxWidth: 400,
-    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalContentDark: {
+    backgroundColor: '#1F2937',
   },
 });
 

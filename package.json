@@ -31,7 +31,6 @@
     "prebuild:clean": "npx expo prebuild --clean"
   },
   "dependencies": {
-    "@expo/config-plugins": "~8.0.0",
     "@legendapp/state": "^3.0.0-beta.16",
     "@notifee/react-native": "^9.1.2",
     "@react-native-community/datetimepicker": "^8.2.0",
@@ -70,7 +69,7 @@
     "@types/react": "~18.2.14",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "babel-jest": "^29.2.1",
-    "eslint": "^9.14.0",
+    "eslint": "^8.57.0",
     "eslint-config-expo": "^7.1.2",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard": "^17.1.0",

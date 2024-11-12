@@ -62,6 +62,7 @@ const useFinancialStore = () => {
     addTransaction: transactionService.addTransaction,
     updateTransaction: transactionService.updateTransaction,
     getTransactionsByCategory: transactionService.getTransactionsByCategory,
+    getTransactions: transactionService.getTransactions,
     getTransactionsByDateRange: transactionService.getTransactionsByDateRange,
 
     // Category Management

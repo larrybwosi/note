@@ -3,21 +3,16 @@ import { Text, TextInput, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useModal } from './provider';
+import { NewCategoryProps, useModal } from './provider';
 
-const NewCategory = observer(() => {
-  const {
-    isVisible,
-    hide,
-    props: { type },
-  } = useModal('newCategory');
+
+const NewCategory = observer(({type, close}:NewCategoryProps) => {
   const state = useObservable({
     name: '',
     description: '',
   });
 
   const { name, description } = state;
-
   const handleSubmit = () => {};
 
   return (
@@ -34,7 +29,7 @@ const NewCategory = observer(() => {
           <View className="flex-row justify-between items-center">
             <Text className="text-2xl font-rbold text-gray-900">Add New Category</Text>
             <TouchableOpacity
-              onPress={() => hide()}
+              onPress={() => close()}
               className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center"
             >
               <Ionicons name="close" size={20} color="#4B5563" />
@@ -78,7 +73,7 @@ const NewCategory = observer(() => {
         <View className="p-6 border-t border-gray-100">
           <View className="flex-row space-x-4 gap-2">
             <TouchableOpacity
-              onPress={() => hide()}
+              onPress={() => close()}
               className="flex-1 py-3.5 rounded-xl border-2 border-gray-200 bg-white"
             >
               <Text className="text-center font-rmedium text-gray-700">Cancel</Text>

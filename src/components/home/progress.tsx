@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons'; // Import icons for added style
+import Ionicons from '@expo/vector-icons/Ionicons'; 
 
 const progressData = [
   {

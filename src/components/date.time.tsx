@@ -1,8 +1,6 @@
-import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
@@ -31,14 +29,14 @@ const DateTimePickerComponent = ({
           {/* Date Section */}
           <View className="flex-1">
             <View className="flex-row items-center mb-2">
-              <Feather name="calendar" size={16} color="#E5E7EB" />
-              <Text className="text-sm font-plregular text-gray-200 ml-2">Date</Text>
+              <Feather name="calendar" size={16} color="gray" />
+              <Text className="text-sm font-amedium dark:text-gray-200 ml-2">Date</Text>
             </View>
             <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
               className="bg-white/10 p-4 rounded-xl border border-white/20"
             >
-              <Text className="text-white font-medium">{format(value || new Date(), 'PPP')}</Text>
+              <Text className="dark:text-white font-aregular text-sm">{format(value || new Date(), 'PPP')}</Text>
               {showDatePicker && (
                 <DateTimePicker
                   value={value || new Date()}
@@ -61,14 +59,14 @@ const DateTimePickerComponent = ({
           {/* Time Section */}
           <View className="flex-1">
             <View className="flex-row items-center mb-2">
-              <Feather name="clock" size={16} color="#E5E7EB" />
-              <Text className="text-sm font-plregular text-gray-200 ml-2">Time</Text>
+              <Feather name="clock" size={16} color="gray" />
+              <Text className="text-sm font-amedium dark:text-gray-200 ml-2">Time</Text>
             </View>
             <TouchableOpacity
               onPress={() => setShowTimePicker(true)}
               className="bg-white/10 p-4 rounded-xl border border-white/20"
             >
-              <Text className="text-white font-medium">{format(value || new Date(), 'p')}</Text>
+              <Text className="dark:text-white font-aregular text-sm">{format(value || new Date(), 'p')}</Text>
               {showTimePicker && (
                 <DateTimePicker
                   value={value || new Date()}

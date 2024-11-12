@@ -1,27 +1,15 @@
-import React from 'react';
-import { View, Text, FlatList } from 'react-native';
+import { memo } from 'react';
+import { View, Text } from 'react-native';
 import { ItemCard } from 'src/components/schedule.item';
-import { ScheduleItem } from 'src/storage/schedule';
-
+import { ScheduleItem } from 'src/store/shedule/types';
 
 interface UpcomingTasksSectionProps {
   items: ScheduleItem[];
   isDark: boolean;
 }
 
+export const UpcomingTasksSection = memo(({ items, isDark }: UpcomingTasksSectionProps) => {
 
-export const UpcomingTasksSection = React.memo(({ items, isDark }: UpcomingTasksSectionProps) => {
-
-  
-const RenderScheduleItem = React.memo(({ item }: { item: ScheduleItem }) => (
-  <ItemCard
-    key={item.id}
-    item={item}
-    onComplete={() => {}}
-    handlePostpone={() => {}}
-    theme={isDark ? 'dark' : 'light'}
-  />
-));
   return (
     <View className="px-4 mt-8">
       <Text
@@ -32,11 +20,15 @@ const RenderScheduleItem = React.memo(({ item }: { item: ScheduleItem }) => (
       <Text className={`${isDark ? 'dark:text-gray-400' : 'text-gray-500'} text-lg mb-6 px-2`}>
         Your next steps
       </Text>
-      <FlatList
-        data={items}
-        renderItem={({ item }) => <RenderScheduleItem item={item} />}
-        keyExtractor={(item) => item.id.toString()}
-      />
+      {items.map((item)=>(
+        <ItemCard
+          key={item.id}
+          item={item}
+          onComplete={() => {}}
+          handlePostpone={() => {}}
+          theme={isDark ? 'dark' : 'light'}
+        />
+      ))}
     </View>
   );
 });

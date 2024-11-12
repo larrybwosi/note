@@ -1,28 +1,26 @@
 import { Memo, observer, useComputed } from '@legendapp/state/react';
-import { useInterval } from 'usehooks-ts';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { currentTime } from '@legendapp/state/helpers/time';
-import { colorScheme as colorSchemeNW } from 'nativewind';
 import { format, differenceInMinutes } from 'date-fns';
-import { Ionicons } from '@expo/vector-icons';
-import { useCallback } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useInterval } from 'usehooks-ts';
+import { useCallback } from 'react';
 
+import { useModal } from 'src/components/modals/provider';
 import { markCompleted } from 'src/store/shedule/actions';
 import { ItemCard } from 'src/components/schedule.item';
 import { scheduleStore } from 'src/store/shedule/store';
 import { router } from 'expo-router';
-import { useModal } from 'src/components/modals/provider';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 
-// Separate components for better organization
 const Header = observer(({ streakCount = 5 }) => {
   const time = useComputed(() => format(currentTime.get().getTime(), 'hh:mm'));
   return (
     <Animated.View 
       entering={FadeInUp.duration(800)}
-      className="px-4 py-6 bg-white dark:bg-gray-800 shadow-xl rounded-b-3xl"
+      className="px-4 py-6 bg-white dark:bg-gray-800 shadow-xl rounded-b-2xl"
     >
       <LinearGradient
         colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
@@ -37,8 +35,8 @@ const Header = observer(({ streakCount = 5 }) => {
             My Schedule
           </Text>
         </View>
-        <View className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 rounded-2xl shadow-lg shadow-blue-500/20">
-          <Text className="text-lg font-rmedium text-white">
+        <View className="px-4 py-2 rounded-lg shadow-blue-500/20">
+          <Text className="text-lg font-rmedium dark:text-white text-black">
             <Memo>{time}</Memo>
           </Text>
         </View>
@@ -60,13 +58,13 @@ const Header = observer(({ streakCount = 5 }) => {
 
 const EmptyState = () => (
   <View className="flex-1 justify-center items-center p-8">
-    <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-3xl shadow-inner">
+    <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-3xl">
       <Ionicons name="calendar-outline" size={72} color="#9CA3AF" />
     </View>
-    <Text className="text-xl font-rmedium text-gray-600 dark:text-gray-400 mt-6 text-center">
+    <Text className="text-xl font-amedium text-gray-600 dark:text-gray-400 mt-6 text-center">
       No tasks scheduled for today
     </Text>
-    <Text className="text-sm text-gray-500 dark:text-gray-500 mt-2 text-center max-w-xs">
+    <Text className="text-sm text-gray-500 dark:text-gray-500 font-aregular mt-2 text-center max-w-xs">
       Take a moment to plan your day. Tap the + button to add a new task or event.
     </Text>
   </View>
@@ -74,18 +72,15 @@ const EmptyState = () => (
 
 const AddButton = ({ onPress }: { onPress: () => void }) => (
   <TouchableOpacity
-    className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 rounded-full shadow-xl shadow-blue-600/30 active:scale-95 transform transition-all"
-    onPress={onPress}
+    onPress={() => router.navigate(`/ai.schedule`)}
+    className="bg-blue-500 px-4 py-2 rounded-xl flex-row items-center"
   >
-    <LinearGradient
-      colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-      className="absolute top-0 left-0 right-0 bottom-0 rounded-full"
-    />
-    <Ionicons name="add" size={24} color="white" />
+    <Ionicons name="add" size={20} color="white" />
+    <Text className="text-white font-rmedium ml-1">Add to calendar</Text>
   </TouchableOpacity>
 );
 
-const TasksList = observer(({ items, onComplete, onPostpone, theme }: any) => (
+const TasksList = observer(({ items, onComplete, onPostpone }: any) => (
   <Animated.View 
     className="space-y-4"
     entering={FadeInUp.duration(800)}
@@ -96,15 +91,13 @@ const TasksList = observer(({ items, onComplete, onPostpone, theme }: any) => (
         item={item}
         onComplete={onComplete}
         handlePostpone={onPostpone}
-        theme={theme}
       />
     ))}
   </Animated.View>
 ));
 
 const CalendarApp = observer(function CalendarApp() {
-  const { show } = useModal('postpone');
-  const theme = useComputed(() => colorSchemeNW.get());
+  const { show } = useModal();
   const todayItems = useComputed(() => scheduleStore.items.get());
 
   const updateCountdowns = useCallback(() => {
@@ -117,7 +110,7 @@ const CalendarApp = observer(function CalendarApp() {
   }, []);
 
   const handlePostpone = useCallback((itemId: any) => {
-    show({ itemId, date: new Date() });
+    show('Postpone',{itemId,isVisible:true, close});
   }, [show]);
 
   const handleCompleteItem = useCallback((id: number) => {
@@ -148,10 +141,10 @@ const CalendarApp = observer(function CalendarApp() {
                 Today's Schedule
               </Text>
             </View>
-            <AddButton onPress={() => router.navigate('/scheduleadd')} />
+            <AddButton onPress={() => router.navigate('/ai.schedule')} />
           </View>
 
-          {todayItems.length === 0 ? (
+          {!todayItems?.length ? (
             <EmptyState />
           ) : (
             <Memo>
@@ -160,7 +153,6 @@ const CalendarApp = observer(function CalendarApp() {
                   items={todayItems.get()}
                   onComplete={handleCompleteItem}
                   onPostpone={handlePostpone}
-                  theme={theme.get()}
                 />
               )}
             </Memo>

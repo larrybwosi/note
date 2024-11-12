@@ -1,6 +1,8 @@
 import React, { memo } from 'react';
-import { View, Text, ScrollView, Pressable, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 
 interface QuickAction {
   icon: React.ReactNode;
@@ -22,35 +24,55 @@ const RenderQuickAction = React.memo(({ item, index }: { item: QuickAction; inde
     className="w-[250px] mr-4"
   >
     <TouchableOpacity
-      className={`dark:bg-gray-900 dark:border-gray-800 bg-white border-gray-100 p-6 rounded-3xl shadow-lg flex-1 mx-2 mb-4 border`}
-      style={{ borderLeftWidth: 4, transform: [{ scale: 1 }] }}
+      className="flex-1 mx-2 mb-4"
+      style={{ transform: [{ scale: 1 }] }}
     >
-      <View
-        className="w-16 h-16 rounded-2xl items-center justify-center mb-4"
-        style={{ backgroundColor: item.color }}
+      <LinearGradient
+        colors={[item.color, '#fff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="dark:bg-gray-900 bg-white p-6 rounded-3xl shadow-lg border dark:border-gray-800 border-gray-100"
+        style={{
+          borderLeftWidth: 4,
+          borderBottomLeftRadius: 40,
+          borderTopRightRadius: 40,
+        }}
       >
-        {item.icon}
-      </View>
+        <View
+          className="w-16 h-16 rounded-2xl items-center justify-center mb-4"
+          style={{ backgroundColor: item.color }}
+        >
+          {item.icon}
+        </View>
 
-      <Text className={`dark:text-white text-gray-800 text-xl font-rbold mb-2`}>{item.title}</Text>
-      <Text className={`dark:text-gray-400 text-gray-500 text-sm mb-3 font-aregular`}>{item.count}</Text>
-      <Text className={`dark:text-gray-500 text-gray-600 text-xs leading-relaxed font-aregular`}>
-        {item.description}
-      </Text>
+        <Text className="dark:text-white text-gray-800 text-xl font-rbold mb-2">{item.title}</Text>
+        <Text className="dark:text-gray-400 text-gray-500 text-sm mb-3 font-aregular">{item.count}</Text>
+        <Text className="dark:text-gray-500 text-gray-600 text-xs leading-relaxed font-aregular">
+          {item.description}
+        </Text>
+      </LinearGradient>
     </TouchableOpacity>
   </Animated.View>
 ));
 RenderQuickAction.displayName = 'RenderQuickAction';
 
-const QuickActionsSection = memo(({ quickActions}: QuickActionsSectionProps) => {
+const QuickActionsSection = memo(({ quickActions, isDark }: QuickActionsSectionProps) => {
   return (
-    <View className="px-4 mt-2">
-      <Text
-        className='text-3xl font-rbold mb-2 dark:text-white text-gray-800 px-2'
-      >
-        Quick Actions
-      </Text>
-      <Text className='dark:text-gray-400 text-gray-500 text-lg mb-6 px-2'>
+    <View className={`px-4 mt-2 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+      <View className="flex-row justify-between items-center mb-2">
+        <Text
+          className={`text-3xl font-rbold ${isDark ? 'text-white' : 'text-gray-800'} px-2`}
+        >
+          Quick Actions
+        </Text>
+        <Ionicons
+          name="chevron-back"
+          size={24}
+          color={isDark ? '#fff' : '#4a5568'}
+          className="mr-2"
+        />
+      </View>
+      <Text className={`${isDark ? 'text-gray-400' : 'text-gray-500'} text-lg mb-6 px-2`}>
         Your path to excellence
       </Text>
       <ScrollView
@@ -70,4 +92,4 @@ const QuickActionsSection = memo(({ quickActions}: QuickActionsSectionProps) => 
 
 QuickActionsSection.displayName = 'QuickActionsSection';
 
-export default QuickActionsSection
+export default QuickActionsSection;

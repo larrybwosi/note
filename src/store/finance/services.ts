@@ -51,6 +51,10 @@ export const transactionService = {
     }
   },
 
+  getTransactions: (): Transaction[] => {
+    const transactions = Object.values(store.transactions.get());
+    return transactions;
+  },
   getTransactionsByCategory: ( categoryName: string, startDate?: Date, endDate?: Date): Transaction[] => {
     const transactions = Object.values(store.transactions.get());
     return transactions.filter((tx) => {

@@ -4,24 +4,15 @@
 import { Platform } from 'react-native';
 
 export const customFontsToLoad = {
-  'roboto-regular':
-    'https://cdn.sanity.io/files/mqczcmfz/production/56c5c0d38bde4c1f1549dda43db37b09c608aad3.ttf',
-  'roboto-bold':
-    'https://cdn.sanity.io/files/mqczcmfz/production/3f8e401d808f6ce84b542266726514ac8be73171.ttf',
-  'roboto-medium':
-    'https://cdn.sanity.io/files/mqczcmfz/production/3c6a09fcc6a454924c81af7dff94fc6d399ed79b.ttf',
-  'roboto-thin':
-    'https://cdn.sanity.io/files/mqczcmfz/production/58c733e22bceeaf9609ce578eca92ac303c6d92f.ttf',
-  'Poppins-Bold':
-    'https://cdn.sanity.io/files/mqczcmfz/production/875cf0cecd647bcf22e79d633d868c1b1ec98dfa.ttf',
-  'Poppins-Medium':
-    'https://cdn.sanity.io/files/mqczcmfz/production/283f21b44efbdbf276ba802be2d949a36bbc4233.ttf',
-  'Archivo-Regular':
-    'https://cdn.sanity.io/files/mqczcmfz/production/c14f15d27da595dcfe84fde32fdb75fc1e970e46.ttf',
-  'Playfair-Regular':
-    'https://cdn.sanity.io/files/mqczcmfz/production/96a2e660869a872971935d18105d64eadd693ddb.ttf',
-  'Playfair-Bold':
-    'https://cdn.sanity.io/files/mqczcmfz/production/fb74d7e889a2c24dc08d5b931c620d47e607d11a.ttf',
+  'roboto-regular': require('../../assets/fonts/Roboto-Regular.ttf'),
+  'roboto-bold':require('../../assets/fonts/Roboto-Bold.ttf'),
+  'roboto-medium':require('../../assets/fonts/Roboto-Medium.ttf'),
+  'roboto-thin':require('../../assets/fonts/Roboto-Thin.ttf'),
+  'Archivo-Regular':require('../../assets/fonts/Archivo-Regular.ttf'),
+  'Archivo-Medium':require('../../assets/fonts/Archivo-SemiBold.ttf'),
+  'Archivo-Bold':require('../../assets/fonts/Archivo-Black.ttf'),
+  'Playfair-Regular':require('../../assets/fonts/Playfair-Regular.ttf'),
+  'Playfair-Bold':require('../../assets/fonts/Playfair-Bold.ttf'),
 };
 
 const fonts = {

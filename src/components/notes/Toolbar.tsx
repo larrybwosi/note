@@ -1,11 +1,10 @@
-import React from 'react';
 import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { highlightColors } from './constants';
 
 interface ToolbarProps {
   handleTextFormat: (format: 'bold' | 'italic' | 'underline' | 'highlight', value?: string) => void;
-  highlightColors: string[];
   setShowReferenceModal: (show: boolean) => void;
 }
 
@@ -13,7 +12,6 @@ const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpaci
 
 export const Toolbar: React.FC<ToolbarProps> = ({
   handleTextFormat,
-  highlightColors,
   setShowReferenceModal,
 }) => {
   const scale = useSharedValue(1);
@@ -40,7 +38,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ alignItems: 'center' }}
+        // contentContainerStyle={{ alignItems: 'center' }}
       >
         {[
           { format: 'bold', icon: 'format-bold' },
@@ -61,12 +59,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
         <ScrollView 
           horizontal 
-          showsHorizontalScrollIndicator={false} 
-          className="flex-row items-center"
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{alignItems:'center', flexDirection:"row"}}
         >
           {highlightColors.map((color, index) => (
             <TouchableOpacity
-              key={color}
+              key={index}
               onPress={() => handleTextFormat('highlight', color)}
               className="w-8 h-8 rounded-full mx-1 border-2 border-white shadow-sm"
               style={{ backgroundColor: color }}
