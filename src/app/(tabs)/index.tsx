@@ -20,7 +20,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { scheduleStore } from 'src/store/shedule/store';
 import { useProfile } from 'src/store/profile/actions';
 import Progress from 'src/components/home/progress';
-import TodayCard from 'src/components/today.card';
+import TodayCard from 'src/components/home/today.card';
 
 import {
   motivationalQuotes,
@@ -211,7 +211,7 @@ const HomeScreen = observer(() => {
 
   return (
     <ScrollView
-      className="flex-1 mb-6 dark:bg-gray-900 bg-gray-50"
+      className="flex-1 mb-6 dark:bg-gray-900 bg-gray-50 h-full"
       onScroll={onScroll}
       scrollEventThrottle={16}
     >
@@ -238,9 +238,9 @@ const HomeScreen = observer(() => {
         <TodayCard />
       </Animated.View>
       
-      <Animated.View entering={FadeIn.duration(800).delay(500)}>
+      {/* <Animated.View entering={FadeIn.duration(800).delay(500)}>
         <QuickActionsSection quickActions={quickActions} isDark={isDark} />
-      </Animated.View>
+      </Animated.View> */}
       
       <Animated.View entering={FadeIn.duration(800).delay(600)}>
         <UpcomingTasksSection items={items.get()} isDark={isDark} />

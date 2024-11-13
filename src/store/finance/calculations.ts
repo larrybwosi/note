@@ -1,4 +1,5 @@
 // calculations.ts
+import { incomeExpenseService } from './services';
 import { 
   Transaction, 
   Category,
@@ -244,14 +245,11 @@ export const analyzeSavingsProgress = (
 };
 
 export const calculateGuiltFreeBalance = (
-  transactions: Record<string, Transaction>,
   budgetConfig: BudgetConfig,
 ): number => {
 
-  const monthlyIncome = budgetConfig.monthlyIncome;
-  const expenses =  Object.values(transactions)
-    .filter(t => t.type === TransactionType.EXPENSE)
-    .reduce((sum, t) => sum + t.amount, 0);
+  const monthlyIncome = incomeExpenseService.getTotalIncome();
+  const expenses =  incomeExpenseService.getTotalExpenses();
 
   let budgetedAmount: number;
   if (budgetConfig.rule === BudgetRuleType.RULE_15_65_20) {
@@ -283,7 +281,7 @@ export const calculateInsights = (
   const monthlyTrends = calculateMonthlyTrends(transactions);
   const unusualSpending = detectSpendingAnomalies(transactions, categories, dateRange);
   const savingsAnalysis = analyzeSavingsProgress(transactions, budgetConfig.savingsGoals, budgetConfig);
-  const guiltFreeBalance = calculateGuiltFreeBalance(transactions, budgetConfig);
+  const guiltFreeBalance = calculateGuiltFreeBalance(budgetConfig);
 
   const monthlySpendingByCategory: Record<string, number> = {};
   categorySpending.forEach(({ categoryId, amount }) => {

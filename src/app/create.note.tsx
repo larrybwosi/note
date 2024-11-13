@@ -7,25 +7,25 @@ import { useRef } from 'react';
 import { router } from 'expo-router';
 
 import { SaveConfirmationModal } from 'src/components/notes/SaveConfirmation';
-import { QuickTemplates } from 'src/components/notes/QuickTemplate';
-import { ToolsSection } from 'src/components/notes/ToolsSelection';
 import { CategorySelector } from 'src/components/notes/Category';
 import { TagSelector } from 'src/components/notes/TagSelector';
 import { ReferenceModal } from 'src/components/notes/Refrence';
 import ReferenceItem from 'src/components/notes/RefrenceItem';
 import { tagOptions } from 'src/components/notes/constants';
-import { Note, Reference } from 'src/components/notes/ts';
 import { Toolbar } from 'src/components/notes/Toolbar';
 import Editor from 'src/components/notes/editor';
+import { Note, Reference } from 'src/store/notes/types';
+import { useNotes } from 'src/store/notes/store';
 
 const initialNote: Note = {
+  id: '',
   title: '',
   content: '',
-  formattedContent: [],
   tags: [],
   references: [],
   lastEdited: new Date(),
   isBookmarked: false,
+  category: 'personal',
 };
 
 const state = observable({
@@ -46,15 +46,11 @@ export const AddNoteModal = () => {
     const currentText = state.note.content.get();
     const { start, end } = state.selectedText.get();
 
-    batch(() => {
-      state.note.formattedContent.push({
-        text: currentText.slice(start, end),
-        style: {
-          [format]: format === 'highlight' ? value : true,
-        },
-      });
-    });
   };
+
+  const renders = ++useRef(0).current;
+  console.log("renders", renders);
+  const [store, actions] = useNotes();
 
   const addReference = () => {
     if (!state.newReference.title.get()) return;
@@ -65,15 +61,22 @@ export const AddNoteModal = () => {
       state.showReferenceModal.set(false);
     });
   };
-
-  const renders = ++ useRef(0).current
-  console.log(renders)
+  
+  function handleSave() {
+    state.saveAlert.set(true)
+    console.log(state.get());
+    actions.addNote(state.note.get());
+    state.saveAlert.set(false);
+    router.back();
+  }
+  
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1"
     >
       <View className="flex-1 bg-gray-100">
+        {/* Header */}
         <View className="flex-row justify-between items-center p-4 pt-12 bg-black/30">
           <TouchableOpacity onPress={() => router.back()} className="p-2">
             <Ionicons name="close" size={24} color="white" />
@@ -90,7 +93,7 @@ export const AddNoteModal = () => {
               />
             </TouchableOpacity> 
             <TouchableOpacity
-              onPress={() => state.saveAlert.set(true)}
+              onPress={handleSave}
               className="bg-white rounded-full px-4 py-2"
             >
               <Text className="font-bold text-blue-500">Save</Text>
@@ -98,13 +101,14 @@ export const AddNoteModal = () => {
           </View>
         </View>
 
+        {/* Content */}
         <ScrollView className="flex-1 bg-white rounded-t-3xl -mt-6 pt-6 px-4">
           <CategorySelector
             activeCategory={state.activeCategory.get()}
             setActiveCategory={(category) => state.activeCategory.set(category)}
           />
 
-          <Editor initialState={state.note.get()}noteType='list' />
+          <Editor state={state.note} noteType="note" />
 
           {state.note.references.get().length > 0 && (
             <View className="mb-4">
@@ -126,10 +130,6 @@ export const AddNoteModal = () => {
               );
             }}
           />
-
-          <ToolsSection />
-
-          <QuickTemplates />
         </ScrollView>
 
         {state.showToolbar.get() && (

@@ -9,7 +9,8 @@ import Animated, {
   useSharedValue,
   withSpring,
   interpolate,
-  Extrapolation
+  Extrapolation,
+  SlideInRight
 } from 'react-native-reanimated';
 import { observer, useComputed } from '@legendapp/state/react';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,6 +51,8 @@ const FinanceSummary = observer(({
     scale.value = withSpring(1);
   };
 
+  const savingsRate = ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(1);
+
   return (
     <Animated.View 
       entering={FadeIn.duration(800).delay(300)}
@@ -64,12 +67,25 @@ const FinanceSummary = observer(({
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <Text className="text-xl font-rbold text-gray-800 dark:text-gray-100 mb-4">
-          Financial Summary
-        </Text>
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-xl font-rbold text-gray-800 dark:text-gray-100">
+            Financial Summary
+          </Text>
+          <View className="bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-full">
+            <Text className="text-blue-600 dark:text-blue-200 font-rmedium text-sm">
+              {savingsRate}% Savings
+            </Text>
+          </View>
+        </View>
+        
         <View className="space-y-4">
           <View className="flex-row justify-between items-center">
-            <Text className="text-sm text-gray-500 dark:text-gray-400 font-rregular">Total Income</Text>
+            <View className="flex-row items-center">
+              <View className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full items-center justify-center mr-2">
+                <Ionicons name="arrow-up" size={18} color={colorScheme.get() === 'dark' ? '#34D399' : '#10B981'} />
+              </View>
+              <Text className="text-sm text-gray-500 dark:text-gray-400 font-rregular">Total Income</Text>
+            </View>
             <Animated.Text 
               entering={FadeIn.duration(800).delay(400)}
               className="text-lg font-bold text-green-500"
@@ -77,8 +93,14 @@ const FinanceSummary = observer(({
               ${totalIncome.toLocaleString()}
             </Animated.Text>
           </View>
+          
           <View className="flex-row justify-between items-center">
-            <Text className="text-sm text-gray-500 dark:text-gray-400 font-rregular">Total Expenses</Text>
+            <View className="flex-row items-center">
+              <View className="w-8 h-8 bg-rose-100 dark:bg-rose-900 rounded-full items-center justify-center mr-2">
+                <Ionicons name="arrow-down" size={18} color={colorScheme.get() === 'dark' ? '#FB7185' : '#F43F5E'} />
+              </View>
+              <Text className="text-sm text-gray-500 dark:text-gray-400 font-rregular">Total Expenses</Text>
+            </View>
             <Animated.Text 
               entering={FadeIn.duration(800).delay(500)}
               className="text-lg font-bold text-rose-400"
@@ -86,8 +108,16 @@ const FinanceSummary = observer(({
               ${totalExpenses.toLocaleString()}
             </Animated.Text>
           </View>
+          
+          <View className="h-px bg-gray-200 dark:bg-gray-700 my-2" />
+          
           <View className="flex-row justify-between items-center">
-            <Text className="text-sm text-gray-500 dark:text-gray-400 font-rregular">Guilt-Free Balance</Text>
+            <View className="flex-row items-center">
+              <View className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full items-center justify-center mr-2">
+                <Ionicons name="wallet" size={18} color={colorScheme.get() === 'dark' ? '#60A5FA' : '#3B82F6'} />
+              </View>
+              <Text className="text-sm text-gray-500 dark:text-gray-400 font-rregular">Guilt-Free Balance</Text>
+            </View>
             <Animated.Text 
               entering={FadeIn.duration(800).delay(600)}
               className="text-lg font-bold text-blue-500"
@@ -101,10 +131,49 @@ const FinanceSummary = observer(({
   );
 });
 
+const SuggestionCard = observer(({ suggestion }: { suggestion: string }) => (
+  <Animated.View 
+    entering={FadeIn.duration(800).delay(700)}
+    className="mt-4 bg-white/10 backdrop-blur-lg p-4 rounded-xl"
+  >
+    <View className="flex-row items-center">
+      <View className="w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-full items-center justify-center mr-3">
+        <Ionicons name="bulb" size={18} color={colorScheme.get() === 'dark' ? '#FBBF24' : '#D97706'} />
+      </View>
+      <Text className="flex-1 text-sm dark:text-white font-rregular">
+        {suggestion}
+      </Text>
+    </View>
+  </Animated.View>
+));
+
+const EmptyState = ({ isDark }: { isDark: boolean }) => (
+  <Animated.View 
+    entering={FadeIn.duration(800)} 
+    exiting={FadeOut}
+    className="flex-1 items-center justify-center py-12"
+  >
+    <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
+      <Ionicons 
+        name="wallet-outline" 
+        size={48} 
+        color={isDark ? "#9CA3AF" : "#6B7280"} 
+      />
+    </View>
+    <Text className="text-gray-500 dark:text-gray-400 mt-4 text-center font-rregular text-base">
+      No transactions recorded yet
+    </Text>
+    <Text className="text-gray-400 dark:text-gray-500 mt-2 text-center font-rregular text-sm">
+      Start tracking your finances by adding your first transaction
+    </Text>
+  </Animated.View>
+);
+
 const FinancePage = observer(() => {
   const isDark = colorScheme.get() === 'dark';
-  const { getTotalIncome, getTotalExpenses, getGuiltFreeBalance, getTransactions } = useFinancialStore();
+  const { getTotalIncome, getTotalExpenses, getGuiltFreeBalance, getTransactions,  } = useFinancialStore();
   const scrollY = useSharedValue(0);
+
 
   const headerStyle = useAnimatedStyle(() => ({
     transform: [
@@ -127,12 +196,12 @@ const FinancePage = observer(() => {
 
   const guiltFreeBalance = getGuiltFreeBalance();
   const totalExpenses = getTotalExpenses();
-  const transactions = getTransactions()
+  const transactions = getTransactions();
   const totalIncome = getTotalIncome();
 
 
   const handleDeleteTransaction = useCallback((id: string) => {
-    // financialState.transactions.set(prev => prev.filter(t => t.id !== id));
+    // Implementation here
   }, []);
 
   const dynamicSuggestion = useComputed(() => {
@@ -140,13 +209,13 @@ const FinancePage = observer(() => {
       transaction.type === TransactionType.INCOME ? sum + transaction.amount : sum, 0) / totalIncome) * 100;
     
     if (savingsPercentage < 20) {
-      return "Consider increasing your savings to reach the recommended 20% of your income.";
+      return "💡 Tip: Try to save at least 20% of your income. Consider using the 50/30/20 rule - 50% for needs, 30% for wants, and 20% for savings.";
     } else if (totalExpenses > totalIncome) {
-      return "Your expenses are exceeding your income. Try to cut back on non-essential spending.";
+      return "⚠️ Alert: Your expenses are exceeding your income. Review your recent transactions and identify areas where you can reduce spending.";
     } else if (guiltFreeBalance > totalIncome * 0.3) {
-      return "Great job managing your finances! You have a healthy guilt-free balance.";
+      return "🎯 Great work! You're maintaining a healthy financial buffer. Consider investing some of your guilt-free balance for long-term growth.";
     } else {
-      return "You're on track with your financial goals. Keep up the good work!";
+      return "✨ You're on track! Keep maintaining a good balance between spending and saving while building your emergency fund.";
     }
   });
 
@@ -165,12 +234,12 @@ const FinancePage = observer(() => {
   };
 
   return (
-    <SafeAreaView className="flex-1 dark:bg-gray-900 mb-6">
+    <SafeAreaView className="flex-1 dark:bg-gray-900">
       <LinearGradient
         colors={isDark 
           ? ['#1a237e', '#1F2937']
           : ['#3b82f6', '#60a5fa']}
-        className="absolute top-0 left-0 right-0 h-64"
+        className="absolute top-0 left-0 right-0 h-72"
       />
       
       <Animated.View 
@@ -181,15 +250,20 @@ const FinancePage = observer(() => {
           <View>
             <Animated.Text 
               entering={FadeIn.duration(800)}
-              className="text-2xl font-rbold dark:text-white"
+              className="text-2xl font-rbold text-white"
             >
               Finance Overview
             </Animated.Text>
             <Animated.Text 
               entering={FadeIn.duration(800).delay(200)}
-              className="text-sm dark:text-gray-100 font-rregular"
+              className="text-sm text-gray-100 font-rregular opacity-90"
             >
-              Manage your money wisely
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
             </Animated.Text>
           </View>
           
@@ -198,10 +272,10 @@ const FinancePage = observer(() => {
               onPressIn={onPressIn}
               onPressOut={onPressOut}
               onPress={() => router.navigate(`/ai.transaction?initialType=${financialState.type.get()}`)}
-              className="bg-blue-500 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
+              className="bg-white/20 backdrop-blur-lg px-4 py-3 rounded-xl flex-row items-center"
             >
-              <Ionicons name="add" size={20} color="white" />
-              <Text className="dark:text-white font-rmedium ml-1">Add Transaction</Text>
+              <Ionicons name="add-circle" size={20} color="white" />
+              <Text className="text-white font-rmedium ml-2">Add Transaction</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -212,14 +286,7 @@ const FinancePage = observer(() => {
           totalExpenses={totalExpenses}
         />
 
-        <Animated.View 
-          entering={FadeIn.duration(800).delay(700)}
-          className="mt-4 bg-white/10 backdrop-blur-lg p-4 rounded-xl"
-        >
-          <Text className="text-sm dark:text-white font-rregular">
-            {dynamicSuggestion.get()}
-          </Text>
-        </Animated.View>
+        <SuggestionCard suggestion={dynamicSuggestion.get()} />
       </Animated.View>
 
       <ScrollView 
@@ -228,33 +295,21 @@ const FinancePage = observer(() => {
           scrollY.value = event.nativeEvent.contentOffset.y;
         }}
         scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
       >
         {transactions.length === 0 ? (
-          <Animated.View 
-            entering={FadeIn.duration(800)} 
-            exiting={FadeOut}
-            className="flex-1 items-center justify-center py-12"
-          >
-            <Ionicons 
-              name="wallet-outline" 
-              size={48} 
-              color={isDark ? "#9CA3AF" : "#6B7280"} 
-            />
-            <Text className="text-gray-500 dark:text-gray-400 mt-4 text-center font-rregular">
-              No transactions recorded yet.{'\n'}Start tracking your finances!
-            </Text>
-          </Animated.View>
+          <EmptyState isDark={isDark} />
         ) : (
           <Animated.View 
             layout={LinearTransition.springify()} 
-            className="my-4 mb-3 space-y-3"
+            className="my-4 mb-20 space-y-3"
           >
             {transactions
               .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               .map((transaction, index) => (
                 <Animated.View
                   key={transaction.id}
-                  entering={FadeIn.duration(800).delay(index * 100)}
+                  entering={SlideInRight.duration(400).delay(index * 100)}
                 >
                   <TransactionCard
                     transaction={transaction}

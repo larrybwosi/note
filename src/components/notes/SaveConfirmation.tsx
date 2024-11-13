@@ -24,8 +24,8 @@ export const SaveConfirmationModal: React.FC<SaveConfirmationModalProps> = ({
         <View className="bg-green-100 p-4 rounded-full mb-4">
           <MaterialIcons name="check" size={32} color="#22c55e" />
         </View>
-        <Text className="text-xl font-bold mb-2">Note Saved!</Text>
-        <Text className="text-gray-600 text-center mb-4">
+        <Text className="text-xl font-abold mb-2">Note Saved!</Text>
+        <Text className="text-gray-600 font-aregular text-center mb-4">
           Your note has been saved successfully
         </Text>
         <TouchableOpacity
@@ -35,7 +35,7 @@ export const SaveConfirmationModal: React.FC<SaveConfirmationModalProps> = ({
           }}
           className="bg-blue-500 py-3 px-6 rounded-full"
         >
-          <Text className="text-white font-bold">Done</Text>
+          <Text className="text-white font-aregular">Done</Text>
         </TouchableOpacity>
       </View>
     </View>

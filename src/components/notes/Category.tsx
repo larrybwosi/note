@@ -63,7 +63,6 @@ const CategoryItem = memo(({ category, isActive, onPress }: any) => {
       ['#F3F4F6', category.color || '#3B82F6']
     ),
     shadowColor: category.color || '#3B82F6',
-    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: active.value * 0.2,
     shadowRadius: 8,
     elevation: active.value * 4,
@@ -75,7 +74,7 @@ const CategoryItem = memo(({ category, isActive, onPress }: any) => {
     <AnimatedTouchable
       onPress={onPress}
       className="mr-3 py-3 px-4 rounded-2xl flex-row items-center"
-      style={animatedStyle}
+      style={[{shadowOffset: { width: 0, height: 4 }},animatedStyle]}
     >
       <MaterialIcons
         name={category.icon as any}

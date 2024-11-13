@@ -40,68 +40,6 @@ const TASK_ICONS = {
   Urgent: '⚡',
 } as const;
 
-// Enhanced channel setup with custom sounds and importance
-export const setupNotificationChannels = async () => {
-  const channels = [
-    {
-      id: 'schedule_default',
-      name: 'Schedule Notifications',
-      importance: AndroidImportance.DEFAULT,
-      sound: 'notification',
-      vibration: true,
-      lights: true,
-      lightColor: AndroidColor.BLUE,
-      vibrationPattern: [300, 500],
-    },
-    {
-      id: 'schedule_reminders',
-      name: 'Schedule Reminders',
-      importance: AndroidImportance.HIGH,
-      sound: 'reminder',
-      vibration: true,
-      lights: true,
-      lightColor: AndroidColor.YELLOW,
-      vibrationPattern: [300, 500],
-    },
-    {
-      id: 'schedule_urgent',
-      name: 'Urgent Tasks',
-      importance: AndroidImportance.HIGH,
-      sound: 'urgent',
-      vibration: true,
-      lights: true,
-      lightColor: AndroidColor.RED,
-      vibrationPattern: [250, 250, 250, 250],
-      bypassDnd: true,
-    },
-  ];
-
-  try {
-    // Get existing channels
-    const existingChannels = await notifee.getChannels();
-    const existingChannelIds = new Set(existingChannels.map((channel) => channel.id));
-
-    // Only create channels that don't exist
-    for (const channel of channels) {
-      if (!existingChannelIds.has(channel.id)) {
-        await notifee.createChannel(channel);
-      }
-    }
-  } catch (error) {
-    console.error('Error setting up notification channels:', error);
-    throw error;
-  }
-};
-
-export const deleteAllChannels = async () => {
-  try {
-    const channels = await notifee.getChannels();
-    await Promise.all(channels.map((channel) => notifee.deleteChannel(channel.id)));
-  } catch (error) {
-    console.error('Error deleting notification channels:', error);
-    throw error;
-  }
-};
 
 const getChannelId = (priority: ScheduleItem['priority']): string => {
   switch (priority) {
@@ -221,7 +159,6 @@ const cancelItemNotifications = async (itemId: number) => {
   await notifee.cancelNotification(`reminder_${itemId}`);
 };
 
-// Enhanced completion notification with more detailed feedback
 export const showCompletionNotification = async (item: ScheduleItem): Promise<void> => {
   await cancelItemNotifications(item.id);
 
@@ -256,7 +193,6 @@ export const showCompletionNotification = async (item: ScheduleItem): Promise<vo
   });
 };
 
-// Enhanced overdue notification with more urgency and options
 export const showOverdueNotification = async (item: ScheduleItem): Promise<void> => {
   const overdueDuration = differenceInMinutes(new Date(), item.endDate);
 
@@ -294,7 +230,6 @@ export const showOverdueNotification = async (item: ScheduleItem): Promise<void>
   });
 };
 
-// Enhanced start notification with more context and options
 const showStartNotification = async (item: ScheduleItem) => {
   await notifee.displayNotification({
     title: `🚀 Task Starting: ${item.title}`,
@@ -380,6 +315,69 @@ const showTaskStartNotification = async (itemId: number) => {
   if (!item) return;
   await showStartNotification(item);
   await showOverdueNotification(item);
+};
+
+
+
+export const deleteAllChannels = async () => {
+  try {
+    const channels = await notifee.getChannels();
+    await Promise.all(channels.map((channel) => notifee.deleteChannel(channel.id)));
+  } catch (error) {
+    console.error('Error deleting notification channels:', error);
+    throw error;
+  }
+};
+export const setupNotificationChannels = async () => {
+  const channels = [
+    {
+      id: 'schedule_default',
+      name: 'Schedule Notifications',
+      importance: AndroidImportance.DEFAULT,
+      sound: 'notification',
+      vibration: true,
+      lights: true,
+      lightColor: AndroidColor.BLUE,
+      vibrationPattern: [300, 500],
+    },
+    {
+      id: 'schedule_reminders',
+      name: 'Schedule Reminders',
+      importance: AndroidImportance.HIGH,
+      sound: 'reminder',
+      vibration: true,
+      lights: true,
+      lightColor: AndroidColor.YELLOW,
+      vibrationPattern: [300, 500],
+    },
+    {
+      id: 'schedule_urgent',
+      name: 'Urgent Tasks',
+      importance: AndroidImportance.HIGH,
+      sound: 'urgent',
+      vibration: true,
+      lights: true,
+      lightColor: AndroidColor.RED,
+      vibrationPattern: [250, 250, 250, 250],
+      bypassDnd: true,
+    },
+  ];
+
+  try {
+    // Get existing channels
+    const existingChannels = await notifee.getChannels();
+    const existingChannelIds = new Set(existingChannels.map((channel) => channel.id));
+
+    // Only create channels that don't exist
+    for (const channel of channels) {
+      if (!existingChannelIds.has(channel.id)) {
+        await notifee.createChannel(channel);
+      }
+    }
+  } catch (error) {
+    console.error('Error setting up notification channels:', error);
+    throw error;
+  }
 };
 // Enhanced background handler
 

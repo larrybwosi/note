@@ -27,7 +27,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="navigation" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Feather name="activity" size={size} color={color} />,
           tabBarLabel: 'Schedule',
         }}
       />

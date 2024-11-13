@@ -1,4 +1,3 @@
-import { memo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,71 +12,14 @@ import { router } from 'expo-router';
 import { useObservable, observer, useComputed } from '@legendapp/state/react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { observable } from '@legendapp/state';
+import { colorScheme } from 'nativewind';
 import Animated, { 
   FadeInDown,
   SlideInRight
 } from 'react-native-reanimated';
-import { colorScheme } from 'nativewind';
+import { Note, NoteCategory, colorSchemes, themes } from 'src/store/notes/types';
+import { useNotes } from 'src/store/notes/store';
 
-const colorSchemes = {
-  research: {
-    gradient: ['#4158D0', '#C850C0'],
-    accent: '#8B5CF6',
-  },
-  project: {
-    gradient: ['#0093E9', '#80D0C7'],
-    accent: '#3B82F6',
-  },
-  class: {
-    gradient: ['#8EC5FC', '#E0C3FC'],
-    accent: '#6366F1',
-  },
-  personal: {
-    gradient: ['#FAD961', '#F76B1C'],
-    accent: '#F59E0B',
-  },
-  ideas: {
-    gradient: ['#84FAB0', '#8FD3F4'],
-    accent: '#10B981',
-  }
-} as const;
-
-const themes = {
-  light: {
-    background: '#ffffff',
-    text: '#1F2937',
-    primary: '#3B82F6',
-    secondary: '#60A5FA',
-    accent: '#8B5CF6',
-    border: '#E5E7EB',
-    cardBg: '#F9FAFB',
-    error: '#EF4444',
-    success: '#10B981',
-  },
-  dark: {
-    background: '#111827',
-    text: '#F9FAFB',
-    primary: '#60A5FA',
-    secondary: '#3B82F6',
-    accent: '#8B5CF6',
-    border: '#374151',
-    cardBg: '#1F2937',
-    error: '#EF4444',
-    success: '#10B981',
-  },
-} as const;
-
-type NoteCategory = keyof typeof colorSchemes;
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  category: NoteCategory;
-  lastEdited: Date;
-  isBookmarked: boolean;
-}
 
 const globalState = observable({
   theme: 'light' as 'light' | 'dark',
@@ -88,25 +30,21 @@ const globalState = observable({
   selectedCategory: 'all' as 'all' | NoteCategory,
 });
 
-const Chip: React.FC<{ label: NoteCategory | 'all' }> = memo(({ label }) => (
+const Chip: React.FC<{ label: NoteCategory | 'all' }> = ({ label }) => (
   <LinearGradient
     colors={label === 'all' ? ['#CBD5E1', '#94A3B8'] : colorSchemes[label].gradient}
     start={{ x: 0, y: 0 }}
     end={{ x: 1, y: 1 }}
-    style={{
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 20,
-    }}
+    style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}
   >
     <Text style={{ color: '#ffffff', fontSize: 14, textTransform: 'capitalize' }}>
       {label}
     </Text>
   </LinearGradient>
-));
+);
 
 
-const NoteBlock: React.FC<{ note: Note }> = memo(observer(({ note }) => {
+const NoteBlock: React.FC<{ note: Note }> = observer(({ note }) => {
   const scheme = colorSchemes[note.category];
   return (
     <Animated.View
@@ -143,12 +81,12 @@ const NoteBlock: React.FC<{ note: Note }> = memo(observer(({ note }) => {
           ))}
         </View>
         <Text className="text-white/80 text-xs mt-3 font-aregular">
-          Last edited: {note.lastEdited.toLocaleDateString()}
+          Last edited: {note.lastEdited?.toLocaleDateString()}
         </Text>
       </LinearGradient>
     </Animated.View>
   );
-}));
+});
 
 const CategoryFilter: React.FC = observer(() => {
   const selectedCategory = useObservable(globalState.selectedCategory);
@@ -178,7 +116,7 @@ const CategoryFilter: React.FC = observer(() => {
   );
 });
 
-const EmptyState: React.FC = memo(() => {
+const EmptyState: React.FC = () => {
   const theme = useComputed(() => themes[colorScheme.get()!]);
   return (
     <Animated.View 
@@ -200,55 +138,22 @@ const EmptyState: React.FC = memo(() => {
       </View>
     </Animated.View>
   );
-});
+};
 
 
 
-const CleveryEditor: React.FC = observer(() => {
+const Notes: React.FC = observer(() => {
+  const [store, actions] = useNotes();
   const theme = useComputed(() => themes[colorScheme.get()!]);
-  const notes = useObservable(globalState.notes);
+  const notes =store.notes;
   const searchQuery = useObservable(globalState.searchQuery);
   const selectedCategory = useObservable(globalState.selectedCategory);
 
-  // useEffect(() => {
-  //   if (notes.get().length === 0) {
-  //     const mockNotes: Note[] = [
-  //       {
-  //         id: '1',
-  //         title: 'Research: AI in Healthcare',
-  //         content: 'Recent developments in AI are revolutionizing healthcare diagnostics...',
-  //         tags: ['AI', 'healthcare', 'research'],
-  //         category: 'research',
-  //         lastEdited: new Date(),
-  //         isBookmarked: true,
-  //       },
-  //       {
-  //         id: '2',
-  //         title: 'Project: Mobile App Architecture',
-  //         content: 'Key considerations for scalable mobile architecture...',
-  //         tags: ['mobile', 'architecture', 'development'],
-  //         category: 'project',
-  //         lastEdited: new Date(),
-  //         isBookmarked: false,
-  //       },
-  //       {
-  //         id: '3',
-  //         title: 'Advanced Data Structures',
-  //         content: 'Notes from today\'s lecture on balanced trees and heap implementations...',
-  //         tags: ['CS', 'algorithms', 'study'],
-  //         category: 'class',
-  //         lastEdited: new Date(),
-  //         isBookmarked: true,
-  //       },
-  //     ];
-  //     notes.set(mockNotes);
-  //   }
-  // }, []);
 
   const filteredNotes = useComputed(() => 
     notes.get().filter((note) => {
-      const matchesSearch = note.title.toLowerCase().includes(searchQuery.get().toLowerCase()) ||
-        note.content.toLowerCase().includes(searchQuery.get().toLowerCase());
+      const matchesSearch = note.title?.toLowerCase().includes(searchQuery.get()?.toLowerCase()) ||
+        note.content?.toLowerCase().includes(searchQuery.get()?.toLowerCase());
       const matchesCategory = selectedCategory.get() === 'all' || 
         note.category === selectedCategory.get();
       return matchesSearch && matchesCategory;
@@ -268,7 +173,13 @@ const CleveryEditor: React.FC = observer(() => {
           <Text className={`text-2xl font-amedium dark:text-white text-gray-900`}>
             Dealio Notes
           </Text>
-          <TouchableOpacity />
+          <TouchableOpacity
+            onPress={() => {}}
+            className="bg-blue-500 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
+          >
+            <Ionicons name="trash" size={20} color="white" />
+            <Text className="text-white font-rmedium ml-1">Delete All</Text>
+          </TouchableOpacity>
         </View>
 
         <View className={`flex-row items-center mx-4 my-4 dark:bg-gray-800 bg-gray-100 rounded-xl p-3`}>
@@ -290,7 +201,8 @@ const CleveryEditor: React.FC = observer(() => {
           <EmptyState />
         ) : (
           filteredNotes.get().map((note) => (
-            <NoteBlock key={note.id} note={note} />
+            <></>
+            // <NoteBlock key={note.id} note={note} />
           ))
         )}
       </ScrollView>
@@ -308,4 +220,4 @@ const CleveryEditor: React.FC = observer(() => {
 
 Chip.displayName = 'Note-Chip';
 EmptyState.displayName = 'Note-EmptyState';
-export default CleveryEditor;
+export default Notes;

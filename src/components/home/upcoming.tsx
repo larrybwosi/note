@@ -26,7 +26,6 @@ export const UpcomingTasksSection = memo(({ items, isDark }: UpcomingTasksSectio
           item={item}
           onComplete={() => {}}
           handlePostpone={() => {}}
-          theme={isDark ? 'dark' : 'light'}
         />
       ))}
     </View>

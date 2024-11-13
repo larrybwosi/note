@@ -424,8 +424,7 @@ export const budgetService = {
     return 0;
   },
   guiltFreeBalance: (): number => {
-    const transactions = store.transactions.get();
-    return calculateGuiltFreeBalance(transactions, store.budgetConfig.get());
+    return calculateGuiltFreeBalance(store.budgetConfig.get());
   },
 
   recalculateBudgets: (): void => {

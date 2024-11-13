@@ -17,15 +17,15 @@ export interface FormattedText {
   };
 }
 
-export interface Note {
-  title: string;
-  content: string;
-  formattedContent: FormattedText[];
-  tags: string[];
-  image?: string;
-  category?: string;
-  references: Reference[];
-  lastEdited: Date;
-  reminder?: Date;
-  isBookmarked: boolean;
-}
+// export interface Note {
+//   title: string;
+//   content: string;
+//   formattedContent: FormattedText[];
+//   tags: string[];
+//   image?: string;
+//   category?: string;
+//   references: Reference[];
+//   lastEdited: Date;
+//   reminder?: Date;
+//   isBookmarked: boolean;
+// }

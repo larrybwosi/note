@@ -44,7 +44,7 @@ export const WaterReminderSection = observer(({ onWaterLog }: WaterReminderSecti
             <Text className="text-2xl mr-2">💧</Text>
             <View>
               <Text className="text-blue-500 font-rbold">Water Reminder</Text>
-              <Text className="text-gray-500 dark:text-gray-400">
+              <Text className="text-gray-500 dark:text-gray-400 font-aregular">
                 Next in: {getTimeUntilNextWater.get()}
               </Text>
             </View>

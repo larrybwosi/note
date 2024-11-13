@@ -51,7 +51,11 @@ const config: ExpoConfig = {
     },
     bundler: 'metro',
   },
-  plugins: ['expo-font'],
+  plugins: [
+    'expo-font',
+    'expo-location',
+    "expo-secure-store"
+  ],
   experiments: {
     tsconfigPaths: true,
   },

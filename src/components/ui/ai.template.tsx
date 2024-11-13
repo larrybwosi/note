@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useObservable, useComputed, observer, Reactive } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +15,8 @@ import Animated, {
   useSharedValue
 } from 'react-native-reanimated';
 import { router } from 'expo-router';
+import { synced } from '@legendapp/state/sync';
+import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 
 interface AICreatorTemplateProps {
   title: string;
@@ -26,6 +28,7 @@ interface AICreatorTemplateProps {
   addManualRoute: string;
   addManualButtonText: string;
   ItemComponent: React.ComponentType<any>;
+  itemComponentProps?: Record<string, any>; 
   gradientColors?: string[];
 }
 
@@ -39,15 +42,23 @@ interface AppState {
   hasResult: boolean;
 }
 
-const createStore = () => observable<AppState>({
-  responses: [],
-  isLoading: false,
-  error: null,
-  savedPrompts: [],
-  prompt: '',
-  successMessage: null,
-  hasResult: false,
-});
+const createStore = (name:string) => observable<AppState>(
+  synced({
+    initial:{
+      responses: [],
+      isLoading: false,
+      error: null,
+      savedPrompts: [],
+      prompt: '',
+      successMessage: null,
+      hasResult: false,
+    },
+    persist: {
+      name: name,
+      plugin: ObservablePersistMMKV
+    }
+  })
+);
 
 const Header: React.FC<{ title: string; subtitle: string; gradientColors: string[] }> = memo(({ title, subtitle, gradientColors }) => {
   const [word1, word2] = title.split(' & ');
@@ -132,10 +143,6 @@ const PromptInput: React.FC<{
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        prompt,
-        type,
-      }),
     });
 
     if (!response.ok) {
@@ -280,7 +287,11 @@ const MessageBanner: React.FC<{ type: 'error' | 'success'; store: any }> = obser
   );
 });
 
-const ResponsesList: React.FC<{ store: any; ItemComponent: React.ComponentType<any> }> = observer(({ store, ItemComponent }) => {
+const ResponsesList: React.FC<{ 
+  store: any; 
+  ItemComponent: React.ComponentType<any>
+  itemComponentProps?: Record<string, any>;
+ }> = observer(({ store, ItemComponent, itemComponentProps }) => {
   const responses = useComputed(() => store.responses.get());
   const hasResult = useObservable(store.hasResult);
   
@@ -298,6 +309,7 @@ const ResponsesList: React.FC<{ store: any; ItemComponent: React.ComponentType<a
         <ItemComponent
           key={item.id?.get?.() || index}
           item={item.get?.() || item}
+          {...itemComponentProps} 
         />
       ))}
     </View>
@@ -314,9 +326,10 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
   addManualRoute,
   addManualButtonText,
   ItemComponent,
+  itemComponentProps,
   gradientColors = ['#4F46E5', '#7C3AED', '#9333EA']
 }) => {
-  const store = createStore();
+  const store = createStore(type);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
@@ -339,7 +352,8 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
         />
         <ResponsesList 
           store={store} 
-          ItemComponent={ItemComponent} 
+          ItemComponent={ItemComponent}
+          itemComponentProps={itemComponentProps}
         />
       </ScrollView>
     </SafeAreaView>

@@ -43,11 +43,11 @@ export const FocusInsightsSection = React.memo(({ focusTips, isDark }: FocusInsi
   return (
     <View className={`px-6 py-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <Text
-        className={`text-3xl font-rbold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}
+        className={`text-3xl font-amedium mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}
       >
         Today's Insights
       </Text>
-      <Text className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mb-6 text-base`}>
+      <Text className={`${isDark ? 'text-gray-400' : 'text-gray-600'} font-aregular mb-6 text-base`}>
         Maximize your potential with these personalized tips
       </Text>
       <ScrollView
