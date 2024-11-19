@@ -1,10 +1,12 @@
 import Animated, { LinearTransition, SlideInRight, SlideOutLeft, runOnJS } from "react-native-reanimated";
+import { CalendarDays, CheckCircle, CreditCard, MapPin, Repeat, XCircle } from "lucide-react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Text, View, TouchableOpacity } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { format } from "date-fns";
-import { Transaction, TransactionStatus, TransactionType } from 'src/store/finance/types';
 import { LinearGradient } from "expo-linear-gradient";
+import { format } from "date-fns";
+
+import { Transaction, TransactionStatus, TransactionType } from 'src/store/finance/types';
+import { colorScheme } from "nativewind";
 
 const StatusBadge = ({ status }: { status: TransactionStatus }) => {
   const getStatusStyle = (status: TransactionStatus) => {
@@ -44,7 +46,7 @@ const StatusBadge = ({ status }: { status: TransactionStatus }) => {
 
 const RecurrenceTag = ({ frequency }: { frequency: string }) => (
   <View className="flex-row items-center space-x-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/50 rounded-full">
-    <Ionicons name="repeat" size={12} className="text-purple-600 dark:text-purple-300" />
+    <Repeat size={12} className="text-purple-600 dark:text-purple-300" />
     <Text className="text-xs font-medium text-purple-600 dark:text-purple-300">
       {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
     </Text>
@@ -53,7 +55,7 @@ const RecurrenceTag = ({ frequency }: { frequency: string }) => (
 
 const PaymentMethodTag = ({ method }: { method: string }) => (
   <View className="flex-row items-center space-x-1 px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
-    <Ionicons name="card" size={12} className="text-gray-600 dark:text-gray-300" />
+    <CreditCard size={12} className="text-gray-600 dark:text-gray-300" />
     <Text className="text-[10px] font-amedium text-gray-600 dark:text-gray-300">
       {method}
     </Text>
@@ -66,14 +68,14 @@ const ActionButtons = ({ onAccept, onReject }: { onAccept?: () => void; onReject
       onPress={onAccept}
       className="flex-1 flex-row items-center justify-center space-x-1 bg-green-400 py-2 rounded-lg"
     >
-      <Ionicons name="checkmark-circle" size={16} className="text-white" />
+      <CheckCircle size={16} className="text-white" />
       <Text className="text-sm font-amedium text-white">Accept</Text>
     </TouchableOpacity>
     <TouchableOpacity 
       onPress={onReject}
       className="flex-1 flex-row items-center justify-center space-x-1 bg-rose-400 py-2 rounded-lg"
     >
-      <Ionicons name="close-circle" size={16} className="text-white" />
+      <XCircle size={16} className="text-white" />
       <Text className="text-sm font-amedium text-white">Reject</Text>
     </TouchableOpacity>
   </View>
@@ -102,7 +104,7 @@ const TransactionCard = ({
         runOnJS(onDelete)();
       }
     });
-
+    
   const getAmountColor = (type: TransactionType) => {
     switch (type) {
       case TransactionType.INCOME:
@@ -153,7 +155,7 @@ const TransactionCard = ({
             <View className="flex-row flex-wrap gap-1 mb-3">
               {transaction.tags.map((tag) => (
                 <LinearGradient style={{borderRadius:20}} colors={['#a5f3fc', '#cffafe']} key={tag} className="px-2 py-1 rounded-full">
-                  <Text className="text-xs text-gray-600 dark:text-gray-300 font-aregular ">{tag}</Text>
+                  <Text className="text-xs text-gray-600 dark:text-gray-500 font-aregular ">{tag}</Text>
                 </LinearGradient>
               ))}
             </View>
@@ -175,14 +177,14 @@ const TransactionCard = ({
           {/* Additional Info */}
           <View className="flex-row justify-between items-center mt-2">
             <View className="flex-row items-center space-x-2">
-              <Ionicons name="calendar-outline" size={12} className="text-gray-500 dark:text-gray-400" />
+              <CalendarDays size={12} className="text-gray-500 dark:text-gray-400" />
               <Text className="text-xs font-aregular text-gray-500 dark:text-gray-400">
                 {format(transaction.createdAt, 'MMM d, yyyy')}
               </Text>
             </View>
             {transaction.location && (
               <View className="flex-row items-center mt-1 space-x-1">
-                <Ionicons name="location-outline" size={14} className="text-gray-500 dark:text-gray-400" />
+                <MapPin size={14} className="text-gray-500 dark:text-gray-400" />
                 <Text className="text-[10px] font-aregular text-gray-500 dark:text-gray-400">
                   {transaction.location}
                 </Text>
@@ -202,7 +204,7 @@ const TransactionCard = ({
           {/* Attachments Section */}
           {showAttachments && transaction.attachments && transaction.attachments.length > 0 && (
             <View className="mt-2 flex-row items-center space-x-2">
-              <Ionicons name="attach" size={14} className="text-gray-500 dark:text-gray-400" />
+              {/* <Ionicons name="attach" size={14} className="text-gray-500 dark:text-gray-400" /> */}
               <Text className="text-xs text-gray-500 dark:text-gray-400">
                 {transaction.attachments.length} attachment(s)
               </Text>

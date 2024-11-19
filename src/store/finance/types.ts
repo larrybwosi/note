@@ -1,5 +1,3 @@
-// types.ts
-
 export enum BudgetRuleType {
   RULE_50_30_20 = '50/30/20 Rule', // Needs/Wants/Savings
   RULE_70_20_10 = '70/20/10 Rule', // Living/Savings/Debt
@@ -7,13 +5,14 @@ export enum BudgetRuleType {
   CUSTOM = 'Custom Rule',
 }
 
-
-export enum RecurrenceFrequency {
-  DAILY = 'daily',
-  WEEKLY = 'weekly',
-  MONTHLY = 'monthly',
-  YEARLY = 'yearly',
+export interface CustomRule {
+  categoryId: string;
+  label: string;
+  percentage: number;
+  color: string;
+  description: string;
 }
+
 
 export interface Insights {
   guiltFreeBalance: number;
@@ -49,7 +48,6 @@ export interface Alert {
 
 
 export type PaymentFrequency = 'weekly' | 'biweekly' | 'monthly';
-export type RecurringFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type CategoryType = 'income' | 'expense';
 
 
@@ -62,15 +60,28 @@ export enum TransactionStatus {
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
-  TRANSFER = 'TRANSFER'
+  TRANSFER = 'TRANSFER',
+  // SAVINGS = 'SAVINGS',
+  // INVESTMENT = 'INVESTMENT',
+  // DEBT_PAYMENT = 'DEBT_PAYMENT'
 }
 
 export interface Category {
   name: string;
   type: CategoryType;
   budget?: number;
+  isSelected?:boolean;
+  description?:string;
+  icon?:any
 }
 
+export enum RecurrenceFrequency {
+  NONE = 'none',
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+  YEARLY = 'yearly',
+}
 export interface Transaction {
   id: string;
   amount: number;
@@ -79,8 +90,6 @@ export interface Transaction {
   type: TransactionType;
   category: Category;
   status: TransactionStatus;
-  recurring?: boolean;
-  recurringFrequency?: RecurringFrequency;
   tags?: string[];
   notes?: string;
   attachments?: string[];
@@ -285,3 +294,102 @@ export const EXPENSE_CATEGORIES = {
     description: 'Clothing, electronics, and general shopping',
   },
 };
+
+
+export interface AppState {
+  responses: any[];
+  isLoading: boolean;
+  error: string | null;
+  savedPrompts: string[];
+  prompt: string;
+  successMessage: string | null;
+  hasResult: boolean;
+}
+
+export const themes: Record<string, Theme> = {
+  modern: {
+    primary: ['#FF6B6B', '#4ECDC4'],
+    secondary: ['#45B7D1', '#FFBE0B'],
+    accent: '#FF6B6B',
+    text: {
+      primary: '#2C3E50',
+      secondary: '#95A5A6'
+    },
+    background: {
+      main: '#F8FAFC',
+      card: '#FFFFFF'
+    }
+  },
+  nature: {
+    primary: ['#00B894', '#81ECEC'],
+    secondary: ['#55EFC4', '#74B9FF'],
+    accent: '#00B894',
+    text: {
+      primary: '#2D3436',
+      secondary: '#636E72'
+    },
+    background: {
+      main: '#F0FFF4',
+      card: '#FFFFFF'
+    }
+  },
+  sunset: {
+    primary: ['#FD746C', '#FF9068'],
+    secondary: ['#FC8181', '#F6AD55'],
+    accent: '#FD746C',
+    text: {
+      primary: '#2D3748',
+      secondary: '#718096'
+    },
+    background: {
+      main: '#FFFAF0',
+      card: '#FFFFFF'
+    }
+  }
+};
+
+export interface AICreatorTemplateProps {
+  title: string;
+  subtitle: string;
+  inputPlaceholder: string;
+  examplePrompts: string[];
+  type: string;
+  endpoint: string;
+  addManualRoute: string;
+  addManualButtonText: string;
+  ItemComponent: React.ComponentType<ItemComponentProps>;
+  itemComponentProps?: Record<string, any>;
+  theme?: keyof typeof themes;
+  layout?: 'card' | 'minimal';
+  animation?: 'bounce' | 'slide' | 'fade';
+  promptStyle?: 'chips' | 'list' | 'carousel';
+}
+
+interface ItemComponentProps {
+  item: any;
+  [key: string]: any;
+}
+
+export interface Theme {
+  primary: string[];
+  secondary: string[];
+  accent: string;
+  text: {
+    primary: string;
+    secondary: string;
+  };
+  background: {
+    main: string;
+    card: string;
+  };
+}
+
+export interface HeaderProps {
+  title: string;
+  subtitle: string;
+  theme: Theme;
+  layout: 'card' | 'minimal';
+}
+
+
+

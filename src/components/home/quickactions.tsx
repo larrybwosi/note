@@ -1,8 +1,8 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { Menu } from 'lucide-react-native';
 
 interface QuickAction {
   icon: React.ReactNode;
@@ -18,7 +18,7 @@ interface QuickActionsSectionProps {
   isDark: boolean;
 }
 
-const RenderQuickAction = React.memo(({ item, index }: { item: QuickAction; index: number }) => (
+const RenderQuickAction = memo(({ item, index }: { item: QuickAction; index: number }) => (
   <Animated.View
     entering={FadeInDown.delay(index * 100).springify()}
     className="w-[250px] mr-4"
@@ -63,10 +63,9 @@ const QuickActionsSection = memo(({ quickActions, isDark }: QuickActionsSectionP
         <Text
           className={`text-3xl font-rbold ${isDark ? 'text-white' : 'text-gray-800'} px-2`}
         >
-          Quick Actions
+          Quick Actions 
         </Text>
-        <Ionicons
-          name="chevron-back"
+        <Menu
           size={24}
           color={isDark ? '#fff' : '#4a5568'}
           className="mr-2"

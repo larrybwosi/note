@@ -1,8 +1,5 @@
-import Feather from '@expo/vector-icons/Feather';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Octicons from '@expo/vector-icons/Octicons';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { Tabs } from 'expo-router';
+import {Activity, Wallet2, Calendar, StickyNote, User, CalendarDays, Wallet} from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -27,7 +24,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="activity" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Activity size={size} color={color} />,
           tabBarLabel: 'Schedule',
         }}
       />
@@ -35,7 +32,7 @@ export default function TabLayout() {
         name="finance"
         options={{
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="wallet-outline" size={size} color={color} />
+            <Wallet size={size} color={color} />
           ),
           tabBarLabel: 'Finance',
         }}
@@ -43,21 +40,21 @@ export default function TabLayout() {
       <Tabs.Screen
         name="calendar"
         options={{
-          tabBarIcon: ({ color, size }) => <Feather name="calendar" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
           tabBarLabel: 'Calendar',
         }}
       />
       <Tabs.Screen
         name="note"
         options={{
-          tabBarIcon: ({ color, size }) => <FontAwesome5 name="sticky-note" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <StickyNote size={size} color={color} />,
           tabBarLabel: 'Notes',
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarIcon: ({ color, size }) => <Octicons name="person" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
           tabBarLabel: 'Profile',
         }}
       />

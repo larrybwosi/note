@@ -22,6 +22,7 @@ config.transformer.getTransformOptions = async () => ({
 // such as Firebase that use the extension cjs.
 config.resolver.sourceExts.push('cjs');
 
+config.resolver.unstable_enablePackageExports = true; 
 module.exports = withNativeWind(config, {
   input: './src/app/global.css',
   configPath: './tailwind.config.ts',

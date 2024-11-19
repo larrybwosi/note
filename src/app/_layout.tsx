@@ -8,11 +8,11 @@ import { colorScheme as colorSchemeNW } from 'nativewind';
 import { SplashScreen, Stack } from 'expo-router';
 import { ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
-// @mst replace-next-line
-import { initializeNotifications } from 'src/store/shedule/notifications';
 import ModalProvider from 'src/components/modals/provider';
 import { customFontsToLoad } from '@/theme';
 import './global.css';
+
+import { initializeNotifications } from 'src/utils/notifications';
 
 // bf94542d-923b-4506-8a8b-b8a2baac45ca
 
@@ -50,13 +50,14 @@ export default function Root() {
           <ModalProvider>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="scheduleadd" options={{ headerShown: false }} />
-              <Stack.Screen name="create.transaction" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="create.schedule" options={{ headerShown: false }} />
+              <Stack.Screen name="create.transaction" options={{ headerShown: false }} />
               <Stack.Screen name="create.profile" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="create.note" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="ai.schedule" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="ai.transaction" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="finance_setup" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="other" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
             </Stack>
           </ModalProvider>

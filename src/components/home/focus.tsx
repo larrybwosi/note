@@ -1,7 +1,8 @@
-import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import { memo } from 'react';
+import { enhancedFocusTips } from './data';
 
 interface FocusTip {
   icon: React.ReactNode;
@@ -10,12 +11,7 @@ interface FocusTip {
   gradient: string[];
 }
 
-interface FocusInsightsSectionProps {
-  focusTips: FocusTip[];
-  isDark: boolean;
-}
-
-const FocusTipCard = React.memo(({ icon, title, description, gradient }: FocusTip) => (
+const FocusTipCard = memo(({ icon, title, description, gradient }: FocusTip) => (
   <Animated.View
     entering={FadeInDown.springify()}
     className="mb-4 overflow-hidden rounded-2xl shadow-lg"
@@ -39,15 +35,15 @@ const FocusTipCard = React.memo(({ icon, title, description, gradient }: FocusTi
   </Animated.View>
 ));
 
-export const FocusInsightsSection = React.memo(({ focusTips, isDark }: FocusInsightsSectionProps) => {
+export const FocusInsightsSection = memo(() => {
   return (
-    <View className={`px-6 py-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <View className={`px-3 py-8 dark:bg-gray-900 bg-gray-50`}>
       <Text
-        className={`text-3xl font-amedium mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}
+        className={`text-3xl font-amedium mb-2 dark:text-white text-gray-800`}
       >
         Today's Insights
       </Text>
-      <Text className={`${isDark ? 'text-gray-400' : 'text-gray-600'} font-aregular mb-6 text-base`}>
+      <Text className={`dark:text-gray-400 text-gray-600 font-aregular mb-6 text-base`}>
         Maximize your potential with these personalized tips
       </Text>
       <ScrollView
@@ -56,7 +52,7 @@ export const FocusInsightsSection = React.memo(({ focusTips, isDark }: FocusInsi
         className="flex-row"
         contentContainerStyle={{ paddingRight: 24 }}
       >
-        {focusTips.map((tip, index) => (
+        {enhancedFocusTips.map((tip, index) => (
           <View key={index} style={{ width: 280 }} className="mr-4">
             <FocusTipCard {...tip} />
           </View>

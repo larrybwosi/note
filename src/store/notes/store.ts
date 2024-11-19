@@ -104,6 +104,7 @@ export interface NoteActions {
   toggleBookmark: (id: string) => Promise<void>;
   addCategory: (category: DefaultNoteCategory) => Promise<void>;
   addReferenceType: (referenceType: DefaultReferenceType) => Promise<void>;
+  deleteAllNotes: () => Promise<void>;
 }
 
 // Utility functions
@@ -176,6 +177,16 @@ export function useNotes(): [typeof notesStore, NoteActions] {
     }
   };
 
+  const deleteAllNotes: NoteActions['deleteAllNotes'] = async () => {
+    try {
+      notesStore.notes.delete()
+      notesStore.notes.set([])
+    } catch (error) {
+      if (error instanceof NoteError) throw error;
+      throw new NoteError('Failed to delete all note', 'DELETE_ERROR');
+    }
+  }
+
   const toggleBookmark: NoteActions['toggleBookmark'] = async (id) => {
     try {
       const index = findNoteIndex(id);
@@ -208,7 +219,7 @@ export function useNotes(): [typeof notesStore, NoteActions] {
 
   return [
     notesStore,
-    { addNote, updateNote, deleteNote, toggleBookmark, addCategory, addReferenceType },
+    { addNote, updateNote, deleteNote, toggleBookmark, addCategory, addReferenceType, deleteAllNotes },
   ];
 }
 

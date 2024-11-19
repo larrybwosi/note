@@ -1,9 +1,8 @@
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
 import { useObservable, useComputed, observer, Reactive } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { observable } from '@legendapp/state';
-import { Ionicons } from '@expo/vector-icons';
+import { Observable, observable } from '@legendapp/state';
 import { memo } from 'react';
 import Animated, { 
   FadeInDown, 
@@ -12,25 +11,14 @@ import Animated, {
   withSequence,
   withTiming,
   useAnimatedStyle,
-  useSharedValue
+  useSharedValue,
+  useAnimatedScrollHandler
 } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { synced } from '@legendapp/state/sync';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
-
-interface AICreatorTemplateProps {
-  title: string;
-  subtitle: string;
-  inputPlaceholder: string;
-  examplePrompts: string[];
-  type: string;
-  endpoint: string;
-  addManualRoute: string;
-  addManualButtonText: string;
-  ItemComponent: React.ComponentType<any>;
-  itemComponentProps?: Record<string, any>; 
-  gradientColors?: string[];
-}
+import { AlertCircle, CheckCircle, Plus, Sparkles } from 'lucide-react-native';
+import { AICreatorTemplateProps, Theme, themes } from 'src/store/finance/types';
 
 interface AppState {
   responses: any[];
@@ -41,6 +29,19 @@ interface AppState {
   successMessage: string | null;
   hasResult: boolean;
 }
+
+
+interface PromptInputProps {
+  store: Observable<AppState>;
+  inputPlaceholder: string;
+  theme: Theme;
+  layout: 'card' | 'minimal';
+  animation: 'bounce' | 'slide' | 'fade';
+  endpoint: string;
+  addManualRoute: string;
+  addManualButtonText: string;
+}
+
 
 const createStore = (name:string) => observable<AppState>(
   synced({
@@ -117,33 +118,18 @@ const ExamplePromptChip: React.FC<{ prompt: string; onPress: () => void }> = mem
   );
 });
 
-const PromptInput: React.FC<{
-  store: any;
-  inputPlaceholder: string;
-  examplePrompts: string[];
-  endpoint: string;
-  type: string;
-  addManualRoute: string;
-  addManualButtonText: string;
-}> = observer(({ 
+const PromptInput: React.FC<PromptInputProps> = ({ 
   store, 
-  inputPlaceholder, 
-  examplePrompts, 
-  endpoint, 
-  type,
+  inputPlaceholder,
+  endpoint,
   addManualRoute,
-  addManualButtonText 
+  addManualButtonText
 }) => {
   const prompt = useObservable(store.prompt);
   const isLoading = useObservable(store.isLoading);
   
   const fetchAIResponses = async (prompt: string) => {
-    const response = await fetch(`${endpoint}?prompt=${prompt}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(`${endpoint}?prompt=${prompt}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -189,7 +175,7 @@ const PromptInput: React.FC<{
           onPress={() => router.push(addManualRoute)}
           className="bg-blue-500 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
         >
-          <Ionicons name="add" size={20} color="white" />
+          <Plus size={20} color="white" />
           <Text className="text-white font-rmedium ml-1">{addManualButtonText}</Text>
         </TouchableOpacity>
       </View>
@@ -205,8 +191,6 @@ const PromptInput: React.FC<{
         style={{ textAlignVertical: 'top' }}
       />
       
-      <ExamplePrompts store={store} prompts={examplePrompts} />
-
       <TouchableOpacity
         onPress={() => submit(prompt.get())}
         disabled={isLoading.get()}
@@ -219,7 +203,7 @@ const PromptInput: React.FC<{
           <ActivityIndicator color="white" size="small" />
         ) : (
           <>
-            <Ionicons name="create-outline" size={24} color="white" />
+            <Sparkles size={24} color="white" />
             <Text className="text-white font-rmedium ml-2 text-lg">
               Generate
             </Text>
@@ -232,12 +216,62 @@ const PromptInput: React.FC<{
       </Text>
     </Animated.View>
   );
-});
+};
 
-const ExamplePrompts: React.FC<{ store: any; prompts: string[] }> = observer(({ store, prompts }) => {
+const ExamplePrompts: React.FC<{ store: any; prompts: string[]; promptStyle:any; theme:Theme }> = observer(({ store,  theme, prompts, promptStyle }) => {
   const hasResult = useObservable(store.hasResult);
+  const scrollX = useSharedValue(0);
 
   if (hasResult.get()) return null;
+
+  const scrollHandler = useAnimatedScrollHandler((event) => {
+    scrollX.value = event.contentOffset.x;
+  });
+  const renderPrompt = (prompt: string, index: number) => {
+    switch (promptStyle) {
+      case 'chips':
+        return (
+          <TouchableOpacity
+            key={index}
+            onPress={() => store.prompt.set(prompt)}
+            style={{ backgroundColor: theme.secondary[0] }}
+            className="px-4 py-2 rounded-full mr-2 mb-2"
+          >
+            <Text style={{ color: theme.text.primary }} className=" font-aregular text-sm">{prompt}</Text>
+          </TouchableOpacity>
+        );
+      case 'list':
+        return (
+          <TouchableOpacity
+            key={index}
+            onPress={() => store.prompt.set(prompt)}
+            style={{ backgroundColor: theme.background.card }}
+            className="p-4 mb-2 rounded-xl flex-row items-center"
+          >
+            <Sparkles size={20} color={theme.accent} />
+            <Text style={{ color: theme.text.primary }} className="ml-2 font-aregular text-sm">{prompt}</Text>
+          </TouchableOpacity>
+        );
+      case 'carousel':
+        return (
+          <Animated.View
+            key={index}
+            style={[{
+              width: Dimensions.get('window').width - 80,
+              marginHorizontal: 10,
+            }]}
+          >
+            <TouchableOpacity
+              onPress={() => store.prompt.set(prompt)}
+              style={{ backgroundColor: theme.background.card }}
+              className="p-6 rounded-xl shadow-sm"
+            >
+              <Text style={{ color: theme.text.primary }} className="font-aregular text-sm">{prompt}</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        );
+    }
+  };
 
   return (
     <View className="mb-4">
@@ -245,13 +279,20 @@ const ExamplePrompts: React.FC<{ store: any; prompts: string[] }> = observer(({ 
         Quick suggestions:
       </Text>
       <View>
-        {prompts.map((prompt, index) => (
-          <ExamplePromptChip
-            key={index}
-            prompt={prompt}
-            onPress={() => store.prompt.set(prompt)}
-          />
-        ))}
+        {promptStyle === 'carousel' ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+        >
+          {prompts.map((prompt, index) => renderPrompt(prompt, index))}
+        </ScrollView>
+      ) : (
+        <View className={promptStyle === 'chips' ? "flex-row flex-wrap" : ""}>
+          {prompts.map((prompt, index) => renderPrompt(prompt, index))}
+        </View>
+      )}
       </View>
     </View>
   );
@@ -270,19 +311,19 @@ const MessageBanner: React.FC<{ type: 'error' | 'success'; store: any }> = obser
     ? 'text-red-800 dark:text-red-200'
     : 'text-green-800 dark:text-green-200';
     
-  const icon = type === 'error' ? 'alert-circle' : 'checkmark-circle';
+  const Icon = type === 'error' ? AlertCircle : CheckCircle ;
   
   return (
     <Animated.View 
       entering={FadeInDown.duration(400)}
       className={`${backgroundColor} p-4 mx-4 my-2 rounded-xl flex-row items-center`}
     >
-      <Ionicons 
-        name={icon} 
-        size={20} 
-        color={type === 'error' ? '#991B1B' : '#166534'} 
+
+      <Icon
+      
+        color={type === 'error' ? '#991B1B' : '#166534'}
       />
-      <Text className={`${textColor} font-medium ml-2`}>{message.get()}</Text>
+      <Text className={`${textColor} font-amedium ml-2`}>{message.get()}</Text>
     </Animated.View>
   );
 });
@@ -327,9 +368,14 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
   addManualButtonText,
   ItemComponent,
   itemComponentProps,
-  gradientColors = ['#4F46E5', '#7C3AED', '#9333EA']
+  gradientColors = ['#4F46E5', '#7C3AED', '#9333EA'],
+  theme = 'modern',
+  layout = 'card',
+  animation = 'bounce',
+  promptStyle = 'chips'
 }) => {
   const store = createStore(type);
+  const selectedTheme = themes[theme];
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
@@ -344,12 +390,20 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
         <PromptInput
           store={store}
           inputPlaceholder={inputPlaceholder}
-          examplePrompts={examplePrompts}
           endpoint={endpoint}
-          type={type}
           addManualRoute={addManualRoute}
           addManualButtonText={addManualButtonText}
+          theme={theme}
+          animation={animation}
+          layout={layout}
         />
+      <ExamplePrompts
+        store={store} 
+        prompts={examplePrompts}
+        theme={selectedTheme}
+        promptStyle={promptStyle}
+      />
+
         <ResponsesList 
           store={store} 
           ItemComponent={ItemComponent}
@@ -359,5 +413,6 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
     </SafeAreaView>
   );
 };
-
+Header.displayName="Ai template header"
+ExamplePromptChip.displayName ="Ai template ExamplePromptChip"
 export default observer(AICreatorTemplate);

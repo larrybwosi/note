@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -9,13 +9,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { observer, useComputed } from '@legendapp/state/react';
 import { currentTime } from '@legendapp/state/helpers/time';
+import { batch } from '@legendapp/state';
+import { router } from 'expo-router';
 import { homeState } from './data';
 
-interface WaterReminderSectionProps {
-  onWaterLog: () => void;
-}
 
-export const WaterReminderSection = observer(({ onWaterLog }: WaterReminderSectionProps) => {
+export const WaterReminderSection = observer(() => {
   const pulseAnim = useSharedValue(1);
 
   const waterReminderStyle = useAnimatedStyle(() => ({
@@ -36,6 +35,14 @@ export const WaterReminderSection = observer(({ onWaterLog }: WaterReminderSecti
     );
   }, []);
 
+  
+  const handleWaterLog = useCallback(() => {
+    batch(() => {
+      homeState.nextWaterTime.set(new Date(Date.now() + 2 * 60 * 60 * 1000));
+      homeState.achievements.waterStreak.set(homeState.achievements.waterStreak.get() + 1);
+    });
+  }, []);
+
   return (
     <Animated.View style={waterReminderStyle} className="mx-6 mt-6">
       <TouchableOpacity className="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20">
@@ -51,7 +58,7 @@ export const WaterReminderSection = observer(({ onWaterLog }: WaterReminderSecti
           </View>
           <TouchableOpacity
             className="bg-blue-500 px-4 py-2 rounded-xl"
-            onPress={onWaterLog}
+            onPress={()=>router.push('/auth')}
           >
             <Text className="text-white font-rmedium">Log</Text>
           </TouchableOpacity>

@@ -3,17 +3,16 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { currentTime } from '@legendapp/state/helpers/time';
+import { Star, Plus, CalendarDays } from 'lucide-react-native';
 import { format, differenceInMinutes } from 'date-fns';
 import { LinearGradient } from 'expo-linear-gradient';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useInterval } from 'usehooks-ts';
+import { router } from 'expo-router';
 import { useCallback } from 'react';
 
-import { useModal } from 'src/components/modals/provider';
 import { markCompleted } from 'src/store/shedule/actions';
-import { ItemCard } from 'src/components/schedule.item';
+import TasksList from 'src/components/schedule.item';
 import { scheduleStore } from 'src/store/shedule/store';
-import { router } from 'expo-router';
 
 const Header = observer(({ streakCount = 5 }) => {
   const time = useComputed(() => format(currentTime.get().getTime(), 'hh:mm'));
@@ -43,7 +42,7 @@ const Header = observer(({ streakCount = 5 }) => {
       </View>
       <View className="flex-row items-center justify-between bg-amber-50 dark:bg-amber-900/30 p-4 rounded-2xl">
         <View className="flex-row items-center">
-          <Ionicons name="star" size={24} color="#F59E0B" />
+          <Star size={24} color="#F59E0B" />
           <Text className="ml-2 text-amber-700 dark:text-amber-300 font-rmedium text-base">
             {streakCount} day streak
           </Text>
@@ -59,7 +58,7 @@ const Header = observer(({ streakCount = 5 }) => {
 const EmptyState = () => (
   <View className="flex-1 justify-center items-center p-8">
     <View className="bg-gray-100 dark:bg-gray-800 p-6 rounded-3xl">
-      <Ionicons name="calendar-outline" size={72} color="#9CA3AF" />
+      <CalendarDays size={72} color="#9CA3AF" />
     </View>
     <Text className="text-xl font-amedium text-gray-600 dark:text-gray-400 mt-6 text-center">
       No tasks scheduled for today
@@ -72,32 +71,17 @@ const EmptyState = () => (
 
 const AddButton = ({ onPress }: { onPress: () => void }) => (
   <TouchableOpacity
-    onPress={() => router.navigate(`/ai.schedule`)}
+    onPress={() => router.navigate(`/create.schedule`)}
     className="bg-blue-500 px-4 py-2 rounded-xl flex-row items-center"
   >
-    <Ionicons name="add" size={20} color="white" />
+    <Plus size={20} color="white" />
     <Text className="text-white font-rmedium ml-1">Add to calendar</Text>
   </TouchableOpacity>
 );
 
-const TasksList = observer(({ items, onComplete, onPostpone }: any) => (
-  <Animated.View 
-    className="space-y-4"
-    entering={FadeInUp.duration(800)}
-  >
-    {items.map((item: any) => (
-      <ItemCard
-        key={item.id}
-        item={item}
-        onComplete={onComplete}
-        handlePostpone={onPostpone}
-      />
-    ))}
-  </Animated.View>
-));
+
 
 const CalendarApp = observer(function CalendarApp() {
-  const { show } = useModal();
   const todayItems = useComputed(() => scheduleStore.items.get());
 
   const updateCountdowns = useCallback(() => {
@@ -109,9 +93,6 @@ const CalendarApp = observer(function CalendarApp() {
     );
   }, []);
 
-  const handlePostpone = useCallback((itemId: any) => {
-    show('Postpone',{itemId,isVisible:true, close});
-  }, [show]);
 
   const handleCompleteItem = useCallback((id: number) => {
     markCompleted(id);
@@ -151,8 +132,6 @@ const CalendarApp = observer(function CalendarApp() {
               {() => (
                 <TasksList
                   items={todayItems.get()}
-                  onComplete={handleCompleteItem}
-                  onPostpone={handlePostpone}
                 />
               )}
             </Memo>

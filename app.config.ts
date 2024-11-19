@@ -54,7 +54,24 @@ const config: ExpoConfig = {
   plugins: [
     'expo-font',
     'expo-location',
-    "expo-secure-store"
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/images/app-icon-ios.png",
+          color: "#ffffff",
+          defaultChannel: "default",
+          sounds: [
+            "./assets/sounds/not1.wav",
+            "./assets/sounds/not2.wav",
+            "./assets/sounds/not3.wav",
+            "./assets/sounds/not4.wav",
+            "./assets/sounds/not5.wav",
+            "./assets/sounds/not6.wav",
+            "./assets/sounds/not7.wav",
+          ],
+          enableBackgroundRemoteNotifications: false,
+        }
+      ]
   ],
   experiments: {
     tsconfigPaths: true,

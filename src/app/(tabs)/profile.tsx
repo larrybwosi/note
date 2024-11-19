@@ -1,11 +1,12 @@
-import React, { useCallback, memo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { useCallback } from 'react';
 import { useObservable, useComputed, observer, Reactive, Memo } from '@legendapp/state/react';
+import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Bell, CheckCircle, Settings, User } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { batch } from '@legendapp/state';
-import { useProfile } from 'src/store/profile/actions';
 import { colorScheme } from 'nativewind';
+
+import { useProfile } from 'src/store/profile/actions';
 
 type ThemeMode = 'system' | 'light' | 'dark';
 type ColorScheme = {
@@ -95,7 +96,7 @@ const ThemeModeButton = ({ mode, currentMode, selectedTheme, onPress }: {
           {mode}
         </Text>
         {currentMode === mode && (
-          <Ionicons name="checkmark-circle" size={20} color={selectedTheme.value} />
+          <CheckCircle size={20} color={selectedTheme.value} />
         )}
       </TouchableOpacity>
     )}
@@ -137,16 +138,16 @@ const ProfileHeader = observer(({ personalInfo, bio, selectedTheme }: {
   >
     <View className="flex-row justify-between px-4 mb-8">
       <TouchableOpacity className="bg-white/20 p-2.5 rounded-xl">
-        <Ionicons name="settings-outline" size={24} color="white" />
+        <Settings size={24} color="white" />
       </TouchableOpacity>
       <TouchableOpacity className="bg-white/20 p-2.5 rounded-xl">
-        <Ionicons name="notifications-outline" size={24} color="white" />
+        <Bell size={24} color="white" />
       </TouchableOpacity>
     </View>
 
     <View className="items-center">
       <View className="h-24 w-24 rounded-full bg-white/30 mb-4 items-center justify-center border-4 border-white/30">
-        <Ionicons name="person" size={48} color="white" />
+        <User size={48} color="white" />
       </View>
       <Text className="text-white/90 text-lg font-rregular mb-2">
         Good morning, {personalInfo.name.split(' ')[0]}! 👋

@@ -1,284 +1,145 @@
-import notifee, {
-  TimestampTrigger,
-  TriggerType,
-  AndroidStyle,
-  AndroidImportance,
-  AndroidCategory,
-  AndroidVisibility,
-  AndroidGroupAlertBehavior,
-} from '@notifee/react-native';
-import { addMinutes, addMonths, addWeeks, addDays, format, isValid } from 'date-fns';
-import { RecurrencePattern, ScheduleItem, scheduleStore } from 'src/storage/schedule';
+import notifee, { AndroidColor, AndroidImportance, AuthorizationStatus, EventType } from "@notifee/react-native";
+import { markCompleted, postponeItem, startItem } from "src/store/shedule/actions";
+import { notificationHandlers, showCompletionNotification } from "src/store/shedule/notifications";
+import { scheduleStore } from "src/store/shedule/store";
 
-// Enhanced ScheduleItem interface with notification tracking
-interface ScheduleItemWithNotifications extends ScheduleItem {
-  notificationIds?: string[];
-}
-
-// Notification configuration
-const notificationConfig = {
-  taskIcons: {
-    work: '💼',
-    meeting: '👥',
-    break: '☕',
-    exercise: '🏃',
-    study: '📚',
-    personal: '🏠',
-  },
-  priorityColors: {
-    high: '#FF4444',
-    medium: '#FFA000',
-    low: '#4CAF50',
-  },
-  defaultIcon: '📝',
-  defaultColor: '#757575',
-};
-
-// Define a type for valid task types
-type TaskType = 'work' | 'meeting' | 'break' | 'exercise' | 'study' | 'personal';
-
-// Helper function to get occurrences count
-const getOccurrencesCount = (recurrence: string): number => {
-  switch (recurrence) {
-    case 'Daily':
-      return 7; // Create notifications for a week
-    case 'Weekly':
-      return 4; // Create notifications for a month
-    case 'Biweekly':
-      return 2; // Create notifications for a month
-    case 'Monthly':
-      return 1; // Create notifications for one month
-    default:
-      return 1; // Single occurrence
-  }
-};
-
-// Enhanced createScheduleNotification function
-const createScheduleNotification = async (
-  item: ScheduleItemWithNotifications,
-  occurrence: number = 0
-): Promise<string> => {
-  try {
-    const channelId = await notifee.createChannel({
-      id: `schedule_${item.type.toLowerCase()}`,
-      name: `${item.type} Notifications`,
-      lights: true,
+export const setupNotificationChannels = async () => {
+  const channels = [
+    {
+      id: 'schedule_default',
+      name: 'Schedule Notifications',
+      importance: AndroidImportance.DEFAULT,
+      sound: 'not1',
       vibration: true,
+      lights: true,
+      lightColor: AndroidColor.BLUE,
+      vibrationPattern: [300, 500],
+    },
+    {
+      id: 'schedule_reminders',
+      name: 'Schedule Reminders',
       importance: AndroidImportance.HIGH,
-      sound: 'default',
-    });
+      sound: 'not2',
+      vibration: true,
+      lights: true,
+      lightColor: AndroidColor.YELLOW,
+      vibrationPattern: [300, 500],
+    },
+    {
+      id: 'schedule_urgent',
+      name: 'Urgent Tasks',
+      importance: AndroidImportance.HIGH,
+      sound: 'not3',
+      vibration: true,
+      lights: true,
+      lightColor: AndroidColor.RED,
+      vibrationPattern: [250, 250, 250, 250],
+      bypassDnd: true,
+    },
+  ];
 
-    const icon =
-      notificationConfig.taskIcons[item.type.toLowerCase() as TaskType] ||
-      notificationConfig.defaultIcon;
-    const color =
-      notificationConfig.priorityColors[item.priority.toLowerCase() as 'high' | 'medium' | 'low'] ||
-      notificationConfig.defaultColor;
+  try {
+    // Get existing channels
+    const existingChannels = await notifee.getChannels();
+    const existingChannelIds = new Set(existingChannels.map((channel) => channel.id));
 
-    // Calculate notification date based on occurrence
-    const getOccurrenceDate = (date: Date, occurrence: number, recurrence: string): Date => {
-      switch (recurrence) {
-        case 'Daily':
-          return addDays(date, occurrence);
-        case 'Weekly':
-          return addWeeks(date, occurrence);
-        case 'Biweekly':
-          return addWeeks(date, occurrence * 2);
-        case 'Monthly':
-          return addMonths(date, occurrence);
-        default:
-          return date;
+    // Only create channels that don't exist
+    for (const channel of channels) {
+      if (!existingChannelIds.has(channel.id)) {
+        await notifee.createChannel(channel);
       }
-    };
-
-    const startDate = getOccurrenceDate(new Date(item.startDate), occurrence, item.recurrence);
-    const endDate = getOccurrenceDate(new Date(item.endDate), occurrence, item.recurrence);
-    const timeInfo = `${format(startDate, 'h:mm a')} - ${format(endDate, 'h:mm a')}`;
-
-    // Create notification
-    const notificationId = await notifee.displayNotification({
-      id: `schedule_${item.id}_${occurrence}`,
-      title: `${icon} ${item.title}`,
-      body: item.description || 'No description provided',
-      android: {
-        channelId,
-        smallIcon: 'ic_notification',
-        style: {
-          type: AndroidStyle.BIGTEXT,
-          text: `📅 ${timeInfo}\n${item.description || 'No description provided'}\n\n${
-            item.location ? `📍 ${item.location}\n` : ''
-          }⏱️ Duration: ${item.duration} minutes\n${
-            item.tags.length > 0 ? `🏷️ ${item.tags.join(', ')}\n` : ''
-          }🔋 Energy Level: medium`,
-        },
-        pressAction: {
-          id: 'default',
-        },
-        actions: [
-          {
-            title: '✅ Complete',
-            pressAction: { id: 'mark_complete' },
-          },
-          {
-            title: '⏰ Snooze',
-            pressAction: { id: 'snooze' },
-          },
-        ],
-        category: AndroidCategory.EVENT,
-        color,
-        importance: AndroidImportance.HIGH,
-        timestamp: startDate.getTime(),
-      },
-      ios: {
-        categoryId: 'schedule_item',
-        threadId: `schedule_${item.type.toLowerCase()}`,
-        critical: item.priority.toLowerCase() === 'high',
-      },
-    });
-
-    return notificationId;
+    }
   } catch (error) {
-    console.error('Error creating notification:', error);
+    console.error('Error setting up notification channels:', error);
     throw error;
   }
 };
+// Enhanced background handler
 
-// Enhanced handleAddItem function with notification support
-export const handleAddItem = async () => {
-  const currentItems = scheduleStore.get().items;
-  const newId = currentItems.length > 0 ? Math.max(...currentItems.map((i) => i.id)) + 1 : 1;
+export const setupBackgroundHandler = () => {
+  notifee.onBackgroundEvent(async ({ type, detail }) => {
+    const { notification, pressAction } = detail;
+    console.log('onBackgroundEvent', type, detail);
 
-  const newItemData = scheduleStore.get().newItem;
-  const startDate = newItemData.startDate || new Date();
-  const duration = newItemData.duration || 30;
+    if (!notification?.data?.itemId) return;
 
-  const newItem: ScheduleItemWithNotifications = {
-    id: newId,
-    title: newItemData.title || 'Untitled Task',
-    description: newItemData.description || '',
-    type: newItemData.type || 'Work',
-    startDate,
-    endDate: addMinutes(startDate, duration),
-    duration: duration,
-    priority: newItemData.priority || 'Medium',
-    recurrence: newItemData.recurrence || 'None',
-    location: newItemData.location,
-    completed: false,
-    inProgress: false,
-    estimatedDuration: duration,
-    postponements: [],
-    tags: newItemData.tags || [],
-    notes: newItemData.notes || '',
-    reminder: newItemData.reminder,
-    notificationIds: [], // Initialize empty notification IDs array
-  };
+    const itemId = parseInt(notification.data.itemId as string, 10);
 
-  try {
-    // Create notifications for each occurrence
-    const occurrences = getOccurrencesCount(newItem.recurrence);
-    const notificationIds: string[] = [];
+    switch (type) {
+      case EventType.ACTION_PRESS:
+        switch (pressAction?.id) {
+          case 'start':
+          case 'start_now':
+            await startItem(itemId);
+            await notificationHandlers.onStartItem(itemId);
+            break;
 
-    // Create main notifications
-    for (let i = 0; i < occurrences; i++) {
-      const notificationId = await createScheduleNotification(newItem, i);
-      notificationIds.push(notificationId);
+          case 'postpone':
+          case 'delay_15':
+            const delayMinutes = pressAction?.id === 'delay_15' ? 15 : 30;
+            const newDate = new Date(Date.now() + delayMinutes * 60 * 1000);
+            await postponeItem(
+              itemId,
+              newDate,
+              `Postponed by ${delayMinutes} minutes via notification`,
+              'Other',
+              'Low'
+            );
+            break;
 
-      // Create reminder notification if specified
-      if (newItem.reminder) {
-        const reminderDate = addMinutes(newItem.startDate, -newItem.reminder);
-        const reminderId = await notifee.createTriggerNotification(
-          {
-            title: `⏰ Reminder: ${newItem.title}`,
-            body: `Starting in ${newItem.reminder} minutes`,
-            android: {
-              channelId: `schedule_${newItem.type.toLowerCase()}_reminder`,
-              importance: AndroidImportance.HIGH,
-            },
-          },
-          {
-            type: TriggerType.TIMESTAMP,
-            timestamp: reminderDate.getTime(),
-          }
-        );
-        notificationIds.push(reminderId);
-      }
+          case 'complete':
+            await markCompleted(itemId);
+            const item = scheduleStore.get().items.find((i) => i.id === itemId);
+            if (item) await showCompletionNotification(item);
+            break;
+
+          case 'reschedule':
+            // Implement logic to open rescheduling interface
+            console.log('Open rescheduling interface for item:', itemId);
+            break;
+
+          case 'cancel':
+            // Implement logic to cancel the task
+            console.log('Cancelling task:', itemId);
+            break;
+
+          case 'add_notes':
+            // Implement logic to open notes interface
+            console.log('Opening notes interface for item:', itemId);
+            break;
+
+          case 'view_stats':
+            // Implement logic to show task statistics
+            console.log('Showing statistics for item:', itemId);
+            break;
+        }
+        break;
     }
-
-    // Update item with notification IDs
-    newItem.notificationIds = notificationIds;
-
-    // Add item to store
-    scheduleStore.set((store) => ({
-      ...store,
-      items: [...store.items, newItem],
-      isAddingItem: false,
-      newItem: {
-        title: '',
-        type: 'Work',
-        priority: 'Medium',
-        recurrence: 'None',
-        duration: 30,
-        energy: 'Medium',
-        tags: [],
-        reminder: undefined,
-        startDate: new Date(),
-      },
-    }));
-  } catch (error) {
-    console.error('Error creating schedule item with notifications:', error);
-    // Handle error appropriately (e.g., show error message to user)
-  }
+  });
 };
 
-// Enhanced handleDeleteItem function
-export const handleDeleteItem = async (itemId: number) => {
-  try {
-    const item = scheduleStore
-      .get()
-      .items.find((i) => i.id === itemId) as ScheduleItemWithNotifications;
+// Initialize notifications with permission handling
+export const initializeNotifications = async () => {
+  const settings = await notifee.requestPermission();
 
-    if (item?.notificationIds?.length) {
-      // Cancel all notifications associated with this item
-      await Promise.all(item.notificationIds.map((id) => notifee.cancelNotification(id)));
-    }
-
-    // Remove item from store
-    scheduleStore.set((store) => ({
-      ...store,
-      items: store.items.filter((i) => i.id !== itemId),
-    }));
-  } catch (error) {
-    console.error('Error deleting schedule item:', error);
-    // Handle error appropriately
+  if (settings.authorizationStatus === AuthorizationStatus.DENIED) {
+    console.log('User denied notifications permission');
+    return false;
   }
+
+  await setupNotificationChannels();
+  setupBackgroundHandler();
+
+  return true;
 };
 
-// Add utility function to update notifications for an item
-export const updateItemNotifications = async (item: ScheduleItemWithNotifications) => {
+
+export const deleteAllChannels = async () => {
   try {
-    // Cancel existing notifications
-    if (item.notificationIds?.length) {
-      await Promise.all(item.notificationIds.map((id) => notifee.cancelNotification(id)));
-    }
-
-    // Create new notifications
-    const occurrences = getOccurrencesCount(item.recurrence);
-    const notificationIds: string[] = [];
-
-    for (let i = 0; i < occurrences; i++) {
-      const notificationId = await createScheduleNotification(item, i);
-      notificationIds.push(notificationId);
-    }
-
-    // Update item with new notification IDs
-    scheduleStore.set((store) => ({
-      ...store,
-      items: store.items.map((i) => (i.id === item.id ? { ...i, notificationIds } : i)),
-    }));
-
-    return notificationIds;
+    const channels = await notifee.getChannels();
+    await Promise.all(channels.map((channel) => notifee.deleteChannel(channel.id)));
   } catch (error) {
-    console.error('Error updating notifications:', error);
+    console.error('Error deleting notification channels:', error);
     throw error;
   }
 };

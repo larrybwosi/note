@@ -1,6 +1,5 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { CheckCircle } from 'lucide-react-native';
 
 interface SaveConfirmationModalProps {
   saveAlert: boolean;
@@ -8,7 +7,7 @@ interface SaveConfirmationModalProps {
   onClose: () => void;
 }
 
-export const SaveConfirmationModal: React.FC<SaveConfirmationModalProps> = ({
+const SaveConfirmationModal: React.FC<SaveConfirmationModalProps> = ({
   saveAlert,
   setSaveAlert,
   onClose,
@@ -22,7 +21,7 @@ export const SaveConfirmationModal: React.FC<SaveConfirmationModalProps> = ({
     <View className="flex-1 justify-center items-center bg-black/50">
       <View className="bg-white rounded-2xl p-6 m-4 items-center">
         <View className="bg-green-100 p-4 rounded-full mb-4">
-          <MaterialIcons name="check" size={32} color="#22c55e" />
+          <CheckCircle size={32} color="#22c55e" />
         </View>
         <Text className="text-xl font-abold mb-2">Note Saved!</Text>
         <Text className="text-gray-600 font-aregular text-center mb-4">
@@ -41,3 +40,5 @@ export const SaveConfirmationModal: React.FC<SaveConfirmationModalProps> = ({
     </View>
   </Modal>
 );
+
+export default SaveConfirmationModal

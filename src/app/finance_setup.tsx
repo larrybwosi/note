@@ -1,7 +1,9 @@
 import { useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { ArrowDownCircle, ArrowUpCircle, PlusCircle, Check, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react-native';
 import { observer, useObservable } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme } from 'nativewind';
 import Animated, {
   FadeInDown,
   FadeOutUp,
@@ -11,7 +13,6 @@ import Animated, {
   interpolateColor,
   LinearTransition,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 import {
   BudgetRuleType,
   Category,
@@ -19,9 +20,8 @@ import {
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES
 } from 'src/store/finance/types';
-import useFinanceStore from 'src/store/finance/actions';
-import { useColorScheme } from 'nativewind';
 import BudgetRuleSelector from 'src/components/budget.rule';
+import useFinanceStore from 'src/store/finance/actions';
 
 interface Rule {
   type: BudgetRuleType;
@@ -98,12 +98,11 @@ const FinanceSetup: React.FC = () => {
   const step = state$.step.get();
   const setStep = state$.step.set;
   const selectedRule = state$.selectedRule.get();
-  const setSelectedRule = state$.selectedRule.set;
   const monthlyIncome = state$.monthlyIncome.get();
   const setMonthlyIncome = state$.monthlyIncome.set;
 
   // Add this to your component's state
-  const categories$ = useObservable<E<Category[]>>([
+  const categories$ = useObservable<Category[]>([
     ...Object.entries(INCOME_CATEGORIES).map(([key, value]) => ({
       id: key,
       icon: value.icon,
@@ -138,7 +137,6 @@ const FinanceSetup: React.FC = () => {
       .map((category) => {
         if (category.isSelected) {
           return {
-            id: category.id,
             icon: category.icon,
             name: category.name,
             type: category.type,
@@ -217,11 +215,10 @@ const FinanceSetup: React.FC = () => {
             justifyContent: 'center',
           }}
         >
-          <Ionicons
-            name={type === 'INCOME' ? 'arrow-up-circle' : 'arrow-down-circle'}
-            size={24}
-            color={activeTab === type ? '#3B82F6' : '#6B7280'}
-          />
+          {type === 'INCOME' ? 
+            <ArrowUpCircle size={24} color={activeTab === type ? '#3B82F6' : '#6B7280'}/> :
+            <ArrowDownCircle size={24} color={activeTab === type ? '#3B82F6' : '#6B7280'}/>
+            }
           <Text
             className="font-rmedium ml-2"
             style={{
@@ -248,7 +245,7 @@ const FinanceSetup: React.FC = () => {
             className="rounded-xl shadow-sm"
           >
             <TouchableOpacity
-              onPress={() => toggleCategory(category.id)}
+              onPress={() => toggleCategory(category.name)}
               className="p-4 flex-row items-center space-x-4"
             >
               <Text className="text-2xl">{category.icon}</Text>
@@ -265,7 +262,7 @@ const FinanceSetup: React.FC = () => {
                   backgroundColor: category.isSelected ? '#3b82f6' : 'white',
                 }}
               >
-                {category.isSelected && <Ionicons name="checkmark" size={16} color="white" />}
+                {category.isSelected && <Check size={16} color="white" />}
               </View>
             </TouchableOpacity>
           </Animated.View>
@@ -292,7 +289,7 @@ const FinanceSetup: React.FC = () => {
               </Animated.Text>
               <Animated.Text
                 entering={FadeInDown.delay(400).duration(600)}
-                className="text-sm text-gray-600 leading-relaxed font-rmedium mt-4 dark:text-gray-400"
+                className="text-sm text-gray-600 leading-relaxed font-amedium mt-4 dark:text-gray-400"
               >
                 Your monthly income is the foundation of your budget. Enter the amount you typically
                 receive after taxes each month. This helps us tailor your budget to your specific
@@ -371,7 +368,7 @@ const FinanceSetup: React.FC = () => {
               onPress={() => showNewCategoryModal$.set(true)}
               className="flex-row items-center justify-center bg-gray-100 rounded-xl p-4 mt-4"
             >
-              <Ionicons name="add-circle" size={24} color="#3B82F6" />
+              <PlusCircle size={24} color="#3B82F6" />
               <Text className="ml-2 text-blue-500 font-rmedium">Add Custom Category</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -443,7 +440,7 @@ const FinanceSetup: React.FC = () => {
                 className="flex-row items-center py-3 px-4"
                 onPress={() => setStep(step - 1)}
               >
-                <Ionicons name="arrow-back" size={24} color={'#9CA3AF'} />
+                <ArrowLeft size={24} color={'#9CA3AF'} />
                 <Text className="ml-2 text-base font-plregular text-gray-600 dark:text-gray-400">
                   Previous
                 </Text>
@@ -459,7 +456,7 @@ const FinanceSetup: React.FC = () => {
                 <Text className="text-base font-plregular text-white dark:text-gray-900 mr-2">
                   Next
                 </Text>
-                <Ionicons name="arrow-forward" size={24} color={'#111827'} />
+                <ArrowRight size={24} color={'#111827'} />
               </Pressable>
             ) : (
               <Pressable
@@ -469,7 +466,7 @@ const FinanceSetup: React.FC = () => {
                 <Text className="text-base font-plregular text-white dark:text-gray-900 mr-2">
                   Complete Setup
                 </Text>
-                <Ionicons name="checkmark-circle" size={24} color={'#111827'} />
+                <CheckCircle size={24} color={'#111827'} />
               </Pressable>
             )}
           </View>

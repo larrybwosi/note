@@ -1,11 +1,10 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, ScrollView, Switch, View } from 'react-native';
 import { format } from 'date-fns';
 import { useObservable } from '@legendapp/state/react';
 import { ObservableBoolean } from '@legendapp/state';
 import { observer } from '@legendapp/state/react';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
 
 import {
   TransactionType,
@@ -15,6 +14,7 @@ import {
   Category,
 } from 'src/store/finance/types';
 import useFinancialStore from 'src/store/finance/store';
+import { Plus, XCircle } from 'lucide-react-native';
 
 interface TransactionFormProps {
   showForm: ObservableBoolean;
@@ -308,7 +308,7 @@ const TransactionForm = observer(({ showForm, initialType = TransactionType.EXPE
                 onPress={addTag}
                 className="ml-2 px-4 py-3 bg-violet-500 rounded-xl"
               >
-                <Ionicons name="add" size={24} color="white" />
+                <Plus size={24} color="white" />
               </TouchableOpacity>
             </View>
             <View className="flex-row flex-wrap mt-2">
@@ -319,7 +319,7 @@ const TransactionForm = observer(({ showForm, initialType = TransactionType.EXPE
                   className="m-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl flex-row items-center"
                 >
                   <Text className="text-gray-700 dark:text-gray-300 mr-2">{tag}</Text>
-                  <Ionicons name="close-circle" size={16} color="#6B7280" />
+                  <XCircle size={16} color="#6B7280" />
                 </TouchableOpacity>
               ))}
             </View>

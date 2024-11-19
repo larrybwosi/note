@@ -8,7 +8,6 @@ import {
   FinanceInsights,
   FinanceStore,
   IncomeCategory,
-  SubgroupConfig,
   Transaction,
 } from './types';
 import {

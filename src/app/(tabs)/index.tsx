@@ -6,27 +6,20 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   SharedValue,
-  withSpring,
   FadeIn,
-  FadeOut,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useCallback, useState } from 'react';
-import { useColorScheme } from 'nativewind';
-import { batch } from '@legendapp/state';
-import { Text, View, ScrollView, TextInput, Pressable, Keyboard } from 'react-native';
-import Feather from '@expo/vector-icons/Feather';
+import { Text, View, ScrollView } from 'react-native';
+import { useEffect, useCallback, useRef } from 'react';
+import { colorScheme, } from 'nativewind';
 
-import { scheduleStore } from 'src/store/shedule/store';
 import { useProfile } from 'src/store/profile/actions';
-import Progress from 'src/components/home/progress';
 import TodayCard from 'src/components/home/today.card';
+import Progress from 'src/components/home/progress';
 
 import {
   motivationalQuotes,
-  quickActions,
   homeState,
-  enhancedFocusTips,
 } from 'src/components/home/data';
 import { WaterReminderSection } from 'src/components/home/water.reminder';
 import QuickActionsSection from 'src/components/home/quickactions';
@@ -55,7 +48,7 @@ interface HeaderSectionProps {
   scrollY: SharedValue<number>;
 }
 
-const HeaderSection = React.memo(({ timeOfDay, name, greeting, quote, scrollY }: HeaderSectionProps) => {
+const HeaderSection = ({ timeOfDay, name, greeting, quote, scrollY }: HeaderSectionProps) => {
   const welcomeScale = useAnimatedStyle(() => ({
     transform: [
       { scale: interpolate(scrollY.value, [0, 100], [1, 0.8], Extrapolation.CLAMP) },
@@ -66,7 +59,7 @@ const HeaderSection = React.memo(({ timeOfDay, name, greeting, quote, scrollY }:
 
   return (
     <Animated.View style={welcomeScale} className="space-y-3">
-      <Animated.View entering={FadeIn.duration(800)} className="flex-row items-center">
+      <Animated.View entering={FadeIn.duration(800)} className="flex-row items-center gap-2">
         <Text className="text-white text-3xl font-rbold">
           Good {timeOfDay}, {name}!
         </Text>
@@ -87,81 +80,16 @@ const HeaderSection = React.memo(({ timeOfDay, name, greeting, quote, scrollY }:
       </Animated.View>
     </Animated.View>
   );
-});
-
-const DailyNotes = observer(({ isDark }: { isDark: boolean }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [notes, setNotes] = useState('');
-  const scale = useSharedValue(1);
-
-  const handleSave = () => {
-    // homeState.dailyNotes.set(notes);
-    setIsEditing(false);
-    Keyboard.dismiss();
-  };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <Animated.View
-      entering={FadeIn.duration(800)}
-      className="mx-6 mt-6 p-4 rounded-2xl shadow-lg"
-      style={[
-        animatedStyle,
-        {
-          backgroundColor: isDark ? 'rgba(31, 41, 55, 0.8)' : 'white',
-        },
-      ]}
-    >
-      <View className="flex-row justify-between items-center mb-3">
-        <Text
-          className={`text-lg font-rmedium ${
-            isDark ? 'text-white' : 'text-gray-800'
-          }`}
-        >
-          Daily Notes
-        </Text>
-        <Pressable
-          onPress={() => {
-            if (isEditing) {
-              handleSave();
-            } else {
-              setIsEditing(true);
-            }
-          }}
-          className="p-2"
-        >
-          {isEditing ? (
-            <Feather name='save'/>
-          ) : (
-            <Feather name='edit' size={20} color={isDark ? '#fff' : '#374151'} />
-          )}
-        </Pressable>
-      </View>
-      <TextInput
-        multiline
-        value={notes}
-        onChangeText={setNotes}
-        editable={isEditing}
-        className={`min-h-[100] text-base font-aregular dark:text-gray-100 text-gray-700`}
-        placeholder="Write your thoughts for today..."
-        placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
-        style={{ textAlignVertical: 'top' }}
-      />
-    </Animated.View>
-  );
-});
+};
 
 const HomeScreen = observer(() => {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme.get() === 'dark';
   const { personalInfo: { name } } = useProfile();
   
   const scrollY = useSharedValue(0);
-  const items = useComputed(() => scheduleStore.items.get());
 
+  // const renders = ++useRef(0).current
+  // console.log(`HomeCard: ${renders}`)
   const timeOfDay = useComputed(() => {
     const hour = currentTime.get().getHours();
     if (hour < 12) return 'morning';
@@ -195,12 +123,6 @@ const HomeScreen = observer(() => {
     return () => clearInterval(timeInterval);
   }, []);
 
-  const handleWaterLog = useCallback(() => {
-    batch(() => {
-      homeState.nextWaterTime.set(new Date(Date.now() + 2 * 60 * 60 * 1000));
-      homeState.achievements.waterStreak.set(homeState.achievements.waterStreak.get() + 1);
-    });
-  }, []);
 
   const onScroll = useCallback(
     (event: any) => {
@@ -217,7 +139,7 @@ const HomeScreen = observer(() => {
     >
       <LinearGradient
         colors={headerGradient}
-        className="px-6 pt-16 pb-10"
+        className="px-3 pt-16 pb-10"
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
@@ -229,9 +151,8 @@ const HomeScreen = observer(() => {
           scrollY={scrollY}
         />
       </LinearGradient>
-      
       <Animated.View entering={FadeIn.duration(800).delay(300)}>
-        <WaterReminderSection onWaterLog={handleWaterLog} />
+        <WaterReminderSection />
       </Animated.View>
       
       <Animated.View entering={FadeIn.duration(800).delay(400)}>
@@ -239,11 +160,11 @@ const HomeScreen = observer(() => {
       </Animated.View>
       
       {/* <Animated.View entering={FadeIn.duration(800).delay(500)}>
-        <QuickActionsSection quickActions={quickActions} isDark={isDark} />
+        <QuickActionsSection/>
       </Animated.View> */}
       
       <Animated.View entering={FadeIn.duration(800).delay(600)}>
-        <UpcomingTasksSection items={items.get()} isDark={isDark} />
+        <UpcomingTasksSection />
       </Animated.View>
       
       <Animated.View entering={FadeIn.duration(800).delay(700)}>
@@ -251,10 +172,9 @@ const HomeScreen = observer(() => {
       </Animated.View>
       
       <Animated.View entering={FadeIn.duration(800).delay(800)}>
-        <FocusInsightsSection focusTips={enhancedFocusTips} isDark={isDark} />
+        <FocusInsightsSection />
       </Animated.View>
 
-      <DailyNotes isDark={isDark} />
     </ScrollView>
   );
 });

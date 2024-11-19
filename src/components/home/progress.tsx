@@ -10,6 +10,7 @@ import Animated, {
   FadeIn,
 } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Flame } from 'lucide-react-native';
 
 // Enhanced progress data with more realistic and engaging content
 const progressData = [
@@ -169,7 +170,7 @@ const ProgressCard = ({ item, index }: { item: any; index: number }) => {
       <View className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
         {item.details.streak && (
           <View className="flex-row items-center">
-            <Ionicons name="flame" size={16} color="#FF6B6B" />
+            <Flame size={16} color="#FF6B6B" />
             <Text className="ml-2 text-sm text-gray-600 font-aregular dark:text-gray-300">
               {item.details.streak} day streak
             </Text>
@@ -191,7 +192,7 @@ const Progress = () => {
     <View className="flex-1 bg-gray-50 dark:bg-gray-900">
       <Animated.View 
         entering={FadeIn.delay(200).springify()}
-        className="px-6 pt-8"
+        className="px-3 pt-8"
       >
         <View className="flex-row justify-between items-center mb-6">
           <View>

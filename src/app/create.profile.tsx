@@ -4,9 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { observable } from '@legendapp/state';
 import { observer, useObservable } from '@legendapp/state/react';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withSequence } from 'react-native-reanimated';
-import { withSpring } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
+import { CalendarDays } from 'lucide-react-native';
 
 type Profile = {
   personalInfo: {
@@ -174,7 +173,7 @@ const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
                   <Text className="text-gray-800 dark:text-gray-200 font-rregular">
                     {profile.personalInfo.dateOfBirth.get() || 'Select Date of Birth'}
                   </Text>
-                  <Ionicons name="calendar-outline" size={24} color="#4A5568" />
+                  <CalendarDays size={24} color="#4A5568" />
                 </TouchableOpacity>
               </Animated.View>
 

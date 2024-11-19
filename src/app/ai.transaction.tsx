@@ -2,6 +2,7 @@ import TransactionCard from 'src/components/finance/transaction.card';
 import AICreatorTemplate from 'src/components/ui/ai.template';
 import useFinancialStore from "src/store/finance/store";
 import { Transaction } from "src/store/finance/types";
+import { endpoint } from 'src/utils/env';
 
 const FinanceCreator = () => {
   
@@ -35,7 +36,7 @@ const EXAMPLE_PROMPTS = [
       inputPlaceholder="Describe your financial goal or budget plan..."
       examplePrompts={EXAMPLE_PROMPTS}
       type="finance"
-      endpoint="http://192.168.42.236:3000/ai/finance"
+      endpoint={`${endpoint}/ai/finance`}
       addManualRoute="financeadd"
       addManualButtonText="Add Transaction"
       ItemComponent={TransactionCard}

@@ -1,28 +1,28 @@
-import { createContext, useState, useContext, useRef, createElement, useMemo, ReactNode } from 'react';
+import { createContext, useState, useContext, useRef, useMemo, ReactNode } from 'react';
 import { Modal, View, StyleSheet, TouchableWithoutFeedback, Animated } from 'react-native';
 import NewCategory from './new.category';
 import Postpone from './postpone';
+import CustomRuleForm from './new.customrule';
 import { colorScheme } from 'nativewind';
 
 export interface NewCategoryProps{
   type:"INCOME"|"EXPENSES"
-  close:()=>void
 }
-
-
 export interface PostponeProps {
   itemId:string;
   isVisible:boolean;
-  close:()=>void
 }
 
-// Modal configuration type that maps modal names to their prop types
+export interface CustomRuleProps {
+  isVisible:boolean;
+}
+
 export interface ModalConfig {
   NewCategory: NewCategoryProps;
   Postpone: PostponeProps;
+  CustomRuleForm:any
 }
 
-// Type for modal names derived from ModalConfig
 export type ModalName = keyof ModalConfig;
 
 // Type for the modal components mapping
@@ -30,7 +30,6 @@ type ModalComponents = {
   [K in ModalName]: React.FC<ModalConfig[K]>;
 };
 
-// Modal context type with proper generic handling
 interface ModalContextType {
   show: <T extends ModalName>(
     modalName: T,
@@ -39,7 +38,6 @@ interface ModalContextType {
   close: () => void;
 }
 
-// Modal state type with proper generic handling
 interface ModalState<T extends ModalName = ModalName> {
   name: T | null;
   props?: Omit<ModalConfig[T], 'onClose'>;
@@ -49,16 +47,14 @@ interface ModalState<T extends ModalName = ModalName> {
 const ANIMATION_DURATION = 300;
 const INITIAL_SCALE = 0.8;
 
-// Define modal components mapping with proper types
 const modalComponents: ModalComponents = {
   NewCategory,
   Postpone,
+  CustomRuleForm
 };
 
-// Create context with proper type
 const ModalContext = createContext<ModalContextType | null>(null);
 
-// Provider Component with proper types
 interface ModalProviderProps {
   children: ReactNode;
 }
@@ -116,14 +112,13 @@ const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
 
   const renderModal = () => {
     if (!modalState.name) return null;
-
     const ModalComponent = modalComponents[modalState.name];
     const modalProps = {
       ...modalState.props,
       onClose: close,
     } as ModalConfig[typeof modalState.name];
 
-    return createElement(ModalComponent, modalProps);
+    return <ModalComponent/>
   };
 
   return (

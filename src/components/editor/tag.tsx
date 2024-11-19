@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { observer } from '@legendapp/state/react';
+import { XCircle } from 'lucide-react-native';
 
 const TagManager = observer(({ editorState }) => {
   const [newTag, setNewTag] = useState('');
@@ -25,7 +25,7 @@ const TagManager = observer(({ editorState }) => {
           <View key={tag} className="bg-indigo-100 dark:bg-indigo-800 rounded-full px-3 py-1 mr-2 mb-2 flex-row items-center">
             <Text className="text-indigo-800 dark:text-indigo-200 mr-2">{tag}</Text>
             <TouchableOpacity onPress={() => removeTag(tag)}>
-              <Ionicons name="close-circle" size={16} color="#4a5568" />
+              <XCircle size={16} color="#4a5568" />
             </TouchableOpacity>
           </View>
         ))}

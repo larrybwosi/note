@@ -1,246 +1,256 @@
-import React, { useState } from 'react';
+import { cloneElement, useRef, useCallback } from 'react';
 import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Alert, 
-  Platform, 
-  ScrollView, 
-  Dimensions, 
-  ActivityIndicator, 
-  KeyboardAvoidingView,
-  TextInputProps
+  View, Text, TouchableOpacity, Alert, Platform, ScrollView,  
+  ActivityIndicator, KeyboardAvoidingView, useColorScheme,
 } from 'react-native';
+import { observer, Memo, Reactive } from '@legendapp/state/react';
 import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
 import { 
-  MaterialIcons,
-  FontAwesome5,
-  Ionicons,
-  MaterialCommunityIcons,
-  Feather 
-} from '@expo/vector-icons';
-import { handleGoogleSignIn, sendTokenToServer } from 'src/utils/auth';
-import { Reactive } from '@legendapp/state/react';
+  Mail, 
+  Lock, 
+  User, 
+  Eye, 
+  EyeOff, 
+  ArrowRight, 
+  ChevronRight,
+  UserCircle
+} from 'lucide-react-native';
+import { authClient, handleGoogleSignIn } from 'src/utils/auth';
+import { FormData, THEME } from 'types';
+import { observable } from '@legendapp/state';
 
-// Types
-interface FormData {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  name: string;
-}
+const useAuthState = () => {
+  const state = observable({
+    formData: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      name: ''
+    },
+    isSignIn: true,
+    isLoading: false,
+    showPassword: false,
+    showConfirmPassword: false,
+    errors: {}
+  });
 
-interface FormErrors {
-  email?: string;
-  password?: string;
-  name?: string;
-  confirmPassword?: string;
-}
+  return state;
+};
 
-interface StyledInputProps extends TextInputProps {
-  icon: React.ReactNode;
-  error?: string;
-  showToggle?: boolean;
-  onToggle?: () => void;
-  isPassword?: boolean;
-}
+// Form Validation
+const validateForm = (formData: FormData, isSignIn: boolean) => {
+  const newErrors: { [key: string]: string } = {};
+  
+  if (!formData.email) {
+    newErrors.email = 'Email is required';
+  } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    newErrors.email = 'Please enter a valid email';
+  }
 
-interface GradientButtonProps {
-  onPress: () => void;
-  isLoading?: boolean;
-  disabled?: boolean;
-  children: React.ReactNode;
-  className?: string;
-}
+  if (!formData.password) {
+    newErrors.password = 'Password is required';
+  } else if (formData.password.length < 8) {
+    newErrors.password = 'Password must be at least 8 characters';
+  }
 
-interface AuthCardProps {
-  children: React.ReactNode;
-  title: string;
-  subtitle: string;
-}
+  if (!isSignIn) {
+    if (!formData.name) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+  }
 
-const GRADIENTS = {
-  background: ['#1E293B', '#334155', '#475569'],
-  header: ['#1E40AF', '#3B82F6', '#60A5FA'],
-  button: ['#2563EB', '#3B82F6'],
-} as const;
+  return newErrors;
+};
 
-// Reusable Components
-const StyledInput: React.FC<StyledInputProps> = ({
-  icon,
-  error,
-  showToggle,
-  onToggle,
-  isPassword,
-  ...props
-}) => (
-  <View className="space-y-1.5 mt-2 mb-2">
-    <View className="relative">
-      <View className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-        {icon}
+// Optimized StyledInput component
+const StyledInput = observer(({ 
+  icon, 
+  error, 
+  showToggle, 
+  onToggle, 
+  isPassword, 
+  value, 
+  onChangeText, 
+  placeholder, 
+  secureTextEntry, 
+  keyboardType 
+}) => {
+  const colorScheme = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
+
+  return (
+    <View className="space-y-1.5 mt-2 mb-2">
+      <View className="relative">
+        <View className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+          {cloneElement(icon, {
+            color: theme.colors.textSecondary
+          })}
+        </View>
+        <Reactive.TextInput
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          placeholderTextColor={theme.colors.textSecondary}
+          className={`
+            w-full rounded-xl py-4 px-12 text-base font-aregular
+            ${error ? "border-red-400 dark:border-red-500" : "border-gray-200/80 dark:border-gray-700/80"}
+            bg-gray-50/90 dark:bg-gray-800/90
+            text-gray-800 dark:text-gray-100
+            border shadow-sm
+          `}
+        />
+        {showToggle && (
+          <TouchableOpacity 
+            onPress={onToggle}
+            className="absolute right-4 top-1/2 -translate-y-1/2"
+            activeOpacity={0.7}
+          >
+            {isPassword ? 
+              <Eye size={20} color={theme.colors.textSecondary} /> : 
+              <EyeOff size={20} color={theme.colors.textSecondary} />
+            }
+          </TouchableOpacity>
+        )}
       </View>
-      <Reactive.TextInput
-        $className={`w-full bg-gray-50/90 rounded-xl py-4 px-12 text-gray-800 text-base 
-          border border-gray-200/80 shadow-sm shadow-gray-200/50",
-          ${error && "border-red-400"} placeholder:text-gray-400
-        `}
-        placeholderTextColor="#94A3B8"
-        autoCapitalize="none"
-        {...props}
-      />
-      {showToggle && (
-        <TouchableOpacity 
-          onPress={onToggle}
-          className="absolute right-4 top-1/2 -translate-y-1/2"
-          activeOpacity={0.7}
-        >
-          <Ionicons 
-            name={isPassword ? "eye" : "eye-off"} 
-            size={20} 
-            color="#64748B"
-          />
-        </TouchableOpacity>
+      {error && (
+        <Text className="text-red-500 dark:text-red-400 text-sm ml-4 font-medium">
+          {error}
+        </Text>
       )}
     </View>
-    {error && (
-      <Text className="text-red-500 text-sm ml-4 font-medium">
-        {error}
-      </Text>
-    )}
-  </View>
-);
+  );
+});
 
-const GradientButton: React.FC<GradientButtonProps> = ({
+// GradientButton component
+const GradientButton = observer(({
   onPress,
   isLoading,
   disabled,
   children,
   className
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    disabled={disabled || isLoading}
-    className={`w-full ${className}`}
-    activeOpacity={0.8}
-  >
-    <LinearGradient
-      colors={GRADIENTS.button}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-      style={{
-        width: '100%',
-        borderRadius: 20,
-        padding: 16,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: 'rgba(0, 0, 0, 0.5)',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.5,
-        shadowRadius: 1,
-        elevation: 2,
-        ...(disabled || isLoading) && { opacity: 0.7 }
-      }}
+}) => {
+  const colorScheme = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled || isLoading}
+      className={`w-full rounded-xl shadow-md shadow-blue-700/30 dark:shadow-blue-900/30 ${className}`}
+      activeOpacity={0.8}
     >
-      {isLoading ? (
-        <ActivityIndicator color="white" />
-      ) : children}
-    </LinearGradient>
-  </TouchableOpacity>
-);
+      <LinearGradient
+        colors={theme.gradients.button}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        className="w-full p-4 flex-row justify-center items-center rounded-xl"
+        style={{
+          opacity: (disabled || isLoading) ? 0.7 : 1
+        }}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="white" />
+        ) : children}
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+});
 
-const AuthCard: React.FC<AuthCardProps> = ({ children, title, subtitle }) => (
-  <View className="w-full max-w-sm bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden">
-    <LinearGradient
-      colors={GRADIENTS.header}
-      className="w-full px-8 pt-12 pb-8 items-center"
-    >
-      <View className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-xl items-center justify-center mb-4 shadow-xl shadow-blue-900/30">
-        <MaterialCommunityIcons name="account-circle-outline" size={48} color="white" />
-      </View>
-      <Text className="text-3xl font-bold text-white text-center">
-        {title}
-      </Text>
-      <Text className="text-white/80 mt-2 text-center font-medium">
-        {subtitle}
-      </Text>
-    </LinearGradient>
-    {children}
-  </View>
-);
+// AuthCard component
+const AuthCard = observer(({ children, title, subtitle }) => {
+  const colorScheme = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
 
-// Main Component
-const AuthScreen: React.FC = () => {
-  const [isSignIn, setIsSignIn] = useState(true);
-  const [formData, setFormData] = useState<FormData>({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    name: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<FormErrors>({});
+  return (
+    <View className="w-full max-w-md mt-8 rounded-3xl shadow-2xl overflow-hidden
+      bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
+      <LinearGradient
+        colors={theme.gradients.header}
+        className="w-full px-8 pt-12 pb-8 items-center"
+      >
+        <View className="w-20 h-20 rounded-full bg-white/20 dark:bg-white/10 backdrop-blur-xl 
+          items-center justify-center mb-4 shadow-xl shadow-blue-900/30">
+          <UserCircle size={48} color="white" />
+        </View>
+        <Text className="text-3xl font-abold text-white text-center">
+          {title}
+        </Text>
+        <Text className="text-white/80 mt-2 text-center font-amedium">
+          {subtitle}
+        </Text>
+      </LinearGradient>
+      {children}
+    </View>
+  );
+});
 
-  const validateForm = () => {
-    const newErrors: FormErrors = {};
+// Main AuthScreen component
+const AuthScreen = observer(() => {
+  const colorScheme = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
+  const state = useAuthState();
+  
+  const renders = useRef(0);
+  console.log(`Auth Screen: ${++renders.current}`);
+
+  // Memoized handlers
+  const handleSubmit = useCallback(async () => {
+    const newErrors = validateForm(state.formData.peek(), state.isSignIn.peek());
+    state.errors.set(newErrors);
     
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    // Additional sign-up validations
-    if (!isSignIn) {
-      if (!formData.name) {
-        newErrors.name = 'Name is required';
-      }
-      
-      if (!formData.confirmPassword) {
-        newErrors.confirmPassword = 'Please confirm your password';
-      } else if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match';
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (Object.keys(newErrors).length > 0) return;
     
-    setIsLoading(true);
+    state.isLoading.set(true);
     try {
-      console.log(formData)
-      const token = 'simulated_token';
-      await sendTokenToServer(token);
+      const formData = state.formData.peek();
+      const res = await authClient.signUp.email({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name
+      });
+      console.log(res);
       Alert.alert(
         'Success!', 
-        isSignIn ? 'Welcome back!' : 'Your account has been created successfully!'
+        state.isSignIn.peek() ? 'Welcome back!' : 'Your account has been created successfully!'
       );
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'An error occurred');
     } finally {
-      setIsLoading(false);
+      state.isLoading.set(false);
     }
-  };
+  }, []);
 
-  const resetForm = () => {
-    setFormData({ email: '', password: '', confirmPassword: '', name: '' });
-    setErrors({});
+  const handleInputChange = useCallback((key, value) => {
+    state.formData[key].set(value);
+  }, []);
+
+  const togglePasswordVisibility = useCallback(() => {
+    state.showPassword.set(!state.showPassword.peek());
+  }, []);
+
+  const toggleConfirmPasswordVisibility = useCallback(() => {
+    state.showConfirmPassword.set(!state.showConfirmPassword.peek());
+  }, []);
+
+  const toggleSignInMode = useCallback(() => {
+    state.isSignIn.set(!state.isSignIn.peek());
+    state.errors.set({});
+  }, []);
+
+  const iconMap = {
+    name: <User size={20} />,
+    email: <Mail size={20} />,
+    password: <Lock size={20} />,
+    confirmPassword: <Lock size={20} />
   };
 
   return (
@@ -253,73 +263,61 @@ const AuthScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         <LinearGradient
-          colors={GRADIENTS.background}
+          colors={theme.gradients.background}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           className="flex-1"
         >
-          <View className="flex-1 justify-center items-center px-2 py-8">
+          <View className="flex-1 items-center px-4 py-8">
             <AuthCard
-              title={isSignIn ? 'Welcome Back' : 'Create Account'}
+              title={state.isSignIn.get() ? 'Welcome Back' : 'Create Account'}
               subtitle={
-                isSignIn 
+                state.isSignIn.get()
                   ? "We've missed you! Please sign in to continue" 
                   : "Join us! Create your account to get started"
               }
             >
               <View className="p-8 space-y-4">
-                {!isSignIn && (
-                  <StyledInput
-                    icon={<Feather name="user" size={20} color="#64748B" />}
-                    placeholder="Full Name"
-                    value={formData.name}
-                    onChangeText={(text) => setFormData({...formData, name: text})}
-                    error={errors.name}
-                  />
-                )}
+                <Memo>
+                  {() => (
+                    <>
+                      {Object.entries(state.formData.peek()).map(([key, value]) => {
+                        if (key === 'name' && state.isSignIn.get()) return null;
+                        if (key === 'confirmPassword' && state.isSignIn.get()) return null;
 
-                <StyledInput
-                  icon={<MaterialIcons name="email" size={20} color="#64748B" />}
-                  placeholder="Email"
-                  value={formData.email}
-                  onChangeText={(text) => setFormData({...formData, email: text})}
-                  error={errors.email}
-                  keyboardType="email-address"
-                />
+                        return (
+                          <StyledInput
+                            key={key}
+                            icon={iconMap[key as keyof typeof iconMap]}
+                            placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
+                            value={value}
+                            onChangeText={(text) => handleInputChange(key, text)}
+                            error={state.errors[key as keyof typeof state.errors].get()}
+                            secureTextEntry={
+                              key.includes('password') && 
+                              (key === 'password' ? !state.showPassword.get() : !state.showConfirmPassword.get())
+                            }
+                            showToggle={key.includes('password')}
+                            onToggle={key === 'password' ? togglePasswordVisibility : toggleConfirmPasswordVisibility}
+                            isPassword={
+                              key.includes('password') && 
+                              (key === 'password' ? state.showPassword.get() : state.showConfirmPassword.get())
+                            }
+                            keyboardType={key === 'email' ? 'email-address' : 'default'}
+                          />
+                        );
+                      })}
+                    </>
+                  )}
+                </Memo>
 
-                <StyledInput
-                  icon={<FontAwesome5 name="lock" size={20} color="#64748B" />}
-                  placeholder="Password"
-                  value={formData.password}
-                  onChangeText={(text) => setFormData({...formData, password: text})}
-                  secureTextEntry={!showPassword}
-                  showToggle
-                  onToggle={() => setShowPassword(!showPassword)}
-                  error={errors.password}
-                  isPassword={showPassword}
-                />
-
-                {!isSignIn && (
-                  <StyledInput
-                    icon={<FontAwesome5 name="lock" size={20} color="#64748B" />}
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
-                    onChangeText={(text) => setFormData({...formData, confirmPassword: text})}
-                    secureTextEntry={!showConfirmPassword}
-                    showToggle
-                    onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
-                    error={errors.confirmPassword}
-                    isPassword={showConfirmPassword}
-                  />
-                )}
-
-                {isSignIn && (
+                {state.isSignIn.get() && (
                   <TouchableOpacity
                     className="self-end"
                     onPress={() => Alert.alert('Reset Password', 'Password reset functionality will be available soon!')}
                     activeOpacity={0.7}
                   >
-                    <Text className="text-blue-600 text-sm font-semibold">
+                    <Text className="text-blue-600 dark:text-blue-400 text-sm font-amedium">
                       Forgot Password?
                     </Text>
                   </TouchableOpacity>
@@ -327,30 +325,30 @@ const AuthScreen: React.FC = () => {
 
                 <GradientButton
                   onPress={handleSubmit}
-                  isLoading={isLoading}
-                  disabled={isLoading}
+                  isLoading={state.isLoading.get()}
+                  disabled={state.isLoading.get()}
                   className="mt-4"
                 >
-                  <Text className="text-white font-semibold text-center mr-2">
-                    {isSignIn ? 'Sign In' : 'Create Account'}
+                  <Text className="text-white font-amedium text-center mr-2">
+                    {state.isSignIn.get() ? 'Sign In' : 'Create Account'}
                   </Text>
-                  <MaterialIcons name="arrow-forward-ios" size={18} color="white" />
+                  <ArrowRight size={18} color="white" />
                 </GradientButton>
 
                 <View className="flex-row items-center my-6">
-                  <View className="flex-1 h-[1px] bg-gray-300" />
-                  <Text className="mx-4 text-gray-500 font-medium">
+                  <View className="flex-1 h-[1px] bg-gray-300 dark:bg-gray-600" />
+                  <Text className="mx-4 text-gray-500 dark:text-gray-400 font-amedium">
                     or continue with
                   </Text>
-                  <View className="flex-1 h-[1px] bg-gray-300" />
+                  <View className="flex-1 h-[1px] bg-gray-300 dark:bg-gray-600" />
                 </View>
 
                 <View className="items-center">
                   <GoogleSigninButton
                     size={GoogleSigninButton.Size.Wide}
-                    color={GoogleSigninButton.Color.Dark}
+                    color={colorScheme === 'dark' ? GoogleSigninButton.Color.Light : GoogleSigninButton.Color.Dark}
                     onPress={handleGoogleSignIn}
-                    disabled={isLoading}
+                    disabled={state.isLoading.get()}
                     style={{ width: '100%', height: 48 }}
                   />
                 </View>
@@ -358,21 +356,18 @@ const AuthScreen: React.FC = () => {
             </AuthCard>
 
             <View className="mt-8 flex-row justify-center items-center">
-              <Text className="text-white/90 font-medium">
-                {isSignIn ? "Don't have an account? " : "Already have an account? "}
+              <Text className="text-gray-700 dark:text-gray-300 font-amedium">
+                {state.isSignIn.get() ? "Don't have an account? " : "Already have an account? "}
               </Text>
               <TouchableOpacity 
-                onPress={() => {
-                  setIsSignIn(!isSignIn);
-                  resetForm();
-                }}
+                onPress={toggleSignInMode}
                 className="flex-row items-center"
                 activeOpacity={0.7}
               >
-                <Text className="text-white font-semibold mr-1">
-                  {isSignIn ? 'Create Account' : 'Sign In'}
+                <Text className="text-white font-rbold mr-1">
+                  {state.isSignIn.get() ? 'Create Account' : 'Sign In'}
                 </Text>
-                <MaterialIcons name="arrow-forward-ios" size={14} color="white" />
+                <ChevronRight size={14} color="white" />
               </TouchableOpacity>
             </View>
           </View>
@@ -380,6 +375,6 @@ const AuthScreen: React.FC = () => {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-};
+});
 
 export default AuthScreen;

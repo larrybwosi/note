@@ -2,9 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Reference } from './ts';
+import { BaseReference } from 'src/store/notes/types';
 
 interface ReferenceItemProps {
-  reference: Reference;
+  reference: BaseReference;
 }
 
 export const ReferenceItem: React.FC<ReferenceItemProps> = ({ reference }) => {

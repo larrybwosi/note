@@ -1,6 +1,6 @@
-
-import { ItemCard } from 'src/components/schedule.item';
 import AICreatorTemplate from 'src/components/ui/ai.template';
+import { ItemCard } from 'src/components/schedule.item';
+import { endpoint } from "src/utils/env";
 
 const TasksEventsCreator = () => {
   return (
@@ -17,11 +17,11 @@ const TasksEventsCreator = () => {
         "Plan weekend grocery shopping list"
       ]}
       type="task_event"
-      endpoint="http://192.168.42.236:3000/ai/enhance"
-      addManualRoute="scheduleadd"
+      endpoint={`${endpoint}/ai/calendar`}
+      addManualRoute="create.schedule"
       addManualButtonText="Add Manually"
       ItemComponent={ItemCard}
-      gradientColors={['#4F46E5', '#7C3AED', '#9333EA']}
+      gradientColors={['#0e7490', '#06b6d4', '#67e8f9']}
     />
   );
 };

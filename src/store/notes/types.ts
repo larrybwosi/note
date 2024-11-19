@@ -1,4 +1,21 @@
 
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color?: string;
+}
+
+
+export const CATEGORIES: Category[] = [
+  { id: '1', name: 'Class Notes', icon: 'school', color: '#4F46E5' },
+  { id: '2', name: 'Personal', icon: 'assignment', color: '#EA580C' },
+  { id: '3', name: 'Meeting Notes', icon: 'business', color: '#0891B2' },
+  { id: '4', name: 'Research', icon: 'science', color: '#059669' },
+  { id: '5', name: 'Journal', icon: 'book', color: '#8B5CF6' },
+  { id: '6', name: 'Project', icon: 'assignment', color: '#EA580C' }
+];
+
 
 export const colorSchemes = {
   research: {
@@ -6,12 +23,12 @@ export const colorSchemes = {
     accent: '#8B5CF6',
   },
   project: {
-    gradient: ['#0093E9', '#80D0C7'],
-    accent: '#3B82F6',
-  },
-  class: {
     gradient: ['#8EC5FC', '#E0C3FC'],
     accent: '#6366F1',
+  },
+  class: {
+    gradient: ['#0093E9', '#80D0C7'],
+    accent: '#3B82F6',
   },
   personal: {
     gradient: ['#FAD961', '#F76B1C'],
@@ -58,18 +75,7 @@ export interface Reference {
   page?: string;
 }
 
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  tags: string[];
-  category: NoteCategory;
-  references: Reference[];
-  lastEdited: Date;
-  isBookmarked: boolean;
-}
-
-export type DefaultNoteCategory = 'personal' | 'work' | 'study' | 'other';
+export type DefaultNoteCategory = 'personal' | 'work' | 'study' | 'other' | 'classnote' | 'project';
 export type DefaultReferenceType = 'book' | 'website' | 'article' | 'video';
 
 export interface BaseReference<T extends string = DefaultReferenceType> {
@@ -82,7 +88,7 @@ export interface BaseReference<T extends string = DefaultReferenceType> {
 
 export type CustomReference<T extends string> = BaseReference<T> & Record<string, unknown>;
 
-export interface BaseNote<C extends string = DefaultNoteCategory, R extends string = DefaultReferenceType> {
+export interface Note<C extends string = DefaultNoteCategory, R extends string = DefaultReferenceType> {
   id: string;
   title: string;
   content: string;
@@ -97,7 +103,7 @@ export type CustomNote<
   C extends string = DefaultNoteCategory,
   R extends string = DefaultReferenceType,
   CustomFields extends Record<string, unknown> = {}
-> = BaseNote<C, R> & CustomFields;
+> = Note<C, R> & CustomFields;
 
 export type NoteStore<
   C extends string = DefaultNoteCategory,
@@ -108,11 +114,6 @@ export type NoteStore<
   categories: C[];
   referenceTypes: R[];
 };
-
-
-
-
-
 
 
 

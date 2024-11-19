@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { format } from 'date-fns';
-import { Feather } from '@expo/vector-icons';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { CalendarDays, Clock } from 'lucide-react-native';
+import { format } from 'date-fns';
 
 interface DateTimePickerProps {
   value: Date;
@@ -29,7 +29,7 @@ const DateTimePickerComponent = ({
           {/* Date Section */}
           <View className="flex-1">
             <View className="flex-row items-center mb-2">
-              <Feather name="calendar" size={16} color="gray" />
+              <CalendarDays size={16} color="gray" />
               <Text className="text-sm font-amedium dark:text-gray-200 ml-2">Date</Text>
             </View>
             <TouchableOpacity
@@ -59,7 +59,7 @@ const DateTimePickerComponent = ({
           {/* Time Section */}
           <View className="flex-1">
             <View className="flex-row items-center mb-2">
-              <Feather name="clock" size={16} color="gray" />
+              <Clock size={16} color="gray" />
               <Text className="text-sm font-amedium dark:text-gray-200 ml-2">Time</Text>
             </View>
             <TouchableOpacity

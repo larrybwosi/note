@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import Slider from '@react-native-community/slider';
+import { X } from 'lucide-react-native';
 
 interface SettingsModalProps {
   section: string;
@@ -201,7 +201,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {section.charAt(0).toUpperCase() + section.slice(1)} Settings
         </Text>
         <TouchableOpacity onPress={onClose}>
-          <Ionicons name="close" size={24} color="#94A3B8" />
+          <X size={24} color="#94A3B8" />
         </TouchableOpacity>
       </View>
       <ScrollView className="max-h-96">

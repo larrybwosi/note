@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal } from 'react-native';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { X } from 'lucide-react-native';
 
 const templates = [
   { name: 'Cornell Notes', icon: 'format-list-bulleted', color: '#4F46E5' },
@@ -61,7 +62,7 @@ export const QuickTemplates: React.FC = () => {
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-2xl font-bold text-gray-800">{selectedTemplate}</Text>
               <TouchableOpacity onPress={() => setSelectedTemplate(null)}>
-                <Ionicons name="close" size={24} color="#4A5568" />
+                <X size={24} color="#4A5568" />
               </TouchableOpacity>
             </View>
             <Text className="text-gray-600 mb-4">

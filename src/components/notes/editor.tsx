@@ -1,7 +1,7 @@
-import { View } from 'react-native';
+import { TextInput, View } from 'react-native';
+import { Textarea, TextareaInput } from 'src/components/ui/textarea';
 import { observer, Reactive } from '@legendapp/state/react';
 import { colorScheme } from 'nativewind';
-import { Textarea, TextareaInput } from 'src/components/ui/textarea';
 
 
 interface EditorProps {
@@ -9,17 +9,6 @@ interface EditorProps {
   noteType: 'todo' | 'list' | 'note';
 }
 
-const TitleInput = ({ editorState }: { editorState: any }) => {
-  return (
-    <Reactive.TextInput
-      $value={editorState.title.get()}
-      $onChangeText={(text: string) => editorState.title.set(text)}
-      $placeholder="Enter your title here..."
-      $placeholderTextColor={colorScheme.get() === 'dark' ? '#a0aec0' : '#4a5568'}
-      $className={`text-3xl font-rbold mb-2 dark:text-white text-gray-800 px-4 py-2`}
-    />
-  );
-};
 
 const Editor: React.FC<EditorProps> = ({state:notestate,noteType }) => {
 
@@ -29,7 +18,13 @@ const Editor: React.FC<EditorProps> = ({state:notestate,noteType }) => {
 
   return (
     <View className={`flex-1 dark:bg-gray-900 bg-white`}>
-      <TitleInput editorState={notestate} />
+      <Reactive.TextInput
+        value={notestate.title.get()}
+        onChangeText={notestate.title.set}
+        placeholder="Enter your title here..."
+        placeholderTextColor={colorScheme.get() === 'dark' ? '#a0aec0' : '#4a5568'}
+        className={`text-3xl font-rbold mb-2 dark:text-white text-gray-800 px-4 py-2`}
+      />
 
       <Textarea
         size="lg" 

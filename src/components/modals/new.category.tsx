@@ -1,9 +1,9 @@
 import { observer, useObservable } from '@legendapp/state/react';
-import { Text, TextInput, TouchableOpacity } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { NewCategoryProps, useModal } from './provider';
+import { NewCategoryProps } from './provider';
+import { X } from 'lucide-react-native';
 
 
 const NewCategory = observer(({type, close}:NewCategoryProps) => {
@@ -32,7 +32,7 @@ const NewCategory = observer(({type, close}:NewCategoryProps) => {
               onPress={() => close()}
               className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center"
             >
-              <Ionicons name="close" size={20} color="#4B5563" />
+              <X size={20} color="#4B5563" />
             </TouchableOpacity>
           </View>
           <Text className="text-sm font-rregular text-gray-500 mt-1">

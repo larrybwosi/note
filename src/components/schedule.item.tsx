@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Pressable } from 'react-native';
 import Animated, {
   FadeOut,
@@ -9,19 +9,21 @@ import Animated, {
   useSharedValue,
   withSequence,
   LinearTransition,
+  FadeInUp,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Clock, MapPin, Trash2, Hourglass, CheckCircle, CheckCircle2, Leaf, AlertCircle } from 'lucide-react-native';
 import { format, isPast, isWithinInterval, addMinutes } from 'date-fns';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { deleteItem } from 'src/store/shedule/actions';
+import { deleteItem, markCompleted } from 'src/store/shedule/actions';
 import { ScheduleItem } from 'src/store/shedule/types';
 import { colorScheme } from 'nativewind';
+import { observer, useObservable } from '@legendapp/state/react';
+import { useModal } from './modals/provider';
 
 interface ItemCardProps {
   item: ScheduleItem;
-  onComplete: (id: number) => void;
-  handlePostpone: (id: number) => void;
   customStyles?: {
     cardBg?: string;
     textColor?: string;
@@ -51,42 +53,46 @@ const priorityConfig = {
     darkBg: ['rgba(16, 185, 129, 0.1)', 'rgba(16, 185, 129, 0.2)'],
     border: 'border-emerald-200 dark:border-emerald-700',
     text: 'text-emerald-700 dark:text-emerald-400',
-    icon: 'leaf',
+    icon: Leaf,
   },
   Medium: {
     bg: ['#FEF5E7', '#FCE7B6'],
     darkBg: ['rgba(245, 158, 11, 0.1)', 'rgba(245, 158, 11, 0.2)'],
     border: 'border-amber-200 dark:border-amber-700',
     text: 'text-amber-700 dark:text-amber-400',
-    icon: 'time',
+    icon: Clock,
   },
   High: {
     bg: ['#FEE7EF', '#FCCDE0'],
     darkBg: ['rgba(225, 29, 72, 0.1)', 'rgba(225, 29, 72, 0.2)'],
     border: 'border-rose-200 dark:border-rose-700',
     text: 'text-rose-700 dark:text-rose-400',
-    icon: 'alert-circle',
+    icon: AlertCircle,
   },
   Critical: {
     bg: ['#FEE2E2', '#FCA5A5'],
     darkBg: ['rgba(239, 68, 68, 0.1)', 'rgba(239, 68, 68, 0.2)'],
     border: 'border-red-200 dark:border-red-700',
     text: 'text-red-700 dark:text-red-400',
-    icon: 'alert-circle',
+    icon: AlertCircle,
   },
 };
 
 export const ItemCard: React.FC<ItemCardProps> = ({
   item,
-  onComplete,
-  handlePostpone,
   customStyles = defaultStyles,
 }) => {
   const pressAnim = useSharedValue(1);
   const cardElevation = useSharedValue(2);
   const completedAnim = useSharedValue(item.completed ? 0.5 : 1);
-  const [status, setStatus] = useState<'upcoming' | 'in progress' | 'completed'>('upcoming');
+  const status$ = useObservable<'upcoming' | 'in progress' | 'completed'>('upcoming');
+  const { show } = useModal();
+  const {get:status,set:setStatus} =status$
 
+
+  const handlePostpone = () => {
+    show('Postpone',{itemId:item.id as any,isVisible:true});
+  };
   const handlePressIn = useCallback(() => {
     pressAnim.value = withSpring(0.98);
     cardElevation.value = withSpring(4);
@@ -128,7 +134,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     return () => clearInterval(interval);
   }, [item]);
 
-  const PriorityBadge = ({ priority }: { priority: ScheduleItem['priority'] }) => (
+  const PriorityBadge = ({ priority }: { priority: ScheduleItem['priority'] }) => {
+    const Icon = priorityConfig[priority].icon
+    return (
     <LinearGradient
       colors={colorScheme.get() === 'light' ? priorityConfig[priority].bg : priorityConfig[priority].darkBg}
       start={{ x: 0, y: 0 }}
@@ -136,8 +144,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       style={{borderRadius:8, zIndex:10, padding:1}}
     >
       <View className="flex-row items-center px-2 py-1 rounded-lg">
-        <Ionicons
-          name={priorityConfig[priority].icon as any}
+        <Icon
           size={12}
           color={colorScheme.get() === 'light' ? '#374151' : '#E5E7EB'}
           style={{ marginRight: 4 }}
@@ -147,18 +154,18 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         </Text>
       </View>
     </LinearGradient>
-  );
+  )};
 
   const handleComplete = useCallback(() => {
     completedAnim.value = withSequence(
       withTiming(0.8, { duration: 100 }),
       withTiming(0.5, { duration: 200 })
     );
-    onComplete(item.id);
-  }, [item.id, onComplete]);
+    markCompleted(item.id);
+  }, [item.id, completedAnim]);
 
   const getStatusColor = () => {
-    switch (status) {
+    switch (status()) {
       case 'in progress':
         return 'text-blue-500 dark:text-blue-400';
       case 'completed':
@@ -168,6 +175,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     }
   };
 
+  const Icon = item.completed ? CheckCircle : CheckCircle2
   return (
     <Animated.View
       entering={SlideInRight.springify().damping(15)}
@@ -210,9 +218,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               className="w-8 h-8 items-center justify-center"
               onPress={handleComplete}
             >
-              <Ionicons
-                name={item.completed ? 'checkmark-circle' : 'checkmark-circle-outline'}
+              <Icon
                 size={20}
+                // className={`${item.completed ? 'bg-[#10B981] dark:bg-[#34D399]' : 'bg-[#6B7280] dark:bg-[#9CA3AF]'}`}
                 color={
                   item.completed
                     ? colorScheme.get() === 'light'
@@ -233,15 +241,14 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             </Text>
             <View className="flex-row items-center gap-3">
               <View className="flex-row items-center">
-                <Ionicons
-                  name="time-outline"
+                <Clock
                   size={16}
                   color={colorScheme.get() === 'light' ? '#6B7280' : '#9CA3AF'}
                   style={{ marginRight: 4 }}
                 />
                 <Text className={`text-sm ${getStatusColor()}`}>
                   {format(item.startDate, 'HH:mm')} -{' '}
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                  {status().charAt(0).toUpperCase() + status().slice(1)}
                 </Text>
               </View>
               {item.duration && (
@@ -265,7 +272,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           {/* Location if exists */}
           {item.location && (
             <View className="flex-row items-center gap-1 mb-3">
-              <Ionicons name="location" size={14} color="#6B7280" />
+              <MapPin size={14} color="#6B7280" />
               <Text className="text-sm font-rregular text-gray-500 dark:text-gray-400">
                 {item.location}
               </Text>
@@ -276,7 +283,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <View className="flex-row justify-between items-center">
             <View className="flex-row items-center gap-2">
               <TouchableOpacity
-                onPress={() => handlePostpone(item.id)}
+                onPress={() => handlePostpone()}
                 className="overflow-hidden rounded-full"
               >
                 <LinearGradient
@@ -301,7 +308,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               )}
             </View>
             <TouchableOpacity onPress={async () => await deleteItem(item.id)}>
-              <Ionicons name="trash-outline" size={20} color="#6B7280" />
+              <Trash2 size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -309,3 +316,22 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     </Animated.View>
   );
 };
+
+interface TasksListProps{
+  items:ScheduleItem[],
+}
+
+const TasksList = ({ items }: TasksListProps) => (
+  <Animated.View 
+    className="space-y-4"
+    entering={FadeInUp.duration(800)}
+  >
+    {items.map((item: any) => (
+      <ItemCard
+        key={item.id}
+        item={item}
+      />
+    ))}
+  </Animated.View>
+);
+export default observer(TasksList)

@@ -1,4 +1,3 @@
-import React from 'react';
 import { ScrollView, TouchableOpacity, Text, View } from 'react-native';
 
 interface TagOption {
@@ -13,7 +12,7 @@ interface TagSelectorProps {
   onTagPress: (tagName: string) => void;
 }
 
-export const TagSelector: React.FC<TagSelectorProps> = ({
+const TagSelector: React.FC<TagSelectorProps> = ({
   tagOptions,
   selectedTags,
   onTagPress,
@@ -41,3 +40,5 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     </ScrollView>
   </View>
 );
+
+export default TagSelector

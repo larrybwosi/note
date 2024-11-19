@@ -6,10 +6,10 @@ import { format } from 'date-fns';
 import useScheduleStore from 'src/store/shedule/actions';
 import { scheduleStore } from 'src/store/shedule/store';
 import DateTimePickerComponent from '../date.time';
-import { PostponeProps, useModal } from './provider';
+import { PostponeProps } from './provider';
 
 
-const Postpone = ({itemId, isVisible, close}:PostponeProps) => {
+const Postpone = ({itemId, isVisible, onClose}:PostponeProps) => {
 
   const { postponeTask } = useScheduleStore();
   const state$ = useObservable({
@@ -26,15 +26,16 @@ const Postpone = ({itemId, isVisible, close}:PostponeProps) => {
 
   const handlePostpone = () => {
     postponeTask(itemId, newDate.get(), reason.get(), 'Unavailable', 'Low');
-    close();
+    onClose();
   };
+  if(!isVisible) return
   
   return (
     <Modal
       visible={isVisible}
       transparent
       animationType="slide"
-      onRequestClose={() => close()}
+      onRequestClose={() => onClose()}
     >
       <View className="flex-1 justify-end bg-black/60">
         <View className="bg-white dark:bg-gray-800 rounded-t-3xl p-6">

@@ -1,6 +1,9 @@
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { statusCodes } from "@react-native-google-signin/google-signin";
 import { Alert } from "react-native";
+  import { createAuthClient } from 'better-auth/react';
+import { observablePersistMMKV } from "@legendapp/state/persist-plugins/mmkv";
+// import { expoClient } from '@better-auth/expo/client';
 
  export const handleGoogleSignIn = async () => {
     try {
@@ -41,3 +44,15 @@ import { Alert } from "react-native";
       Alert.alert('Connection Error', 'Please check your internet connection and try again.');
     }
   };
+
+ 
+export const authClient = createAuthClient({
+    baseURL: 'http://localhost:3000', /* base url of your Better Auth backend. */
+    storage: observablePersistMMKV
+    // plugins: [
+    //     expoClient({
+    //         scheme: 'myapp',
+    //         storagePrefix: "myapp"
+    //     })
+    // ]
+});

@@ -5,46 +5,6 @@ import { addMinutes, format } from 'date-fns';
 import { ScheduleItem, ScheduleStore } from './types';
 
 const initialScheduleState: ScheduleItem[] = [
-  {
-    id: 1,
-    title: 'Team Strategy Meeting',
-    description: 'Quarterly planning session with department heads',
-    type: 'Work',
-    startDate: addMinutes(new Date(), 60),
-    endDate: addMinutes(new Date(), 120),
-    duration: 60,
-    priority: 'High',
-    recurrence: 'None',
-    location: 'Conference Room A',
-    completed: false,
-    inProgress: false,
-    estimatedDuration: 60,
-    postponements: [],
-    tags: ['planning', 'quarterly', 'team'],
-    notes: 'Prepare quarterly metrics',
-    scheduleType: 'event',
-    reminder: 15,
-  },
-  {
-    id: 2,
-    title: 'Workout Session',
-    description: 'High-intensity interval training',
-    type: 'Health',
-    startDate: addMinutes(new Date(), 180),
-    endDate: addMinutes(new Date(), 240),
-    duration: 60,
-    priority: 'Medium',
-    recurrence: 'Daily',
-    location: 'Gym',
-    completed: false,
-    inProgress: false,
-    estimatedDuration: 60,
-    postponements: [],
-    tags: ['exercise', 'health', 'routine'],
-    notes: 'Remember to bring workout gear',
-    reminder: 15,
-    scheduleType: 'task',
-  },
 ];
 
 export const scheduleStore = observable(

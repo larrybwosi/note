@@ -143,16 +143,17 @@ export const deleteItem = async (id: number): Promise<void> => {
   if (item) {
     const deletedItem = { ...item, deletedAt: new Date() };
     scheduleStore.deletedItems.push(deletedItem);
+    scheduleStore.items.find((item) => item.id.get() === id)?.delete()
     scheduleStore.items.set(scheduleStore.items.get().filter((item) => item.id !== id));
   }
-  notificationHandlers.onDeleteItem(id);
+  await notificationHandlers.onDeleteItem(id);
 
   updatePerformanceMetrics();
 };
 
 export const markCompleted = async (id: number) => {
   const item = scheduleStore.get().items.find((item) => item.id === id);
-  if (!item) return;
+  if (!item || item.completed) return;
 
   // Update completion status
   scheduleStore.items.set((prev) =>

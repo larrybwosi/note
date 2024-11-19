@@ -1,21 +1,15 @@
-import React, { useRef, useCallback, memo } from 'react';
+import { useRef } from 'react';
 import { ScrollView, Text, View, Dimensions, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { 
+  useAnimatedReaction,
   useAnimatedStyle, 
   withSpring,
   interpolateColor,
   useSharedValue,
-  useAnimatedReaction
 } from 'react-native-reanimated';
+import { CATEGORIES } from 'src/store/notes/types';
 
-// Types moved to separate interface file for better organization
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-  color?: string;
-}
 
 interface CategorySelectorProps {
   activeCategory: string;
@@ -24,7 +18,7 @@ interface CategorySelectorProps {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-// Constants moved outside component to prevent recreating on each render
+
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ITEM_WIDTH = WINDOW_WIDTH * 0.35;
 const SPRING_CONFIG = {
@@ -32,17 +26,7 @@ const SPRING_CONFIG = {
   stiffness: 150,
 };
 
-// Categories moved to constants to prevent recreation
-const CATEGORIES: Category[] = [
-  { id: '1', name: 'Class Notes', icon: 'school', color: '#4F46E5' },
-  { id: '2', name: 'Meeting Notes', icon: 'business', color: '#0891B2' },
-  { id: '3', name: 'Research', icon: 'science', color: '#059669' },
-  { id: '4', name: 'Journal', icon: 'book', color: '#8B5CF6' },
-  { id: '5', name: 'Project', icon: 'assignment', color: '#EA580C' }
-];
-
-// Memoized CategoryItem component to prevent unnecessary rerenders
-const CategoryItem = memo(({ category, isActive, onPress }: any) => {
+const CategoryItem = ({ category, isActive, onPress }: any) => {
   const active = useSharedValue(isActive ? 1 : 0);
 
   useAnimatedReaction(
@@ -93,29 +77,27 @@ const CategoryItem = memo(({ category, isActive, onPress }: any) => {
       </Text>
     </AnimatedTouchable>
   );
-});
+};
 
-CategoryItem.displayName = 'CategoryItem';
 
-export const CategorySelector = memo(({ 
+const CategorySelector = ({ 
   activeCategory, 
   setActiveCategory 
 }: CategorySelectorProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Memoized scroll handler to prevent recreating on each render
-  const scrollToCategory = useCallback((index: number) => {
+  const scrollToCategory = (index: number) => {
     scrollViewRef.current?.scrollTo({
       x: index * ITEM_WIDTH,
       animated: true,
     });
-  }, []);
+  };
 
-  // Memoized category selection handler
-  const handleCategorySelect = useCallback((id: string, index: number) => {
+  
+  const handleCategorySelect = (id: string, index: number) => {
     setActiveCategory(id);
     scrollToCategory(index);
-  }, [setActiveCategory, scrollToCategory]);
+  };
 
   return (
     <View className="mb-4">
@@ -144,8 +126,8 @@ export const CategorySelector = memo(({
       </ScrollView>
     </View>
   );
-});
+};
 
+CategoryItem.displayName = 'CategoryItem';
 CategorySelector.displayName = 'CategorySelector';
-
 export default CategorySelector;

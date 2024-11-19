@@ -1,19 +1,9 @@
-'use client';
-
 import React, { forwardRef } from 'react';
-import { View, TextInput, Platform } from 'react-native';
+import { View, TextInput } from 'react-native';
 import { cssInterop } from 'nativewind';
 import { createContext, useContext } from 'react';
 import { Reactive } from '@legendapp/state/react';
 
-// Enhanced context type
-type TextareaContextType = {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  cursorPosition?: 'top' | 'middle';
-  fontFamily?: string;
-};
-
-// Style context
 const TextareaContext = createContext<TextareaContextType>({ 
   size: 'md',
   cursorPosition: 'top',
@@ -25,6 +15,13 @@ cssInterop(View, { className: 'style' });
 cssInterop(TextInput, {
   className: { target: 'style', nativeStyleToProp: { textAlign: true } },
 });
+
+
+type TextareaContextType = {
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  cursorPosition?: 'top' | 'middle';
+  fontFamily?: string;
+};
 
 // Enhanced Types
 type TextareaProps = {
