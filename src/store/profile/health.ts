@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 // Enums and Constants
 export const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Elite'] as const;
 export const INTENSITY_LEVELS = ['Low', 'Moderate', 'High', 'Very High'] as const;
-export const MOOD_LEVELS = ['Excellent', 'Good', 'Neutral', 'Poor', 'Terrible'] as const;
 export const SLEEP_QUALITY = ['Deep', 'Light', 'Disrupted', 'Insomnia'] as const;
 export const MEAL_TYPES = [
   'Breakfast',
@@ -19,7 +18,6 @@ export const MEAL_TYPES = [
 
 export type DifficultyLevel = (typeof DIFFICULTY_LEVELS)[number];
 export type IntensityLevel = (typeof INTENSITY_LEVELS)[number];
-export type MoodLevel = (typeof MOOD_LEVELS)[number];
 export type SleepQualityType = (typeof SLEEP_QUALITY)[number];
 export type MealType = (typeof MEAL_TYPES)[number];
 
@@ -65,11 +63,8 @@ export interface WorkoutSession extends BaseEntry {
   title: string;
   type: string;
   duration: number;
-  caloriesBurned: number;
   intensity: IntensityLevel;
   sets: WorkoutSet[];
-  feeling?: MoodLevel;
-  progress_photos?: string[];
 }
 
 // Nutrition Related Interfaces
@@ -182,7 +177,6 @@ export const healthUtils = {
       title: partial.title || 'New Workout',
       type: partial.type || 'General',
       duration: partial.duration || 0,
-      caloriesBurned: partial.caloriesBurned || 0,
       intensity: partial.intensity || 'Moderate',
       sets: partial.sets || [],
       notes: partial.notes || '',
