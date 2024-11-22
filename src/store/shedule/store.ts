@@ -13,8 +13,8 @@ export const scheduleStore = observable(
       currentDate: new Date(),
       currentTime: format(new Date(), 'HH:mm'),
       items: initialScheduleState,
-      deletedItems: [], // New array for deleted items
-      completedItems: [], // New array for completed items
+      deletedItems: [],
+      completedItems: [],
       filteredItems: [],
       selectedItem: null,
       isAddingItem: false,

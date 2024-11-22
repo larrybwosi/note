@@ -85,12 +85,6 @@ const DateTimePickerComponent = ({
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Decorative Elements */}
-        <View className="absolute top-2 right-2 opacity-20">
-          <View className="w-20 h-20 rounded-full bg-white/10 absolute -top-10 -right-10" />
-          <View className="w-12 h-12 rounded-full bg-white/15 absolute -top-6 -right-6" />
-        </View>
       </Animated.View>
     </View>
   );

@@ -1,5 +1,5 @@
 import { Category, BudgetRuleType, MonthlyBreakdown, TransactionType, IncomeExpenseSummary, SavingsGoal, Transaction, CategoryType } from './types';
-import { calculateGuiltFreeBalance } from './calculations';
+import { analyzeSavingsProgress, calculateGuiltFreeBalance } from './calculations';
 import { store } from './store';
 
 
@@ -134,7 +134,6 @@ export const insightService = {
     return values.reduce((sum, val) => sum + val, 0) / values.length;
   },
 };
-
 
 export const incomeExpenseService = {
   addIncome: async ( transaction: Transaction): Promise<void> => {
@@ -276,7 +275,6 @@ export const incomeExpenseService = {
   },
 };
 
-
 export const trendAnalysisService = {
   calculateIncomeGrowth: async ( months: number = 12): Promise<number> => {
     const endDate = new Date();
@@ -364,6 +362,10 @@ export const budgetService = {
     store.budgetConfig.savingsGoals[goal.id].set(goal);
   },
 
+  getSavingsProgress:()=> {
+    
+  },
+
   updateSavingsProgress: ( goalId: string, amount: number): void => {
     if (store.budgetConfig.savingsGoals[goalId].get()) {
       store.budgetConfig.savingsGoals[goalId].currentAmount.set(amount);
@@ -423,6 +425,7 @@ export const budgetService = {
     }
     return 0;
   },
+
   guiltFreeBalance: (): number => {
     return calculateGuiltFreeBalance(store.budgetConfig.get());
   },

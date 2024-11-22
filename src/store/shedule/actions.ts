@@ -1,36 +1,100 @@
 import { scheduleStore } from './store';
-import { ScheduleItem, PostponementRecord } from './types';
-import { addDays, isAfter, isBefore, addWeeks, addMonths, format, add, isValid } from 'date-fns';
+import { ScheduleItem, PostponementRecord, TaskType, TASK_TYPES, RecurrencePattern, PRIORITY_LEVELS, RECURRENCE_PATTERNS, PriorityLevel } from './types';
+import { addDays, isAfter, isBefore, addWeeks, addMonths, format, isValid } from 'date-fns';
 import { notificationHandlers } from './notifications';
+import { z } from 'zod';
 
-// Helper Functions
+
+interface PostponeOptions {
+  reason: string;
+  reasonCategory: PostponementRecord['reasonCategory'];
+  impact: PostponementRecord['impact'];
+}
+const TaskTypeSchema = z.enum(['Work', 'Personal', 'Meeting', 'Break', 'Other']);
+const PriorityLevelSchema = z.enum(['Low', 'Medium', 'High', 'Urgent']);
+const RecurrencePatternSchema = z.enum(['None', 'Daily', 'Weekly', 'Biweekly', 'Monthly']);
+
+
+const PostponementRecordSchema = z.object({
+  id: z.number(),
+  originalDate: z.date(),
+  newDate: z.date(),
+  reason: z.string().min(1),
+  reasonCategory: z.enum(['Time Conflict', 'Not Ready', 'External Dependency', 'Other']),
+  impact: z.enum(['Low', 'Medium', 'High'])
+});
+
+class ScheduleError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ScheduleError';
+  }
+}
+
+// Comprehensive Validation and Error Handling
+type CreateItemInput = Omit<ScheduleItem, 
+  'id' | 
+  'postponements' | 
+  'completed' | 
+  'inProgress' | 
+  'completedAt' | 
+  'startedAt' | 
+  'actualDuration' | 
+  'deletedAt'
+>;
+const validateScheduleItem = (item: CreateItemInput) => {
+  // Title validation
+  if (!item.title || item.title.trim().length === 0) {
+    throw new ScheduleError('Title is required and cannot be empty');
+  }
+
+  // Date validation
+  if (!isValid(item.startDate)) {
+    throw new ScheduleError('Invalid date provided');
+  }
+
+  if (item.startDate >= item?.endDate) {
+    throw new ScheduleError('Start date must be before end date');
+  }
+
+  // Type validations
+  if (!TASK_TYPES.includes(item.type as TaskType)) {
+    throw new ScheduleError(`Invalid task type. Must be one of: ${TASK_TYPES.join(', ')}`);
+  }
+
+  if (!PRIORITY_LEVELS.includes(item.priority as PriorityLevel)) {
+    throw new ScheduleError(`Invalid priority level. Must be one of: ${PRIORITY_LEVELS.join(', ')}`);
+  }
+
+  if (!RECURRENCE_PATTERNS.includes(item.recurrence as RecurrencePattern)) {
+    throw new ScheduleError(`Invalid recurrence pattern. Must be one of: ${RECURRENCE_PATTERNS.join(', ')}`);
+  }
+
+  // Duration validation
+  if (item.duration <= 0) {
+    throw new ScheduleError('Duration must be a positive number');
+  }
+  return true
+};
+
+// Enhanced ID Generation with Timestamp and Randomness
 const generateId = (): number => {
-  return Math.floor(Math.random() * 1000000);
+  const timestamp = new Date().getTime();
+  const randomPart = Math.floor(Math.random() * 10000);
+  return parseInt(`${timestamp}${randomPart}`.slice(-9), 10);
 };
 
-const canPostpone = (item: ScheduleItem): boolean => {
-  const maxPostponements = item.maxPostponements ?? 3;
-  return (
-    !item.completed &&
-    item.postponements.length < maxPostponements &&
-    !item.blockedBy?.some((id) => !scheduleStore.get().items.find((i) => i.id === id)?.completed)
-  );
-};
-
+// More Robust Date Handling for Recurring Items
 const getNextRecurringDate = (date: Date, pattern: string): Date => {
   switch (pattern) {
-    case 'Daily':
-      return addDays(date, 1);
-    case 'Weekly':
-      return addWeeks(date, 1);
-    case 'Biweekly':
-      return addWeeks(date, 2);
-    case 'Monthly':
-      return addMonths(date, 1);
-    default:
-      return date;
+    case 'Daily': return addDays(date, 1);
+    case 'Weekly': return addWeeks(date, 1);
+    case 'Biweekly': return addWeeks(date, 2);
+    case 'Monthly': return addMonths(date, 1);
+    default: return date;
   }
 };
+
 
 // Performance Metric Calculations
 const calculateStreakDays = (): number => {
@@ -104,36 +168,31 @@ const updatePerformanceMetrics = (): void => {
   });
 };
 
-const validateScheduleItem = (item: ScheduleItem): boolean => {
-  if (!item.title || !item.startDate || !item.endDate) return false;
-  if (!isValid(new Date(item.startDate)) || !isValid(new Date(item.endDate))) return false;
-  if (new Date(item.startDate) >= new Date(item.endDate)) return false;
-  return true;
-};
 // Main Action Functions
-export const createItem = (
+export const createItem = async(
   item: Omit<ScheduleItem, 'id' | 'postponements' | 'completed' | 'inProgress'>
-): void => {
+) => {
   const newItem: ScheduleItem = {
     ...item,
     id: generateId(),
     postponements: [],
     completed: false,
     inProgress: false,
+    countdown: Math.floor((item.startDate.getTime() - new Date().getTime()) / 60000),
   };
 
   if (!validateScheduleItem(newItem)) return;
   if (newItem.recurrence !== 'None') {
-    notificationHandlers.createRecurring({
+    await notificationHandlers.createRecurring({
       ...newItem,
       time: new Date(newItem.startDate),
       body: newItem.description,
       frequency: newItem.recurrence === 'Daily' ? 'daily' : 'weekly',
     });
+  }else {
+    await notificationHandlers.onCreateItem(newItem)
   }
-
-  notificationHandlers.onCreateItem(newItem);
-  scheduleStore.items.set((prev) => [...prev, newItem]);
+  scheduleStore.items.push(newItem);
 
   updatePerformanceMetrics();
 };
@@ -198,22 +257,39 @@ export const startItem = (id: number): void => {
 };
 
 export const postponeItem = async (
-  id: number | string,
-  newDate: Date,
-  reason: string,
-  reasonCategory: PostponementRecord['reasonCategory'],
-  impact: PostponementRecord['impact']
-) => {
+  id: number, 
+  newDate: Date, 
+  options: PostponeOptions
+): Promise<void> => {
   const item = scheduleStore.get().items.find((item) => item.id === id);
-  if (!item || !canPostpone(item)) return;
+  
+  if (!item) {
+    throw new ScheduleError('Item not found');
+  }
+
+  const maxPostponements = item.maxPostponements ?? 3;
+  if (item.completed) {
+    throw new ScheduleError('Cannot postpone completed item');
+  }
+
+  if (item.postponements.length >= maxPostponements) {
+    throw new ScheduleError(`Maximum postponements (${maxPostponements}) reached`);
+  }
+
+  // Check for blocking dependencies
+  const isBlocked = item.blockedBy?.some(
+    (blockId) => !scheduleStore.get().items.find((i) => i.id === blockId)?.completed
+  );
+
+  if (isBlocked) {
+    throw new ScheduleError('Item is blocked by unfinished tasks');
+  }
 
   const postponement: PostponementRecord = {
     id: item.postponements.length + 1,
     originalDate: item.startDate,
     newDate,
-    reason,
-    reasonCategory,
-    impact,
+    ...options
   };
 
   const duration = item.endDate.getTime() - item.startDate.getTime();
@@ -233,8 +309,9 @@ export const postponeItem = async (
   );
 
   await notificationHandlers.onPostponeItem(item.id);
-  updatePerformanceMetrics();
 };
+
+
 
 export const updateItem = (id: number, updates: Partial<ScheduleItem>): void => {
   scheduleStore.items.set((prev) =>
@@ -243,12 +320,12 @@ export const updateItem = (id: number, updates: Partial<ScheduleItem>): void => 
   updatePerformanceMetrics();
 };
 
-const createRecurringInstance = (item: ScheduleItem): void => {
+const createRecurringInstance = async (item: ScheduleItem) => {
   const nextStartDate = getNextRecurringDate(item.startDate, item.recurrence);
   const duration = item.endDate.getTime() - item.startDate.getTime();
   const nextEndDate = new Date(nextStartDate.getTime() + duration);
 
-  createItem({
+  await createItem({
     ...item,
     startDate: nextStartDate,
     endDate: nextEndDate,
@@ -304,11 +381,11 @@ export const resetForm = () => {
   scheduleStore.isAddingItem.set(false);
 };
 
-export const handleAddItem = (): void => {
+export const handleAddItem = async() => {
   const item = scheduleStore.newItem.get() as ScheduleItem;
   if (!item) return;
-  createItem(item);
-  resetForm();
+  await createItem(item);
+  // resetForm();
 };
 
 export const restoreDeletedItem = (id: number) => {

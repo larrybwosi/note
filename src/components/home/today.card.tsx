@@ -19,6 +19,7 @@ import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 import { currentTime } from '@legendapp/state/helpers/time';
 import { syncObservable } from '@legendapp/state/sync';
 import * as Location from 'expo-location';
+import { endpoint } from 'src/utils/env';
 
 const initialWeather ={"coord":{"lon":-122.4194,"lat":37.7749},"weather":[{"id":803,"main":"Clouds","description":"broken clouds","icon":"04d"}],"base":"stations","main":{"temp":12.99,"feels_like":12.72,"temp_min":11.38,"temp_max":14.35,"pressure":1019,"humidity":91,"sea_level":1019,"grnd_level":1015},"visibility":10000,"wind":{"speed":2.57,"deg":130},"clouds":{"all":75},"dt":1731604146,"sys":{"type":2,"id":2003880,"country":"US","sunrise":1731595776,"sunset":1731632344},"timezone":-28800,"id":5391959,"name":"San Francisco","cod":200}
 
@@ -122,7 +123,7 @@ const getWeatherData = async () => {
       const res = await Location.getLastKnownPositionAsync({});
       if(res) location = res
     }
-    const response = await fetch(`http://192.168.42.236:3000/weather?lat=${location.coords.latitude}&lon=${location.coords.longitude}`);
+    const response = await fetch(`${endpoint}/weather?lat=${location.coords.latitude}&lon=${location.coords.longitude}`);
 
     const data = await response.json();
     state$.weatherData.set(data);
@@ -154,7 +155,7 @@ const TodayCard = observer(() => {
   // console.log(`TodayCard: ${renders}`)
 
   useEffect(() => {
-    // void getWeatherData();
+  //  getWeatherData();
   }, []);
 
   const circleStyle = useAnimatedStyle(() => ({
@@ -195,17 +196,7 @@ const TodayCard = observer(() => {
       >
         {/* Decorative circles */}
         <Animated.View
-          style={[
-            {
-              position: 'absolute',
-              top: -50,
-              right: -50,
-              width: 150,
-              height: 150,
-              borderRadius: 80,
-            },
-            circleStyle,
-          ]}
+          style={[{ position: 'absolute',top: -50,right: -50,width: 150,height: 150,borderRadius: 80},]}
         >
           <LinearGradient
             colors={currentTheme.gradient.get()}
@@ -225,7 +216,6 @@ const TodayCard = observer(() => {
           />
         </Animated.View>
 
-        {/* Greeting */}
         <Memo>
           {() => (
             <Animated.View
@@ -292,21 +282,6 @@ const TodayCard = observer(() => {
           )}
         </Show>
 
-        {/* Focus section */}
-        <Animated.View
-          entering={FadeInDown.duration(800).delay(400)}
-          className="space-y-2"
-        >
-          <View className="flex-row items-center space-x-3">
-            <Target color={currentTheme.gradient[1].get()} />
-            <Text className="text-2xl font-amedium text-gray-800 dark:text-white">
-              Today's Focus
-            </Text>
-          </View>
-          <Text className="text-base font-aregular ml-9 text-gray-500 dark:text-gray-400">
-            Track your goals and achievements
-          </Text>
-        </Animated.View>
 
         {/* Progress bar */}
         <Animated.View

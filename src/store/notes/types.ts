@@ -1,211 +1,86 @@
 
-interface Category {
+export const ICONS = ['school', 'assignment', 'business', 'science', 'book'] as const;
+export const REFERENCE_TYPES = ['book', 'website', 'article', 'video'] as const;
+
+export type IconName = typeof ICONS[number];
+export type ReferenceType = typeof REFERENCE_TYPES[number];
+
+export interface ColorScheme {
+  gradient: readonly [string, string];
+  accent: string;
+}
+
+export interface Category {
   id: string;
   name: string;
-  icon: string;
-  color?: string;
+  icon: IconName;
+  color: string;
+  colorScheme?: ColorScheme;
 }
-
-
-export const CATEGORIES: Category[] = [
-  { id: '1', name: 'Class Notes', icon: 'school', color: '#4F46E5' },
-  { id: '2', name: 'Personal', icon: 'assignment', color: '#EA580C' },
-  { id: '3', name: 'Meeting Notes', icon: 'business', color: '#0891B2' },
-  { id: '4', name: 'Research', icon: 'science', color: '#059669' },
-  { id: '5', name: 'Journal', icon: 'book', color: '#8B5CF6' },
-  { id: '6', name: 'Project', icon: 'assignment', color: '#EA580C' }
-];
-
-
-export const colorSchemes = {
-  research: {
-    gradient: ['#4158D0', '#C850C0'],
-    accent: '#8B5CF6',
-  },
-  project: {
-    gradient: ['#8EC5FC', '#E0C3FC'],
-    accent: '#6366F1',
-  },
-  class: {
-    gradient: ['#0093E9', '#80D0C7'],
-    accent: '#3B82F6',
-  },
-  personal: {
-    gradient: ['#FAD961', '#F76B1C'],
-    accent: '#F59E0B',
-  },
-  ideas: {
-    gradient: ['#84FAB0', '#8FD3F4'],
-    accent: '#10B981',
-  }
-} as const;
-
-export const themes = {
-  light: {
-    background: '#ffffff',
-    text: '#1F2937',
-    primary: '#3B82F6',
-    secondary: '#60A5FA',
-    accent: '#8B5CF6',
-    border: '#E5E7EB',
-    cardBg: '#F9FAFB',
-    error: '#EF4444',
-    success: '#10B981',
-  },
-  dark: {
-    background: '#111827',
-    text: '#F9FAFB',
-    primary: '#60A5FA',
-    secondary: '#3B82F6',
-    accent: '#8B5CF6',
-    border: '#374151',
-    cardBg: '#1F2937',
-    error: '#EF4444',
-    success: '#10B981',
-  },
-} as const;
-
-export type NoteCategory = keyof typeof colorSchemes;
 
 export interface Reference {
-  type: 'book' | 'website' | 'article' | 'video';
-  title: string;
-  author?: string;
-  url?: string;
-  page?: string;
-}
-
-export type DefaultNoteCategory = 'personal' | 'work' | 'study' | 'other' | 'classnote' | 'project';
-export type DefaultReferenceType = 'book' | 'website' | 'article' | 'video';
-
-export interface BaseReference<T extends string = DefaultReferenceType> {
-  type: T;
+  type: ReferenceType;
   title: string;
   author?: string;
   url?: string;
   page?: string | number;
 }
 
-export type CustomReference<T extends string> = BaseReference<T> & Record<string, unknown>;
+export interface Element {
+  id: string;
+  type: 'text' | 'image' | 'code' | 'quote';
+  content: string;
+  metadata?: Record<string, unknown>;
+}
 
-export interface Note<C extends string = DefaultNoteCategory, R extends string = DefaultReferenceType> {
+export interface Note {
   id: string;
   title: string;
   content: string;
   tags: string[];
-  category: C;
-  references: BaseReference<R>[];
+  category: Category;
+  references: Reference[];
+  elements: Element[];
   lastEdited: Date;
   isBookmarked: boolean;
 }
 
-export type CustomNote<
-  C extends string = DefaultNoteCategory,
-  R extends string = DefaultReferenceType,
-  CustomFields extends Record<string, unknown> = {}
-> = Note<C, R> & CustomFields;
-
-export type NoteStore<
-  C extends string = DefaultNoteCategory,
-  R extends string = DefaultReferenceType,
-  CustomFields extends Record<string, unknown> = {}
-> = {
-  notes: CustomNote<C, R, CustomFields>[];
-  categories: C[];
-  referenceTypes: R[];
-};
-
-
-
-
-interface ElementType {
-  type: 'bullet' | 'numbered' | 'checkbox' | 'link' | 'mention' | 'comment' | 'reference' | 'text';
-  content: string;
-  url?: string;
-  checked?: boolean;
+export interface NoteQueryOptions {
+  limit?: number;
+  offset?: number;
+  sortBy?: 'lastEdited' | 'title' | 'bookmarked';
+  sortOrder?: 'asc' | 'desc';
+  categoryIds?: string[];
+  tags?: string[];
+  searchTerm?: string;
+  bookmarkedOnly?: boolean;
+  fromDate?: Date;
+  toDate?: Date;
 }
 
-const parseContent = (text: string, noteType: 'todo' | 'list' | 'note'): ElementType[][] => {
-  const lines = text?.split('\n');
-  return lines.map(line => {
-    const parts: ElementType[] = [];
-    
-    // Parse different elements based on note type
-    const checkForSpecialElements = (text: string) => {
-      const linkRegex = /\[(.*?)\]$$(.*?)$$/g;
-      const mentionRegex = /@(\w+)/g;
-      const commentRegex = /\/\/(.*?)$/g;
-      const referenceRegex = /#(\w+)/g;
-      
-      let modifiedText = text;
-      
-      modifiedText = modifiedText.replace(linkRegex, (match, text, url) => {
-        parts.push({ type: 'link', content: text, url });
-        return '';
-      });
-      
-      modifiedText = modifiedText.replace(mentionRegex, (match, username) => {
-        parts.push({ type: 'mention', content: username });
-        return '';
-      });
-      
-      modifiedText = modifiedText.replace(commentRegex, (match, comment) => {
-        parts.push({ type: 'comment', content: comment });
-        return '';
-      });
-      
-      modifiedText = modifiedText.replace(referenceRegex, (match, reference) => {
-        parts.push({ type: 'reference', content: reference });
-        return '';
-      });
-      
-      if (modifiedText) {
-        parts.push({ type: 'text', content: modifiedText });
-      }
-    };
-    
-    if (noteType === 'todo' && line.trim().startsWith('- [ ]')) {
-      parts.push({ type: 'checkbox', content: line.slice(5), checked: false });
-    } else if (noteType === 'todo' && line.trim().startsWith('- [x]')) {
-      parts.push({ type: 'checkbox', content: line.slice(5), checked: true });
-    } else if (noteType === 'list' && line.trim().startsWith('- ')) {
-      parts.push({ type: 'bullet', content: line.slice(2) });
-    } else if (noteType === 'list' && line.trim().match(/^\d+\./)) {
-      parts.push({ type: 'numbered', content: line.slice(line.indexOf('.') + 1) });
-    } else {
-      checkForSpecialElements(line);
-    }
-    
-    return parts;
-  });
-};
+export interface NoteSummary {
+  id: string;
+  title: string;
+  preview: string;
+  category: Category;
+  tags: string[];
+  lastEdited: Date;
+  isBookmarked: boolean;
+}
 
-// const mockNotes: Note[] = [
-  //       {
-  //         id: '1',
-  //         title: 'Research: AI in Healthcare',
-  //         content: 'Recent developments in AI are revolutionizing healthcare diagnostics...',
-  //         tags: ['AI', 'healthcare', 'research'],
-  //         category: 'research',
-  //         lastEdited: new Date(),
-  //         isBookmarked: true,
-  //       },
-  //       {
-  //         id: '2',
-  //         title: 'Project: Mobile App Architecture',
-  //         content: 'Key considerations for scalable mobile architecture...',
-  //         tags: ['mobile', 'architecture', 'development'],
-  //         category: 'project',
-  //         lastEdited: new Date(),
-  //         isBookmarked: false,
-  //       },
-  //       {
-  //         id: '3',
-  //         title: 'Advanced Data Structures',
-  //         content: 'Notes from today\'s lecture on balanced trees and heap implementations...',
-  //         tags: ['CS', 'algorithms', 'study'],
-  //         category: 'class',
-  //         lastEdited: new Date(),
-  //         isBookmarked: true,
-  //       },
-  //     ];
+export interface NoteStatistics {
+  totalNotes: number;
+  bookmarkedNotes: number;
+  notesPerCategory: Record<string, number>;
+  notesPerTag: Record<string, number>;
+  averageReferencesPerNote: number;
+  mostUsedTags: { tag: string; count: number }[];
+  recentActivity: {
+    created: number;
+    updated: number;
+    deleted: number;
+  };
+}
+export type NoteWithoutId = Omit<Note, 'id'>;
+export type CategoryWithoutId = Omit<Category, 'id'>;
+export type UpdateableNoteFields = Partial<Omit<Note, 'id' | 'category'>>;

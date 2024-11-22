@@ -9,20 +9,21 @@ import Animated, {
   FadeInDown,
   SlideInRight
 } from 'react-native-reanimated';
-import { Note, NoteCategory, colorSchemes, themes } from 'src/store/notes/types';
-import { useNotes } from 'src/store/notes/store';
+import { categoryColorSchemes, themes } from 'src/store/notes/data';
+import { Category, Note } from 'src/store/notes/types';
+import { useNotes } from 'src/store/notes/actions';
 
 
 const globalState = observable({
   searchQuery: '',
   showOnboarding: true,
   isMenuOpen: false,
-  selectedCategory: 'all' as 'all' | NoteCategory,
+  selectedCategory: 'all' as 'all' | Category,
 });
 
-const Chip: React.FC<{ label: NoteCategory | 'all' }> = ({ label }) => (
+const Chip: React.FC<{ label: Category | 'all' }> = ({ label }) => (
   <LinearGradient
-    colors={label === 'all' ? ['#CBD5E1', '#94A3B8'] : colorSchemes[label].gradient}
+    colors={label === 'all' ? ['#CBD5E1', '#94A3B8'] : categoryColorSchemes[label].gradient}
     start={{ x: 0, y: 0 }}
     end={{ x: 1, y: 1 }}
     style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}
@@ -35,9 +36,11 @@ const Chip: React.FC<{ label: NoteCategory | 'all' }> = ({ label }) => (
 
 
 const NoteBlock: React.FC<{ note: Note }> = observer(({ note }) => {
-  const [store, actions] = useNotes();
+  const { deleteNote } = useNotes();
   //@ts-ignore
-  const scheme = colorSchemes[note.category];
+  const scheme = categoryColorSchemes[note.category];
+
+  console.log(scheme)
   return (
     <Animated.View
       entering={SlideInRight}
@@ -55,7 +58,7 @@ const NoteBlock: React.FC<{ note: Note }> = observer(({ note }) => {
               {note.title}
             </Text>
             <Text className="text-xs text-white/80 capitalize font-rregular">
-              {note.category}
+              {/* {note.category} */}
             </Text>
           </View>
           {note.isBookmarked && (
@@ -77,7 +80,7 @@ const NoteBlock: React.FC<{ note: Note }> = observer(({ note }) => {
             Last edited: {note.lastEdited?.toLocaleDateString()}
           </Text>
           
-          <TouchableOpacity className='mt-1' onPress={async () => await actions.deleteNote(note.id)}>
+          <TouchableOpacity className='mt-1' onPress={async () => await deleteNote(note.id)}>
             <Trash2 size={20} color="#6B7280" />
           </TouchableOpacity>
        </View>
@@ -98,15 +101,17 @@ const CategoryFilter: React.FC = observer(() => {
       className="py-2"
       contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
     >
-      {['all', ...Object.keys(colorSchemes)].map((category) => {
+      {['all', ...Object.keys(categoryColorSchemes)].map((category) => {
         return (
           <TouchableOpacity
             key={category}
-            onPress={() => selectedCategory.set(category as 'all' | NoteCategory)}
-            className={`px-4 py-2 bg-[${selectedCategory.get() === category ? theme.accent.get() : theme.cardBg.get()}]`}
+            onPress={() => selectedCategory.set(category as 'all' | Category)}
+            className={`px-4 py-2 rounded-lg`}
+            style={{backgroundColor:selectedCategory.get() === category ? theme.secondary.get() : theme.cardBg.get()}}
           >
             <Text 
-              className={`text-[${selectedCategory.get() === category ? theme.accent.get() : theme.text.get()}] font-amedium`}
+              className={`font-amedium`}
+              style={{color: selectedCategory.get() === category ? theme.background.get() : theme.text.get()}}
             >
               {category}
             </Text>
@@ -133,25 +138,26 @@ const EmptyState: React.FC = () => {
         Organize your thoughts across different categories:
       </Text>
       <View className="flex-row flex-wrap justify-center gap-2">
-        {Object.keys(colorSchemes).map((category) => (
-          <Chip key={category} label={category as NoteCategory} />
-        ))}
+        {Object.keys(categoryColorSchemes).map((category) => {
+          // console.log(category)
+          return(
+          <Chip key={category} label={category} />
+        )})}
       </View>
     </Animated.View>
   );
 };
 
 
-
 const Notes: React.FC = observer(() => {
-  const [store, actions] = useNotes();
+  const { getNotes, deleteAllNotes} = useNotes();
   const theme = useComputed(() => themes[colorScheme.get()!]);
-  const notes =store.notes;
+  const notes = getNotes();
   const searchQuery = useObservable(globalState.searchQuery);
   const selectedCategory = useObservable(globalState.selectedCategory);
-
+console.log(notes)
   const filteredNotes = useComputed(() => 
-    notes.get().filter((note) => {
+    notes.filter((note) => {
       const matchesSearch = note.title?.toLowerCase().includes(searchQuery.get()?.toLowerCase()) ||
         note.content?.toLowerCase().includes(searchQuery.get()?.toLowerCase());
       const matchesCategory = selectedCategory.get() === 'all' || 
@@ -161,15 +167,14 @@ const Notes: React.FC = observer(() => {
   );
 
   const handleDeleteAll =async()=>{
-    await actions.deleteAllNotes()
-    console.log(notes.get())
+    await deleteAllNotes()
   } 
 
   return (
     <View className={`flex-1 dark:bg-gray-900 bg-white`}>
       <LinearGradient
         colors={[theme.cardBg.get(), theme.background.get()]}
-        className="pt-4"
+        className="pt-4 dark:bg-gray-900"
       >
         <View className="flex-row justify-between items-center p-4">
           <TouchableOpacity onPress={() => globalState.isMenuOpen.set(!globalState.isMenuOpen.get())}>

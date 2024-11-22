@@ -1,4 +1,5 @@
-import { Text, TextInput, TouchableOpacity, ScrollView, Switch, View } from 'react-native';
+import React from 'react';
+import { Text, TouchableOpacity, ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useObservable } from '@legendapp/state/react';
 import { Plus, Sparkles, XCircle } from 'lucide-react-native';
@@ -14,7 +15,8 @@ import {
 } from 'src/store/finance/types';
 import DateTimePickerComponent from 'src/components/date.time';
 import useFinancialStore from 'src/store/finance/store';
-
+import { FormLabel } from 'src/components/finance/label';
+import { FormInput } from 'src/components/finance/input';
 
 const TransactionForm = observer(() => {
   const { getCategoriesByType, addTransaction } = useFinancialStore();
@@ -74,31 +76,40 @@ const TransactionForm = observer(() => {
     return transactionData.category.get().name === category;
   };
 
+  const getStatusColor = (status: TransactionStatus) => {
+    switch (status) {
+      case TransactionStatus.COMPLETED:
+        return 'bg-green-500';
+      case TransactionStatus.PENDING:
+        return 'bg-yellow-500';
+      case TransactionStatus.UPCOMING:
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
   return (
     <ScrollView className="flex-1 pt-4">
       <SafeAreaView className="bg-white dark:bg-gray-800 rounded-3xl shadow-lg p-4">
-        
-
         <View className='justify-between flex-row'>
-            <Text className="text-2xl font-rbold mb-6 text-gray-800 dark:text-gray-100">
-              New {transactionData.type.get().toLowerCase()} 
-              {transactionData.type.get() === TransactionType.EXPENSE ? ' 💸' : transactionData.type.get() === TransactionType.INCOME ? ' 💰' : ' 🔄'}
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/ai.schedule")}
-              className="bg-blue-500 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
-            >
-              <Sparkles size={20} color="white" />
-              <Text className="text-white font-rmedium ml-1">Try Ai</Text>
-            </TouchableOpacity>
-          </View>
+          <Text className="text-2xl font-rbold mb-6 text-gray-800 dark:text-gray-100">
+            New {transactionData.type.get().toLowerCase()} 
+            {transactionData.type.get() === TransactionType.EXPENSE ? ' 💸' : transactionData.type.get() === TransactionType.INCOME ? ' 💰' : ' 🔄'}
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/ai.transaction")}
+            className="bg-blue-500 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
+          >
+            <Sparkles size={20} color="white" />
+            <Text className="text-white font-rmedium ml-1">Try AI</Text>
+          </TouchableOpacity>
+        </View>
 
         <View className="space-y-6">
           {/* Transaction Type */}
           <View>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Transaction Type
-            </Text>
+            <FormLabel label="Transaction Type" />
             <View className="flex-row justify-between">
               {Object.values(TransactionType).map((type) => (
                 <TouchableOpacity
@@ -126,38 +137,28 @@ const TransactionForm = observer(() => {
 
           {/* Description */}
           <View>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Description
-            </Text>
-            <TextInput
+            <FormLabel label="Description" />
+            <FormInput
               value={transactionData.description.get()}
               onChangeText={(text) => transactionData.description.set(text)}
               placeholder="Enter description"
-              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700"
-              placeholderTextColor="#9CA3AF"
             />
           </View>
 
           {/* Amount */}
           <View>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Amount
-            </Text>
-            <TextInput
+            <FormLabel label="Amount" />
+            <FormInput
               value={transactionData.amount.get()}
               onChangeText={(text) => transactionData.amount.set(text.replace(/[^0-9.]/g, ''))}
               placeholder="Enter amount"
               keyboardType="numeric"
-              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700"
-              placeholderTextColor="#9CA3AF"
             />
           </View>
 
           {/* Category Selection */}
           <View>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Category
-            </Text>
+            <FormLabel label="Category" />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row flex-wrap -mx-1">
               {categories.map((category: Category) => (
                 <TouchableOpacity
@@ -183,22 +184,20 @@ const TransactionForm = observer(() => {
             </ScrollView>
           </View>
           
-            {/* Date and Time Selection */}
-            <DateTimePickerComponent
-              value={transactionData.createdAt.get()}
-              onDateChange={(selectedDate) => transactionData.createdAt.set(selectedDate)}
-              onTimeChange={(selectedDate) => transactionData.createdAt.set(selectedDate)}
-              showDatePicker={showDatePicker.get()}
-              showTimePicker={showTimePicker.get()}
-              setShowDatePicker={showDatePicker.set}
-              setShowTimePicker={showDatePicker.set}
-            />
+          {/* Date and Time Selection */}
+          <DateTimePickerComponent
+            value={transactionData.createdAt.get()}
+            onDateChange={(selectedDate) => transactionData.createdAt.set(selectedDate)}
+            onTimeChange={(selectedDate) => transactionData.createdAt.set(selectedDate)}
+            showDatePicker={showDatePicker.get()}
+            showTimePicker={showTimePicker.get()}
+            setShowDatePicker={showDatePicker.set}
+            setShowTimePicker={showDatePicker.set}
+          />
 
           {/* Status */}
           <View className='my-2'>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Status
-            </Text>
+            <FormLabel label="Status" />
             <View className="flex-row justify-between">
               {Object.values(TransactionStatus).map((status) => (
                 <TouchableOpacity
@@ -206,7 +205,7 @@ const TransactionForm = observer(() => {
                   onPress={() => transactionData.status.set(status)}
                   className={`flex-1 py-2 rounded-xl mr-2 ${
                     transactionData.status.get() === status
-                      ? 'bg-violet-500'
+                      ? getStatusColor(status)
                       : 'bg-gray-200 dark:bg-gray-700'
                   }`}
                 >
@@ -226,45 +225,34 @@ const TransactionForm = observer(() => {
 
           {/* Payment Method */}
           <View>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Payment Method
-            </Text>
-            <TextInput
+            <FormLabel label="Payment Method" />
+            <FormInput
               value={transactionData.paymentMethod.get()}
               onChangeText={(text) => transactionData.paymentMethod.set(text)}
               placeholder="Enter payment method"
-              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700"
-              placeholderTextColor="#9CA3AF"
             />
           </View>
 
           {/* Location */}
           <View>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Location
-            </Text>
-            <TextInput
+            <FormLabel label="Location" />
+            <FormInput
               value={transactionData.location.get()}
               onChangeText={(text) => transactionData.location.set(text)}
               placeholder="Enter location"
-              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700"
-              placeholderTextColor="#9CA3AF"
             />
           </View>
 
           {/* Tags */}
           <View>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Tags
-            </Text>
+            <FormLabel label="Tags" />
             <View className="flex-row items-center">
-              <TextInput
+              <FormInput
                 value={newTag.value.get()}
                 onChangeText={(text) => newTag.value.set(text)}
                 onSubmitEditing={addTag}
                 placeholder="Add tag"
-                className="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700"
-                placeholderTextColor="#9CA3AF"
+                className="flex-1"
               />
               <TouchableOpacity
                 onPress={addTag}
@@ -289,25 +277,19 @@ const TransactionForm = observer(() => {
 
           {/* Notes */}
           <View>
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-              Notes
-            </Text>
-            <TextInput
+            <FormLabel label="Notes" />
+            <FormInput
               value={transactionData.notes.get()}
               onChangeText={(text) => transactionData.notes.set(text)}
               placeholder="Enter notes"
               multiline
               numberOfLines={4}
-              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700"
-              placeholderTextColor="#9CA3AF"
             />
           </View>
 
           {/* Essential Toggle */}
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300">
-              Essential Transaction
-            </Text>
+            <FormLabel label="Essential Transaction" />
             <Switch
               value={transactionData.isEssential.get()}
               onValueChange={(value) => transactionData.isEssential.set(value)}
@@ -318,9 +300,7 @@ const TransactionForm = observer(() => {
 
           {/* Recurring Toggle */}
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300">
-              Recurring Transaction
-            </Text>
+            <FormLabel label="Recurring Transaction" />
             <Switch
               value={recurring.get()}
               onValueChange={(value) => recurring.set(value)}
@@ -332,9 +312,7 @@ const TransactionForm = observer(() => {
           {/* Recurrence Frequency (only show if recurring is true) */}
           {recurring.get() && (
             <View>
-              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-                Recurrence Frequency
-              </Text>
+              <FormLabel label="Recurrence Frequency" />
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row flex-wrap -mx-1">
                 {recurrenceOptions.map((frequency) => (
                   <TouchableOpacity
@@ -383,3 +361,4 @@ const TransactionForm = observer(() => {
 });
 
 export default TransactionForm;
+

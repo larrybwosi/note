@@ -3,25 +3,15 @@ import {
   View, Text, TouchableOpacity, Alert, Platform, ScrollView,  
   ActivityIndicator, KeyboardAvoidingView, useColorScheme,
 } from 'react-native';
-import { observer, Memo, Reactive } from '@legendapp/state/react';
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ChevronRight, UserCircle } from 'lucide-react-native';
+import { observer, Memo, Reactive, useObservable } from '@legendapp/state/react';
 import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
-import { 
-  Mail, 
-  Lock, 
-  User, 
-  Eye, 
-  EyeOff, 
-  ArrowRight, 
-  ChevronRight,
-  UserCircle
-} from 'lucide-react-native';
 import { authClient, handleGoogleSignIn } from 'src/utils/auth';
 import { FormData, THEME } from 'types';
-import { observable } from '@legendapp/state';
 
 const useAuthState = () => {
-  const state = observable({
+  const state = useObservable({
     formData: {
       email: '',
       password: '',
@@ -69,7 +59,7 @@ const validateForm = (formData: FormData, isSignIn: boolean) => {
   return newErrors;
 };
 
-// Optimized StyledInput component
+
 const StyledInput = observer(({ 
   icon, 
   error, 
@@ -94,13 +84,13 @@ const StyledInput = observer(({
           })}
         </View>
         <Reactive.TextInput
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          placeholderTextColor={theme.colors.textSecondary}
-          className={`
+          $value={value}
+          $onChangeText={onChangeText}
+          $placeholder={placeholder}
+          $secureTextEntry={secureTextEntry}
+          $keyboardType={keyboardType}
+          $placeholderTextColor={theme.colors.textSecondary}
+          $className={`
             w-full rounded-xl py-4 px-12 text-base font-aregular
             ${error ? "border-red-400 dark:border-red-500" : "border-gray-200/80 dark:border-gray-700/80"}
             bg-gray-50/90 dark:bg-gray-800/90
@@ -130,7 +120,7 @@ const StyledInput = observer(({
   );
 });
 
-// GradientButton component
+
 const GradientButton = observer(({
   onPress,
   isLoading,
@@ -165,7 +155,7 @@ const GradientButton = observer(({
   );
 });
 
-// AuthCard component
+
 const AuthCard = observer(({ children, title, subtitle }) => {
   const colorScheme = useColorScheme();
   const theme = THEME[colorScheme ?? 'light'];
@@ -193,11 +183,12 @@ const AuthCard = observer(({ children, title, subtitle }) => {
   );
 });
 
-// Main AuthScreen component
+
 const AuthScreen = observer(() => {
   const colorScheme = useColorScheme();
   const theme = THEME[colorScheme ?? 'light'];
   const state = useAuthState();
+
   
   const renders = useRef(0);
   console.log(`Auth Screen: ${++renders.current}`);
@@ -229,7 +220,7 @@ const AuthScreen = observer(() => {
     }
   }, []);
 
-  const handleInputChange = useCallback((key, value) => {
+  const handleInputChange = useCallback((key: keyof FormData, value: string) => {
     state.formData[key].set(value);
   }, []);
 
@@ -252,6 +243,13 @@ const AuthScreen = observer(() => {
     password: <Lock size={20} />,
     confirmPassword: <Lock size={20} />
   };
+
+  const handleTest =async()=>{
+    const res = await authClient.signIn.social({
+      provider:"google"
+    })
+    console.log(res)
+  }
 
   return (
     <KeyboardAvoidingView 
@@ -284,14 +282,15 @@ const AuthScreen = observer(() => {
                       {Object.entries(state.formData.peek()).map(([key, value]) => {
                         if (key === 'name' && state.isSignIn.get()) return null;
                         if (key === 'confirmPassword' && state.isSignIn.get()) return null;
-
+                        
                         return (
                           <StyledInput
                             key={key}
                             icon={iconMap[key as keyof typeof iconMap]}
                             placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
                             value={value}
-                            onChangeText={(text) => handleInputChange(key, text)}
+                            onChangeText={(text: string) => handleInputChange(key as keyof FormData, text)}
+                            //@ts-ignore
                             error={state.errors[key as keyof typeof state.errors].get()}
                             secureTextEntry={
                               key.includes('password') && 
@@ -305,6 +304,7 @@ const AuthScreen = observer(() => {
                             }
                             keyboardType={key === 'email' ? 'email-address' : 'default'}
                           />
+
                         );
                       })}
                     </>

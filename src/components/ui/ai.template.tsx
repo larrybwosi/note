@@ -3,7 +3,7 @@ import { useObservable, useComputed, observer, Reactive } from '@legendapp/state
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Observable, observable } from '@legendapp/state';
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 import Animated, { 
   FadeInDown, 
   FadeInUp, 
@@ -219,10 +219,10 @@ const PromptInput: React.FC<PromptInputProps> = ({
 };
 
 const ExamplePrompts: React.FC<{ store: any; prompts: string[]; promptStyle:any; theme:Theme }> = observer(({ store,  theme, prompts, promptStyle }) => {
-  const hasResult = useObservable(store.hasResult);
   const scrollX = useSharedValue(0);
+  const responses = useComputed(() => store.responses.get());
 
-  if (hasResult.get()) return null;
+  if (responses.get()) return null;
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
     scrollX.value = event.contentOffset.x;
@@ -334,9 +334,7 @@ const ResponsesList: React.FC<{
   itemComponentProps?: Record<string, any>;
  }> = observer(({ store, ItemComponent, itemComponentProps }) => {
   const responses = useComputed(() => store.responses.get());
-  const hasResult = useObservable(store.hasResult);
-  
-  if (!hasResult.get() || responses?.length === 0) return null;
+  if (responses?.length === 0) return null;
   
   return (
     <View className="pb-6">
@@ -350,6 +348,7 @@ const ResponsesList: React.FC<{
         <ItemComponent
           key={item.id?.get?.() || index}
           item={item.get?.() || item}
+          transaction={item.get?.() || item}
           {...itemComponentProps} 
         />
       ))}
@@ -377,6 +376,8 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
   const store = createStore(type);
   const selectedTheme = themes[theme];
 
+  const renders = useRef(0);
+  console.log(`Finance AI: ${++renders.current}`);
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
       <ScrollView>

@@ -33,19 +33,6 @@ export interface Insights {
   };
 }
 
-export interface Alert {
-  categoryId: string;
-  type: 'categoryOverspend' | 'upcomingBill' | 'savingsGoal' | 'unusualTransaction' | 'recurringTransaction';
-  message: string;
-  severity: 'low' | 'medium' | 'high';
-  date: string;
-  read: boolean;
-  metadata?: Record<string, any>;
-  currentSpending?: number;
-  budgetLimit?: number;
-  // percentage?: number;
-}
-
 
 export type PaymentFrequency = 'weekly' | 'biweekly' | 'monthly';
 export type CategoryType = 'income' | 'expense';
@@ -124,6 +111,70 @@ export interface SavingsGoal {
 }
 
 
+export interface IncomeExpenseSummary {
+  totalIncome: number;
+  totalExpenses: number;
+  netIncome: number;
+  incomeByCategory: Record<string, number>;
+  expensesByCategory: Record<string, number>;
+  savingsRate: number;
+}
+
+export interface MonthlyBreakdown {
+  month: string;
+  income: number;
+  expenses: number;
+  net: number;
+  categories: Record<string, number>;
+}
+
+
+export interface FinanceInsights {
+  guiltFreeBalance: number;
+  monthlySpendingByCategory: Record<string, number>;
+  savingsProgress: Record<string, number>;
+  projectedSavings: number;
+  unusualSpending: any[];
+  trends: {
+    monthly: Record<string, number>;
+    categoryTrends: Record<string, { trend: number; average: number }>;
+  };
+  monthlyIncome?: number;
+  monthlyExpenses?: number;
+}
+
+
+export interface FinanceMetadata {
+  lastUpdated: string;
+  version: string;
+  currency: string;
+  timezone: string;
+  incomeCategories: string[];
+  expenseCategories: string[];
+}
+
+export interface FinanceAlerts {
+  categoryOverspend: Alert[];
+  upcomingBills: Alert[];
+  savingsGoalProgress: Record<string, Alert>;
+  unusualTransactions: Alert[];
+  upcomingRecurringTransactions: Alert[];
+}
+
+
+export interface Alert {
+  categoryId: string;
+  type: 'categoryOverspend' | 'upcomingBill' | 'savingsGoal' | 'unusualTransaction' | 'recurringTransaction';
+  message: string;
+  severity: 'low' | 'medium' | 'high';
+  date: string;
+  read: boolean;
+  metadata?: Record<string, any>;
+  currentSpending?: number;
+  budgetLimit?: number;
+  // percentage?: number;
+}
+
 export interface FinanceStore {
   transactions: Record<string, Transaction>;
   categories: Record<string, Category>;
@@ -158,57 +209,6 @@ export interface FinanceStore {
     expenseCategories: string[];
   };
 }
-
-
-export interface IncomeExpenseSummary {
-  totalIncome: number;
-  totalExpenses: number;
-  netIncome: number;
-  incomeByCategory: Record<string, number>;
-  expensesByCategory: Record<string, number>;
-  savingsRate: number;
-}
-
-export interface MonthlyBreakdown {
-  month: string;
-  income: number;
-  expenses: number;
-  net: number;
-  categories: Record<string, number>;
-}
-
-
-export interface FinanceInsights {
-  guiltFreeBalance: number;
-  monthlySpendingByCategory: Record<string, number>;
-  savingsProgress: Record<string, number>;
-  projectedSavings: number;
-  unusualSpending: any[];
-  trends: {
-    monthly: Record<string, number>;
-    categoryTrends: Record<string, { trend: number; average: number }>;
-  };
-  monthlyIncome?: number;
-  monthlyExpenses?: number;
-}
-
-export interface FinanceAlerts {
-  categoryOverspend: Alert[];
-  upcomingBills: Alert[];
-  savingsGoalProgress: Record<string, Alert>;
-  unusualTransactions: Alert[];
-  upcomingRecurringTransactions: Alert[];
-}
-
-export interface FinanceMetadata {
-  lastUpdated: string;
-  version: string;
-  currency: string;
-  timezone: string;
-  incomeCategories: string[];
-  expenseCategories: string[];
-}
-
 
 export enum IncomeCategory {
   SALARY = 'SALARY',

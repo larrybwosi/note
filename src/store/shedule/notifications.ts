@@ -6,12 +6,19 @@ import notifee, {
   AndroidCategory,
   AndroidVisibility,
   RepeatFrequency,
+  AndroidAction,
+  Notification
 } from '@notifee/react-native';
-import { ScheduleItem } from './types';
 import { format, subMinutes, differenceInMinutes } from 'date-fns';
 import { scheduleStore } from './store';
+import {
+  ScheduleItem,
+  CreateRecurringNotificationProps,
+  PriorityLevel,
+  TaskType,
+} from './types';
 
-// Notification styling constants
+// Type-safe notification colors
 const NOTIFICATION_COLORS = {
   primary: '#2196F3',
   success: '#4CAF50',
@@ -20,24 +27,129 @@ const NOTIFICATION_COLORS = {
   info: '#00BCD4',
 } as const;
 
-const PRIORITY_COLORS = {
+type NotificationColor = typeof NOTIFICATION_COLORS[keyof typeof NOTIFICATION_COLORS];
+
+const PRIORITY_COLORS: Record<PriorityLevel, NotificationColor> = {
   Critical: NOTIFICATION_COLORS.error,
   High: NOTIFICATION_COLORS.warning,
   Medium: NOTIFICATION_COLORS.primary,
   Low: NOTIFICATION_COLORS.info,
-} as const;
+};
 
-const TASK_ICONS = {
+const TASK_ICONS: Record<TaskType, string> = {
   Work: '💼',
   Personal: '🏠',
   Health: '❤️',
   Learning: '📚',
   Social: '👥',
   Urgent: '⚡',
-} as const;
+};
 
+interface NotificationContent {
+  title: string;
+  body: string;
+  style: {
+    text: string;
+  };
+  actions?: AndroidAction[];
+}
 
-const getChannelId = (priority: ScheduleItem['priority']): string => {
+// Type-safe notification content configurations
+const NOTIFICATION_CONTENT: {
+  scheduleItem: (item: ScheduleItem) => NotificationContent;
+  reminder: (item: ScheduleItem) => NotificationContent;
+  completion: (item: ScheduleItem) => NotificationContent;
+  overdue: (item: ScheduleItem) => NotificationContent;
+  startTask: (item: ScheduleItem) => NotificationContent;
+} = {
+  scheduleItem: (item: ScheduleItem): NotificationContent => ({
+    title: `${TASK_ICONS[item.type]} ${item.title} - ${item.priority} Priority`,
+    body: `Starting in ${differenceInMinutes(item.startDate, new Date())} minutes`,
+    style: {
+      text: `📝 ${item.description}\n\n⏰ Start: ${format(item.startDate, 'MMM d, h:mm a')}\n⌛ Duration: ${item.duration} minutes\n📍 ${item.location || 'No location set'}\n🏷️ ${item.tags.join(', ') || 'No tags'}\n\nTap to view details or take action.`,
+    },
+    actions: [
+      { title: '▶️ Start Now', pressAction: { id: 'start' } },
+      { title: '⏭️ Postpone', pressAction: { id: 'postpone' } },
+      { title: '✅ Complete', pressAction: { id: 'complete' } },
+    ],
+  }),
+
+  reminder: (item: ScheduleItem): NotificationContent => ({
+    title: `⏰ Reminder: ${item.title} - Starting Soon`,
+    body: `Your ${item.priority} priority task begins in ${item.reminder} minutes`,
+    style: {
+      text: `🔔 Upcoming ${item.type.toLowerCase()} task:\n\n📝 ${item.description}\n⏰ Starts at ${format(item.startDate, 'h:mm a')}\n⌛ Duration: ${item.duration} minutes\n📍 ${item.location || 'No location set'}\n\nAre you ready to begin?`,
+    },
+    actions: [
+      { title: "👍 I'm Ready", pressAction: { id: 'acknowledge' } },
+      { title: '⏭️ Need More Time', pressAction: { id: 'postpone' } },
+    ],
+  }),
+
+  completion: (item: ScheduleItem): NotificationContent => {
+    const duration = item.actualDuration || item.estimatedDuration;
+    const efficiency = item.actualDuration
+      ? Math.round((item.estimatedDuration / item.actualDuration) * 100)
+      : 100;
+    return {
+      title: `🎉 Task Complete: ${item.title}`,
+      body: `Great job on finishing this ${item.priority} priority ${item.type.toLowerCase()} task!`,
+      style: {
+        text: `✨ Task completed successfully!\n\n⏱️ Actual Duration: ${duration} minutes\n📊 Efficiency: ${efficiency}%\n🎯 Estimated: ${item.estimatedDuration} minutes\n\n${efficiency > 100 ? '💪 You completed the task faster than estimated!' : efficiency === 100 ? '👍 You completed the task right on time!' : `💡 The task took ${Math.round((item.actualDuration! / item.estimatedDuration) * 100 - 100)}% longer than estimated.`}\n\nTap to add notes or review your performance.`,
+      },
+      actions: [
+        { title: '📝 Add Notes', pressAction: { id: 'add_notes' } },
+        { title: '📊 View Stats', pressAction: { id: 'view_stats' } },
+      ],
+    };
+  },
+
+  overdue: (item: ScheduleItem): NotificationContent => {
+    const overdueDuration = differenceInMinutes(new Date(), item.endDate);
+    return {
+      title: `⚠️ Overdue Alert: ${item.title}`,
+      body: `Urgent: This ${item.priority} priority task is ${Math.round(overdueDuration / 60)} hours overdue`,
+      style: {
+        text: `⚠️ Immediate attention required!\n\n📝 ${item.description}\n⏰ Was due: ${format(item.endDate, 'MMM d, h:mm a')}\n⚡ Priority: ${item.priority}\n⌛ Overdue by: ${Math.round(overdueDuration / 60)} hours\n\nPlease take action now to address this overdue task.`,
+      },
+      actions: [
+        { title: '▶️ Start Now', pressAction: { id: 'start' } },
+        { title: '📅 Reschedule', pressAction: { id: 'postpone' } },
+        { title: '❌ Cancel Task', pressAction: { id: 'cancel' } },
+      ],
+    };
+  },
+
+  startTask: (item: ScheduleItem): NotificationContent => ({
+    title: `🚀 Task Starting: ${item.title}`,
+    body: `Your ${item.priority} priority ${item.type.toLowerCase()} task is beginning now`,
+    style: {
+      text: `🚀 It's time to start your task!\n\n📝 ${item.description}\n⏰ Scheduled start: ${format(item.startDate, 'h:mm a')}\n⌛ Duration: ${item.duration} minutes\n📍 ${item.location || 'No location set'}\n\nAre you ready to begin? Tap to view task details or take action.`,
+    },
+    actions: [
+      { title: '👍 Start Now', pressAction: { id: 'start_now' } },
+      { title: '⏭️ Delay 15min', pressAction: { id: 'delay_15' } },
+      { title: '📅 Reschedule', pressAction: { id: 'reschedule' } },
+    ],
+  }),
+};
+
+interface CreateNotificationProps {
+  id: string;
+  content: NotificationContent;
+  channelId: string;
+  priority: PriorityLevel;
+  trigger?: TimestampTrigger;
+  type?: AndroidStyle;
+  category?: AndroidCategory;
+  importance?: AndroidImportance;
+  visibility?: AndroidVisibility;
+  data?: Record<string, string>;
+}
+
+// Utility functions
+const getChannelId = (priority: PriorityLevel): string => {
   switch (priority) {
     case 'Critical':
       return 'schedule_urgent';
@@ -48,7 +160,49 @@ const getChannelId = (priority: ScheduleItem['priority']): string => {
   }
 };
 
-// Enhanced notification for scheduled items with more informative content
+// Core notification creation function
+const createNotification = async ({
+  id,
+  content,
+  channelId,
+  priority,
+  trigger,
+  type = AndroidStyle.BIGTEXT,
+  category = AndroidCategory.EVENT,
+  importance = AndroidImportance.HIGH,
+  visibility = AndroidVisibility.PUBLIC,
+  data = {},
+}: CreateNotificationProps): Promise<string> => {
+  const notification: Notification = {
+    id,
+    title: content.title,
+    body: content.body,
+    android: {
+      channelId,
+      importance,
+      style: {
+        type: AndroidStyle.BIGTEXT,
+        text: content.style.text,
+      },
+      color: PRIORITY_COLORS[priority],
+      category,
+      visibility,
+      pressAction: {
+        id: 'default',
+        launchActivity: 'default',
+      },
+      actions: content.actions,
+      smallIcon: 'ic_notification',
+    },
+    data,
+  };
+
+  return trigger
+    ? await notifee.createTriggerNotification(notification, trigger)
+    : await notifee.displayNotification(notification);
+};
+
+// Notification handler functions
 export const scheduleItemNotification = async (item: ScheduleItem): Promise<string> => {
   const trigger: TimestampTrigger = {
     type: TriggerType.TIMESTAMP,
@@ -56,49 +210,17 @@ export const scheduleItemNotification = async (item: ScheduleItem): Promise<stri
     alarmManager: true,
   };
 
-  const notificationId = await notifee.createTriggerNotification(
-    {
-      id: `item_${item.id}`,
-      title: `${TASK_ICONS[item.type]} ${item.title} - ${item.priority} Priority`,
-      body: `Starting in ${differenceInMinutes(item.startDate, new Date())} minutes`,
-      android: {
-        channelId: getChannelId(item.priority),
-        importance: AndroidImportance.HIGH,
-        style: {
-          type: AndroidStyle.BIGTEXT,
-          text: `📝 ${item.description}\n\n⏰ Start: ${format(item.startDate, 'MMM d, h:mm a')}\n⌛ Duration: ${item.estimatedDuration} minutes\n📍 ${item.location || 'No location set'}\n🏷️ ${item.tags.join(', ') || 'No tags'}\n\nTap to view details or take action.`,
-        },
-        color: PRIORITY_COLORS[item.priority],
-        category: AndroidCategory.EVENT,
-        visibility: AndroidVisibility.PUBLIC,
-        pressAction: {
-          id: 'default',
-          launchActivity: 'default',
-        },
-        actions: [
-          {
-            title: '▶️ Start Now',
-            pressAction: { id: 'start' },
-          },
-          {
-            title: '⏭️ Postpone',
-            pressAction: { id: 'postpone' },
-          },
-          {
-            title: '✅ Complete',
-            pressAction: { id: 'complete' },
-          },
-        ],
-        smallIcon: 'ic_notification',
-        largeIcon: `task_icon_${item.type.toLowerCase()}`,
-      },
-      data: {
-        itemId: item.id.toString(),
-        type: 'schedule_item',
-      },
+  const notificationId = await createNotification({
+    id: `item_${item.id}`,
+    content: NOTIFICATION_CONTENT.scheduleItem(item),
+    channelId: getChannelId(item.priority),
+    priority: item.priority,
+    trigger,
+    data: {
+      itemId: item.id.toString(),
+      type: 'schedule_item',
     },
-    trigger
-  );
+  });
 
   if (item.reminder) {
     await scheduleReminder(item);
@@ -107,118 +229,48 @@ export const scheduleItemNotification = async (item: ScheduleItem): Promise<stri
   return notificationId;
 };
 
-// Enhanced reminder notification with more context
-const scheduleReminder = async (item: ScheduleItem) => {
-  const reminderTime = subMinutes(item.startDate, item.reminder!);
+const scheduleReminder = async (item: ScheduleItem): Promise<void> => {
+  if (!item.reminder) return;
+
+  const reminderTime = subMinutes(item.startDate, item.reminder);
   const trigger: TimestampTrigger = {
     type: TriggerType.TIMESTAMP,
     timestamp: reminderTime.getTime(),
     alarmManager: true,
   };
 
-  await notifee.createTriggerNotification(
-    {
-      id: `reminder_${item.id}`,
-      title: `⏰ Reminder: ${item.title} - Starting Soon`,
-      body: `Your ${item.priority} priority task begins in ${item.reminder} minutes`,
-      android: {
-        channelId: 'schedule_reminders',
-        style: {
-          type: AndroidStyle.BIGTEXT,
-          text: `🔔 Upcoming ${item.type.toLowerCase()} task:\n\n📝 ${item.description}\n⏰ Starts at ${format(item.startDate, 'h:mm a')}\n⌛ Duration: ${item.estimatedDuration} minutes\n📍 ${item.location || 'No location set'}\n\nAre you ready to begin?`,
-        },
-        color: PRIORITY_COLORS[item.priority],
-        category: AndroidCategory.REMINDER,
-        visibility: AndroidVisibility.PUBLIC,
-        actions: [
-          {
-            title: "👍 I'm Ready",
-            pressAction: { id: 'acknowledge' },
-          },
-          {
-            title: '⏭️ Need More Time',
-            pressAction: { id: 'postpone' },
-          },
-        ],
-      },
-      data: {
-        itemId: item.id.toString(),
-        type: 'reminder',
-      },
-    },
-    trigger
-  );
-};
-
-const cancelItemNotifications = async (itemId: number) => {
-  await notifee.cancelNotification(`item_${itemId}`);
-  await notifee.cancelNotification(`reminder_${itemId}`);
-};
-
-export const showCompletionNotification = async (item: ScheduleItem): Promise<void> => {
-  await cancelItemNotifications(item.id);
-
-  const duration = item.actualDuration || item.estimatedDuration;
-  const efficiency = item.actualDuration
-    ? Math.round((item.estimatedDuration / item.actualDuration) * 100)
-    : 100;
-
-  await notifee.displayNotification({
-    title: `🎉 Task Complete: ${item.title}`,
-    body: `Great job on finishing this ${item.priority} priority ${item.type.toLowerCase()} task!`,
-    android: {
-      channelId: 'schedule_default',
-      style: {
-        type: AndroidStyle.BIGTEXT,
-        text: `✨ Task completed successfully!\n\n⏱️ Actual Duration: ${duration} minutes\n📊 Efficiency: ${efficiency}%\n🎯 Estimated: ${item.estimatedDuration} minutes\n\n${efficiency > 100 ? '💪 You completed the task faster than estimated!' : efficiency === 100 ? '👍 You completed the task right on time!' : `💡 The task took ${Math.round((item.actualDuration! / item.estimatedDuration) * 100 - 100)}% longer than estimated.`}\n\nTap to add notes or review your performance.`,
-      },
-      color: NOTIFICATION_COLORS.success,
-      category: AndroidCategory.STATUS,
-      visibility: AndroidVisibility.PUBLIC,
-      actions: [
-        {
-          title: '📝 Add Notes',
-          pressAction: { id: 'add_notes' },
-        },
-        {
-          title: '📊 View Stats',
-          pressAction: { id: 'view_stats' },
-        },
-      ],
+  await createNotification({
+    id: `reminder_${item.id}`,
+    content: NOTIFICATION_CONTENT.reminder(item),
+    channelId: 'schedule_reminders',
+    priority: item.priority,
+    trigger,
+    category: AndroidCategory.REMINDER,
+    data: {
+      itemId: item.id.toString(),
+      type: 'reminder',
     },
   });
 };
 
-export const showOverdueNotification = async (item: ScheduleItem): Promise<void> => {
-  const overdueDuration = differenceInMinutes(new Date(), item.endDate);
+export const showCompletionNotification = async (item: ScheduleItem): Promise<void> => {
+  await cancelItemNotifications(item.id);
+  await createNotification({
+    id: `completion_${item.id}`,
+    content: NOTIFICATION_CONTENT.completion(item),
+    channelId: 'schedule_default',
+    priority: item.priority,
+    category: AndroidCategory.STATUS,
+  });
+};
 
-  await notifee.displayNotification({
-    title: `⚠️ Overdue Alert: ${item.title}`,
-    body: `Urgent: This ${item.priority} priority task is ${Math.round(overdueDuration / 60)} hours overdue`,
-    android: {
-      channelId: getChannelId(item.priority),
-      style: {
-        type: AndroidStyle.BIGTEXT,
-        text: `⚠️ Immediate attention required!\n\n📝 ${item.description}\n⏰ Was due: ${format(item.endDate, 'MMM d, h:mm a')}\n⚡ Priority: ${item.priority}\n⌛ Overdue by: ${Math.round(overdueDuration / 60)} hours\n\nPlease take action now to address this overdue task.`,
-      },
-      color: NOTIFICATION_COLORS.error,
-      category: AndroidCategory.ALARM,
-      visibility: AndroidVisibility.PUBLIC,
-      actions: [
-        {
-          title: '▶️ Start Now',
-          pressAction: { id: 'start' },
-        },
-        {
-          title: '📅 Reschedule',
-          pressAction: { id: 'postpone' },
-        },
-        {
-          title: '❌ Cancel Task',
-          pressAction: { id: 'cancel' },
-        },
-      ],
-    },
+export const showOverdueNotification = async (item: ScheduleItem): Promise<void> => {
+  await createNotification({
+    id: `overdue_${item.id}`,
+    content: NOTIFICATION_CONTENT.overdue(item),
+    channelId: getChannelId(item.priority),
+    priority: item.priority,
+    category: AndroidCategory.ALARM,
     data: {
       itemId: item.id.toString(),
       type: 'overdue',
@@ -226,34 +278,13 @@ export const showOverdueNotification = async (item: ScheduleItem): Promise<void>
   });
 };
 
-const showStartNotification = async (item: ScheduleItem) => {
-  await notifee.displayNotification({
-    title: `🚀 Task Starting: ${item.title}`,
-    body: `Your ${item.priority} priority ${item.type.toLowerCase()} task is beginning now`,
-    android: {
-      channelId: getChannelId(item.priority),
-      style: {
-        type: AndroidStyle.BIGTEXT,
-        text: `🚀 It's time to start your task!\n\n📝 ${item.description}\n⏰ Scheduled start: ${format(item.startDate, 'h:mm a')}\n⌛ Estimated duration: ${item.estimatedDuration} minutes\n📍 ${item.location || 'No location set'}\n\nAre you ready to begin? Tap to view task details or take action.`,
-      },
-      color: PRIORITY_COLORS[item.priority],
-      category: AndroidCategory.REMINDER,
-      visibility: AndroidVisibility.PUBLIC,
-      actions: [
-        {
-          title: '👍 Start Now',
-          pressAction: { id: 'start_now' },
-        },
-        {
-          title: '⏭️ Delay 15min',
-          pressAction: { id: 'delay_15' },
-        },
-        {
-          title: '📅 Reschedule',
-          pressAction: { id: 'reschedule' },
-        },
-      ],
-    },
+const showStartNotification = async (item: ScheduleItem): Promise<void> => {
+  await createNotification({
+    id: `start_${item.id}`,
+    content: NOTIFICATION_CONTENT.startTask(item),
+    channelId: getChannelId(item.priority),
+    priority: item.priority,
+    category: AndroidCategory.REMINDER,
     data: {
       itemId: item.id.toString(),
       type: 'start',
@@ -261,14 +292,24 @@ const showStartNotification = async (item: ScheduleItem) => {
   });
 };
 
-// New function to create a recurring notification
-interface CreateRecurringNotificationProps {
-  title: string;
-  body: string;
-  frequency: 'daily' | 'weekly';
-  time: Date;
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
-}
+const cancelItemNotifications = async (itemId: number): Promise<void> => {
+  await notifee.cancelNotification(`item_${itemId}`);
+  await notifee.cancelNotification(`reminder_${itemId}`);
+};
+
+const showTaskStartNotification = async (itemId: number): Promise<void> => {
+  const item = scheduleStore.get().items.find((i) => i.id === itemId);
+  if (!item) return;
+  await showStartNotification(item);
+  await showOverdueNotification(item);
+};
+
+const updatePostponedItemNotifications = async (itemId: number): Promise<void> => {
+  const item = scheduleStore.get().items.find((i) => i.id === itemId);
+  if (!item) return;
+  await scheduleItemNotification(item);
+};
+
 export const createRecurringNotification = async ({
   time,
   title,
@@ -276,49 +317,24 @@ export const createRecurringNotification = async ({
   frequency,
   priority,
 }: CreateRecurringNotificationProps): Promise<string> => {
-  let trigger: TimestampTrigger = {
+  const trigger: TimestampTrigger = {
     type: TriggerType.TIMESTAMP,
     timestamp: time.getTime(),
-    repeatFrequency:
-      frequency === 'daily'
-        ? RepeatFrequency.DAILY
-        : frequency === 'weekly'
-          ? RepeatFrequency.WEEKLY
-          : RepeatFrequency.WEEKLY,
+    repeatFrequency: frequency === 'daily' ? RepeatFrequency.DAILY : RepeatFrequency.WEEKLY,
     alarmManager: true,
   };
 
-  const notificationId = await notifee.createTriggerNotification(
-    {
+  return await createNotification({
+    id: `recurring_${Date.now()}`,
+    content: {
       title,
       body,
-      android: {
-        channelId: getChannelId(priority),
-        importance: AndroidImportance.HIGH,
-        pressAction: {
-          id: 'default',
-        },
-      },
+      style: { text: body },
     },
-    trigger
-  );
-
-  return notificationId;
-};
-
-const showTaskStartNotification = async (itemId: number) => {
-  const item = scheduleStore.get().items.find((i) => i.id === itemId);
-  if (!item) return;
-  await showStartNotification(item);
-  await showOverdueNotification(item);
-};
-
-
-
-const updatePostponedItemNotifications = async (itemId: number) => {
-  await updatePostponedItemNotifications(itemId);
-  const item = scheduleStore.get().items.find((i) => i.id === itemId);
-  await showOverdueNotification(item!);
+    channelId: getChannelId(priority),
+    priority,
+    trigger,
+  });
 };
 
 export const notificationHandlers = {
@@ -331,8 +347,7 @@ export const notificationHandlers = {
   createRecurring: createRecurringNotification,
 };
 
-// Example usage of the new recurring notification function
-export const setupDailyReminder = async () => {
+export const setupDailyReminder = async (): Promise<void> => {
   const reminderTime = new Date();
   reminderTime.setHours(9, 0, 0, 0); // Set to 9:00 AM
 

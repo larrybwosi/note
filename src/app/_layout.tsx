@@ -4,10 +4,12 @@ import { enableReactTracking } from '@legendapp/state/config/enableReactTracking
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {KeyboardProvider} from 'react-native-keyboard-controller'
 import { colorScheme as colorSchemeNW } from 'nativewind';
 import { SplashScreen, Stack } from 'expo-router';
 import { ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
+
 import ModalProvider from 'src/components/modals/provider';
 import { customFontsToLoad } from '@/theme';
 import './global.css';
@@ -48,6 +50,7 @@ export default function Root() {
       <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
         <SafeAreaProvider>
           <ModalProvider>
+            <KeyboardProvider>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="create.schedule" options={{ headerShown: false }} />
@@ -60,6 +63,7 @@ export default function Root() {
               <Stack.Screen name="other" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
             </Stack>
+            </KeyboardProvider>
           </ModalProvider>
         </SafeAreaProvider>
       </ThemeProvider>

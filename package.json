@@ -32,7 +32,6 @@
     "prebuild:clean": "npx expo prebuild --clean"
   },
   "dependencies": {
-    "@expo/vector-icons": "^14.0.4",
     "@legendapp/state": "3.0.0-beta.16",
     "@notifee/react-native": "^9.1.2",
     "@react-native-community/datetimepicker": "8.0.1",
@@ -44,7 +43,6 @@
     "better-auth": "^0.8.6-beta.3",
     "date-fns": "^4.1.0",
     "expo": "^51.0.38",
-    "expo-constants": "16.0.2",
     "expo-dev-client": "^4.0.29",
     "expo-font": "^12.0.10",
     "expo-linear-gradient": "^13.0.2",
@@ -58,7 +56,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-native": "0.74.5",
-    "react-native-calendars": "^1.1307.0",
     "react-native-gesture-handler": "^2.20.2",
     "react-native-keyboard-controller": "^1.12.7",
     "react-native-markdown-display": "^7.0.2",

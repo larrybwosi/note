@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
 import Animated, { 
   FadeIn, 
@@ -10,7 +9,6 @@ import Animated, {
 import { Bold, Italic, Underline, BookOpen, Palette } from 'lucide-react-native';
 
 interface ToolbarProps {
-  handleTextFormat: (format: 'bold' | 'italic' | 'underline' | 'highlight', value?: string) => void;
   setShowReferenceModal: (show: boolean) => void;
 }
 
@@ -18,7 +16,6 @@ const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpaci
 
 
 const Toolbar: React.FC<ToolbarProps> = ({
-  handleTextFormat,
   setShowReferenceModal,
 }) => {
   const toolbarScale = useSharedValue(1);
@@ -35,6 +32,16 @@ const Toolbar: React.FC<ToolbarProps> = ({
       transform: [{ scale: withSpring(buttonScale.value, { damping: 15, stiffness: 150 }) }],
     };
   });
+
+  
+  const handleTextFormat = (
+    format: 'bold' | 'italic' | 'underline' | 'highlight',
+    value?: string
+  ) => {
+    // const currentText = state.note.content.get();
+    // const { start, end } = state.selectedText.get();
+    // Add your text formatting logic here
+  };
 
   const handlePress = (format: 'bold' | 'italic' | 'underline') => {
     buttonScale.value = withTiming(0.9, { duration: 50, });
@@ -67,7 +74,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
             style={[buttonAnimatedStyle]}
             className="p-3 rounded-xl bg-gray-100 mr-1 dark:bg-gray-700"
           >
-            <Icon size={24} color="#4B5563" className="dark:text-gray-300" />
+            <Icon size={24} color="gray" className="dark:text-gray-300" />
           </AnimatedTouchableOpacity>
         ))}
 

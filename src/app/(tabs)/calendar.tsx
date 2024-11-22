@@ -10,7 +10,6 @@ import { useInterval } from 'usehooks-ts';
 import { router } from 'expo-router';
 import { useCallback } from 'react';
 
-import { markCompleted } from 'src/store/shedule/actions';
 import TasksList from 'src/components/schedule.item';
 import { scheduleStore } from 'src/store/shedule/store';
 
@@ -92,12 +91,7 @@ const CalendarApp = observer(function CalendarApp() {
       }))
     );
   }, []);
-
-
-  const handleCompleteItem = useCallback((id: number) => {
-    markCompleted(id);
-  }, []);
-
+  
   useInterval(() => {
     currentTime.set(new Date());
     updateCountdowns();

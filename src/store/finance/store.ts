@@ -76,6 +76,7 @@ const useFinancialStore = () => {
     updateMonthlyIncome: budgetService.updateMonthlyIncome,
     addSavingsGoal: budgetService.addSavingsGoal,
     updateSavingsProgress: budgetService.updateSavingsProgress,
+    getSavingsProgress: budgetService.getSavingsProgress,
 
     // Insights & Analytics
     updateInsights: insightService.updateInsights,

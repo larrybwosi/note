@@ -1,19 +1,27 @@
 import { observable } from '@legendapp/state';
 import { Activity, BadgeDollarSign, BookOpenCheck, CalendarDays, Clock, FileDown, Star, Sun } from 'lucide-react-native';
 
-const motivationalQuotes = [
+const MOTIVATIONAL_QUOTES = [
   {
-    quote: 'Success is not final, failure is not fatal: it is the courage to continue that counts.',
-    author: 'Winston Churchill',
+    quote: "Every morning we are born again. What we do today matters most.",
+    author: "Buddha"
   },
   {
-    quote: 'The only way to do great work is to love what you do.',
-    author: 'Steve Jobs',
+    quote: "Believe you can and you're halfway there.",
+    author: "Theodore Roosevelt"
   },
   {
-    quote: "Your time is limited, don't waste it living someone else's life.",
-    author: 'Steve Jobs',
+    quote: "The only way to do great work is to love what you do.",
+    author: "Steve Jobs"
   },
+  {
+    quote: "Your potential is the sum of all the possibilities God has for your life.",
+    author: "Joel Osteen"
+  },
+  {
+    quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    author: "Winston Churchill"
+  }
 ];
 
 const quickActions = [
@@ -102,4 +110,4 @@ const homeState = observable({
   },
 });
 
-export {motivationalQuotes, quickActions, homeState};
+export {MOTIVATIONAL_QUOTES, quickActions, homeState};

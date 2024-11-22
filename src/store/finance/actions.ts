@@ -62,9 +62,6 @@ export const useFinanceStore = () => {
   const addTransaction = (
     transaction: Omit<Transaction, 'id' | 'date' | 'time' | 'status' | 'category'>
   ) => {
-    // if (!isCategoryValid(transaction.categoryId, store.get())) {
-    //   throw new Error(`Invalid category ID: ${transaction.categoryId}`);
-    // }
 
     const newTransaction = createTransaction(transaction);
     console.log(newTransaction);
@@ -80,7 +77,6 @@ export const useFinanceStore = () => {
 
   const getTransactions = (date?: Date) => getMonthlyTransactions(store.transactions.get(), date);
 
-  // Category Management
   const addCustomCategory = (categoryData: Omit<Category, 'id' | 'isDefault' | 'isArchived'>) => {
     const newCategory = createCategory(categoryData);
     store.categories.set({
@@ -126,7 +122,6 @@ export const useFinanceStore = () => {
     store.categories.set(remaining);
   };
 
-  // Reporting & Analytics
   const getIncomeSummary = (date: Date = new Date()) =>
     Object.values(IncomeCategory).reduce(
       (summary, group) => ({
@@ -156,11 +151,7 @@ export const useFinanceStore = () => {
   };
 
   const calculateAllocations = () => calculateBudgetAllocations(store.budgetConfig.get());
-
-  const totalIncome = () => store.budgetConfig.get().monthlyIncome;
-  const currentBalance = () => store.insights.get().guiltFreeBalance;
-
-
+  
   return {
     store,
     // Transaction Management

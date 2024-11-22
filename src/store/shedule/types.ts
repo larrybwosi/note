@@ -57,6 +57,14 @@ export interface ScheduleItem {
   countdown?: number;
 }
 
+export interface CreateRecurringNotificationProps {
+  title: string;
+  body: string;
+  frequency: 'daily' | 'weekly';
+  time: Date;
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+}
+
 export interface ScheduleStore {
   currentDate: Date;
   currentTime: string;

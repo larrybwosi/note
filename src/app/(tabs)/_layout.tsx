@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import {Activity, Wallet2, Calendar, StickyNote, User, CalendarDays, Wallet} from 'lucide-react-native';
+import {Activity, Wallet2, Calendar, StickyNote, User, CalendarDays, Wallet, FileText} from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -47,7 +47,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="note"
         options={{
-          tabBarIcon: ({ color, size }) => <StickyNote size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <FileText size={size} color={color} />,
           tabBarLabel: 'Notes',
         }}
       />

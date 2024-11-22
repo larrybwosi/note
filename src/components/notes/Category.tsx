@@ -1,6 +1,5 @@
 import { useRef } from 'react';
 import { ScrollView, Text, View, Dimensions, TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { 
   useAnimatedReaction,
   useAnimatedStyle, 
@@ -8,12 +7,13 @@ import Animated, {
   interpolateColor,
   useSharedValue,
 } from 'react-native-reanimated';
-import { CATEGORIES } from 'src/store/notes/types';
+import { Category } from 'src/store/notes/types';
+import { categories } from 'src/store/notes/data';
 
 
 interface CategorySelectorProps {
-  activeCategory: string;
-  setActiveCategory: (id: string) => void;
+  activeCategory: Category;
+  setActiveCategory: (id: Category) => void;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -54,15 +54,15 @@ const CategoryItem = ({ category, isActive, onPress }: any) => {
     borderColor: active.value ? 'transparent' : '#E5E7EB',
   }), [category.color]);
 
+  const Icon = category.icon
   return (
     <AnimatedTouchable
       onPress={onPress}
       className="mr-3 py-3 px-4 rounded-2xl flex-row items-center"
       style={[{shadowOffset: { width: 0, height: 4 }},animatedStyle]}
     >
-      <MaterialIcons
-        name={category.icon as any}
-        size={20}
+      <Icon
+        size={18}
         color={isActive ? 'white' : category.color || '#6B7280'}
         style={{ marginRight: 8 }}
       />
@@ -94,7 +94,7 @@ const CategorySelector = ({
   };
 
   
-  const handleCategorySelect = (id: string, index: number) => {
+  const handleCategorySelect = (id: Category, index: number) => {
     setActiveCategory(id);
     scrollToCategory(index);
   };
@@ -115,12 +115,12 @@ const CategorySelector = ({
         snapToInterval={ITEM_WIDTH}
         contentContainerStyle={{ paddingEnd: 16 }}
       >
-        {CATEGORIES.map((category, index) => (
+        {categories.map((category, index) => (
           <CategoryItem
             key={category.id}
             category={category}
-            isActive={activeCategory === category.id}
-            onPress={() => handleCategorySelect(category.id, index)}
+            isActive={activeCategory === category}
+            onPress={() => handleCategorySelect(category, index)}
           />
         ))}
       </ScrollView>

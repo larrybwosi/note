@@ -6,23 +6,11 @@ import Animated, {
   FadeIn,
   FadeInDown,
   SlideInRight,
-  useAnimatedStyle,
-  withSpring
 } from 'react-native-reanimated';
-import { 
-  Book, 
-  Link, 
-  Video, 
-  Newspaper,
-  Bookmark,
-  BookmarkCheck,
-  Calendar,
-  ArrowLeft,
-  ExternalLink
-} from 'lucide-react-native';
+import { Book, Link, Video, Newspaper, Bookmark, BookmarkCheck, Calendar, ArrowLeft, ExternalLink } from 'lucide-react-native';
 import { format } from 'date-fns';
-import { Note } from 'src/store/notes/types';
-// import Markdown from 'react-native-markdown-display';
+import { Note, Reference as ReferenceType } from 'src/store/notes/types';
+import Markdown from 'react-native-markdown-display';
 
 interface NoteViewerProps {
   note: Note;
@@ -30,7 +18,7 @@ interface NoteViewerProps {
   onToggleBookmark: (id: string) => void;
 }
 
-const ReferenceIcon = ({ type }: { type: Reference['type'] }) => {
+const ReferenceIcon = ({ type }: { type: ReferenceType['type'] }) => {
   switch (type) {
     case 'book':
       return <Book size={18} color="#6366F1" />;
@@ -45,7 +33,7 @@ const ReferenceIcon = ({ type }: { type: Reference['type'] }) => {
   }
 };
 
-const Reference: React.FC<{ reference: Reference }> = ({ reference }) => {
+const Reference: React.FC<{ reference: ReferenceType }> = ({ reference }) => {
   const handlePress = () => {
     if (reference.url) {
       Linking.openURL(reference.url);

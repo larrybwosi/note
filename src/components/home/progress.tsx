@@ -9,17 +9,15 @@ import Animated, {
   withDelay,
   FadeIn,
 } from 'react-native-reanimated';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Flame } from 'lucide-react-native';
+import { CheckCheck, Flame, HeartPulse, Wallet2Icon, BookOpenCheckIcon, TrendingUp, TrendingDown, X, Settings2Icon } from 'lucide-react-native';
 
-// Enhanced progress data with more realistic and engaging content
 const progressData = [
   {
     title: 'Daily Tasks',
     progress: 0.8,
     color: '#FF6B6B',
     description: '12 of 15 tasks completed today',
-    icon: 'checkmark-done-outline',
+    icon: CheckCheck,
     details: {
       completed: ['Team meeting', 'Project review', 'Email responses'],
       pending: ['Final report', 'Client call'],
@@ -32,7 +30,7 @@ const progressData = [
     progress: 0.65,
     color: '#45B7D1',
     description: '6,500 of 10,000 steps',
-    icon: 'fitness-outline',
+    icon: HeartPulse,
     details: {
       calories: 420,
       duration: '45 mins',
@@ -46,7 +44,7 @@ const progressData = [
     progress: 0.7,
     color: '#96CEB4',
     description: '$1,400 saved of $2,000 target',
-    icon: 'wallet-outline',
+    icon: Wallet2Icon,
     details: {
       saved: 1400,
       target: 2000,
@@ -60,7 +58,7 @@ const progressData = [
     progress: 0.45,
     color: '#FFB347',
     description: '3 of 7 chapters completed',
-    icon: 'book-outline',
+    icon: BookOpenCheckIcon,
     details: {
       course: 'React Native Advanced',
       timeSpent: '2.5 hours',
@@ -119,12 +117,12 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ progress, color, animate = tr
 };
 
 const TrendIndicator = ({ trend }: { trend: string }) => {
-  const iconName = trend === 'up' ? 'trending-up' : trend === 'down' ? 'trending-down' : 'remove';
+  const Icon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : X;
   const color = trend === 'up' ? '#22C55E' : trend === 'down' ? '#EF4444' : '#6B7280';
   
   return (
     <View className={`flex-row items-center ${Platform.select({ ios: 'py-0.5', android: 'py-1' })}`}>
-      <Ionicons name={iconName} size={16} color={color} />
+      <Icon size={16} color={color} />
       <Text style={{ color }} className="ml-1 text-xs font-rmedium">
         {trend === 'up' ? 'Improving' : trend === 'down' ? 'Declining' : 'Stable'}
       </Text>
@@ -133,6 +131,7 @@ const TrendIndicator = ({ trend }: { trend: string }) => {
 };
 
 const ProgressCard = ({ item, index }: { item: any; index: number }) => {
+  const Icon = item.icon
   return (
     <Animated.View
       entering={FadeInRight.delay(index * 150).springify()}
@@ -144,7 +143,7 @@ const ProgressCard = ({ item, index }: { item: any; index: number }) => {
             className="w-10 h-10 rounded-full items-center justify-center mr-3"
             style={{ backgroundColor: `${item.color}15` }}
           >
-            <Ionicons name={item.icon as any} size={24} color={item.color} />
+            <Icon size={24} color={item.color} />
           </View>
           <View className="flex-1">
             <Text className="text-lg font-abold text-gray-800 dark:text-white">
@@ -206,7 +205,7 @@ const Progress = () => {
           <TouchableOpacity
             className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center"
           >
-            <Ionicons name="options-outline" size={20} color="#6B7280" />
+            <Settings2Icon size={20} color="#6B7280" />
           </TouchableOpacity>
         </View>
 

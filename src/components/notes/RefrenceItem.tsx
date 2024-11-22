@@ -1,34 +1,37 @@
-import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { Reference } from './ts';
-import { BaseReference } from 'src/store/notes/types';
+import { Reference } from 'src/store/notes/types';
+import { BookCheck, BookmarkCheck, FilePenLine, Globe2, Video } from 'lucide-react-native';
 
 interface ReferenceItemProps {
-  reference: BaseReference;
+  reference: Reference;
+}
+
+interface ReferencesProps {
+  references: Reference[];
 }
 
 export const ReferenceItem: React.FC<ReferenceItemProps> = ({ reference }) => {
   const getIcon = (type: Reference['type']) => {
     switch (type) {
       case 'book':
-        return 'book';
+        return BookCheck;
       case 'website':
-        return 'globe';
+        return Globe2;
       case 'article':
-        return 'file-alt';
+        return FilePenLine;
       case 'video':
-        return 'video';
+        return Video;
       default:
-        return 'bookmark';
+        return BookmarkCheck;
     }
   };
+
+  const Icon = getIcon(reference.type)
 
   return (
     <View className="bg-gray-100 rounded-lg p-3 mb-2">
       <View className="flex-row items-center">
-        <FontAwesome5
-          name={getIcon(reference.type)}
+        <Icon
           size={16}
           color="#374151"
           style={{ marginRight: 8 }}
@@ -58,4 +61,13 @@ export const ReferenceItem: React.FC<ReferenceItemProps> = ({ reference }) => {
   );
 };
 
-export default ReferenceItem;
+const References = ({ references }: ReferencesProps) => (
+  <View className="mb-4">
+    <Text className="text-lg font-bold mb-2">References</Text>
+    {references.map((ref, index) => (
+      <ReferenceItem key={index} reference={ref} />
+    ))}
+  </View>
+);
+
+export default References;

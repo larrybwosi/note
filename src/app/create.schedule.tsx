@@ -1,14 +1,14 @@
-import { TextInput, TouchableOpacity, View,Text, ScrollView } from 'react-native';
+import { TouchableOpacity, View,Text, ScrollView, TextInput } from 'react-native';
 import Animated, { SlideInRight, SlideOutLeft } from 'react-native-reanimated';
-import { observer, useObservable } from '@legendapp/state/react';
+import { observer, Reactive, useObservable } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FileTextIcon, Sparkles, Tag } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 import { PRIORITY_LEVELS, RECURRENCE_PATTERNS, TASK_TYPES } from 'src/store/shedule/types';
 import DateTimePickerComponent from 'src/components/date.time';
 import useScheduleStore from 'src/store/shedule/actions';
 import { scheduleStore } from 'src/store/shedule/store';
-import { Sparkles } from 'lucide-react-native';
 
 const priorityColors = {
   Low: {
@@ -54,12 +54,17 @@ const CreateShedule = () => {
   const showTimePicker = showDatePicker$.get();
 
   const { addItem, resetForm } = useScheduleStore();
+
+  const submit =async()=>{
+    await addItem()
+    router.back()
+  }
   return (
     <SafeAreaView className="flex-1 justify-end bg-black/50">
       <Animated.View
         entering={SlideInRight}
         exiting={SlideOutLeft}
-        className="bg-white dark:bg-gray-800 rounded-t-3xl p-5"
+        className="bg-white dark:bg-gray-800 rounded-t-2xl p-5"
       >
         <ScrollView showsVerticalScrollIndicator={false}>
           <View className='justify-between flex-row'>
@@ -78,7 +83,7 @@ const CreateShedule = () => {
           <View className="space-y-3">
             {/* Schedule Type Selection */}
             <View>
-              <Text className="text-sm font-font-amedium text-gray-700 dark:text-gray-300 mb-2">
+              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
                 Type
               </Text>
               <View className="flex-row gap-3">
@@ -106,26 +111,24 @@ const CreateShedule = () => {
               </View>
             </View>
             {/* Title Input */}
-            <View>
-              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
+            <View className="my-2">
+              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
                  Title *
               </Text>
               <TextInput
-                className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
+                className="bg-gray-100 dark:bg-gray-700 p-4 font-aregular rounded-xl text-gray-900 dark:text-white"
                 placeholder="Enter description..."
                 value={scheduleStore.newItem.title.get()}
-                onChangeText={(text) => scheduleStore.newItem.title.set(text)}
+                onChangeText={scheduleStore.newItem.title.set}
                 placeholderTextColor="#9CA3AF"
-                multiline
-                numberOfLines={3}
               />
             </View>
-            <View>
-              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
+            <View className="my-2">
+              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
                 Description
               </Text>
               <TextInput
-                className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
+                className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white font-aregular"
                 placeholder="Enter description..."
                 value={scheduleStore.newItem.description.get()}
                 onChangeText={(text) => scheduleStore.newItem.description.set(text)}
@@ -136,8 +139,8 @@ const CreateShedule = () => {
             </View>
 
             {/* Task Category Selection */}
-            <View>
-              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
+            <View className="my-2">
+              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
                 Category
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -168,8 +171,8 @@ const CreateShedule = () => {
             </View>
 
             {/* Priority Selection */}
-            <View>
-              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
+            <View className="my-2">
+              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
                 Priority
               </Text>
               <View className="flex-row gap-2">
@@ -208,7 +211,7 @@ const CreateShedule = () => {
               setShowTimePicker={showTimePicker$.set}
             />
 
-            <View>
+            <View className="my-2">
               <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Duration (minutes)
               </Text>
@@ -223,7 +226,7 @@ const CreateShedule = () => {
             </View>
 
             {/* Recurrence Pattern */}
-            <View>
+            <View className="my-2">
               <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Recurrence
               </Text>
@@ -256,16 +259,16 @@ const CreateShedule = () => {
 
             {/* Location (Required for events) */}
             {isEvent && (
-              <View>
+              <View className="my-2">
                 <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Location *
                 </Text>
-                <TextInput
-                  className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
-                  placeholder="Enter location..."
-                  value={scheduleStore.newItem.location?.get() || ''}
-                  onChangeText={(text) => scheduleStore.newItem.location?.set(text)}
-                  placeholderTextColor="#9CA3AF"
+                <Reactive.TextInput
+                  $className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
+                  $placeholder="Enter location..."
+                  $value={scheduleStore.newItem.location?.get() || ''}
+                  $onChangeText={(text) => scheduleStore.newItem.location?.set(text)}
+                  $placeholderTextColor="#9CA3AF"
                 />
                 {isEvent && !scheduleStore.newItem.location?.get() && (
                   <Text className="text-sm text-rose-500 mt-1">
@@ -276,7 +279,7 @@ const CreateShedule = () => {
             )}
 
             {/* Reminder Setting */}
-            <View>
+            <View className="my-2">
               <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
                 Reminder (minutes before)
               </Text>
@@ -306,35 +309,41 @@ const CreateShedule = () => {
             </View>
 
             {/* Tags Input */}
-            <View>
-              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
+            <View className="my-2">
+              <View className="flex-row items-center py-2 border-b border-gray-200 dark:border-gray-700 gap-2">
+              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
                 Tags (comma separated)
               </Text>
-              <TextInput
-                className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
-                placeholder="Enter tags..."
-                value={scheduleStore.newItem?.tags?.get()?.join(', ')}
-                onChangeText={(text) => {
+                <Tag size={16} color="#9CA3AF" className='mb-3' />
+              </View>
+              <Reactive.TextInput
+                $className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
+                $placeholder="Enter tags..."
+                $value={scheduleStore.newItem?.tags?.get()?.join(', ')}
+                $onChangeText={(text) => {
                   const tags = text
-                    .split(',')
-                    .map((tag) => tag.trim())
-                    .filter((tag) => tag.length > 0);
+                    ?.split(',')
+                    ?.map((tag) => tag.trim())
+                    ?.filter((tag) => tag.length > 0);
                   scheduleStore.newItem.tags.set(tags);
                 }}
-                placeholderTextColor="#9CA3AF"
+                $placeholderTextColor="#9CA3AF"
               />
             </View>
 
             {/* Notes */}
-            <View>
-              <Text className="text-sm font-amedium text-gray-700 dark:text-gray-300 mb-2">
-                Notes
-              </Text>
+            <View className="my-2">
+              <View className="flex-row items-center py-2 border-b border-gray-200 dark:border-gray-700 gap-2">
+                <Text className="text-lg font-amedium text-gray-700 dark:text-gray-300 mb-2">
+                  Notes
+                </Text>
+                <FileTextIcon size={16} color="#9CA3AF" className='mb-3' />
+              </View>
               <TextInput
                 className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white min-h-[100px]"
                 placeholder="Enter any additional notes..."
                 value={scheduleStore.newItem.notes.get()}
-                onChangeText={(text) => scheduleStore.newItem.notes.set(text)}
+                onChangeText={scheduleStore.newItem.notes.set}
                 placeholderTextColor="#9CA3AF"
                 multiline
                 textAlignVertical="top"
@@ -356,7 +365,7 @@ const CreateShedule = () => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={addItem}
+              onPress={submit}
               className={`flex-1 p-4 rounded-xl ${
                 isFormValid() ? 'bg-cyan-600 dark:bg-cyan-400' : 'bg-cyan-100 dark:bg-cyan-900/30'
               }`}
@@ -378,9 +387,8 @@ const isFormValid = () => {
   const newItem = scheduleStore.newItem;
   const isEvent = newItem.scheduleType.get() === 'event';
 
-  console.log(newItem.get())
   const hasRequiredFields =
-    newItem?.title?.get()?.trim() !== '' &&
+    newItem?.title?.get()?.trim() !== '' || undefined &&
     newItem?.duration?.get()! > 0 &&
     newItem?.startDate?.get() !== null;
 

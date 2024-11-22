@@ -1,19 +1,21 @@
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { X, Bookmark, BookmarkCheck } from 'lucide-react-native';
+import { View } from 'react-native';
 import { batch, observable } from '@legendapp/state';
 import { observer } from '@legendapp/state/react';
+import {KeyboardAvoidingView} from 'react-native-keyboard-controller'
 import { router } from 'expo-router';
 
 import SaveConfirmationModal from 'src/components/notes/SaveConfirmation';
-import CategorySelector from 'src/components/notes/Category';
-import { BaseReference, useNotes } from 'src/store/notes/store';
+import { categories, tagOptions } from 'src/components/notes/constants';
+import { Note, Reference, Category } from 'src/store/notes/types';
 import { ReferenceModal } from 'src/components/notes/Refrence';
-import ReferenceItem from 'src/components/notes/RefrenceItem';
-import { tagOptions } from 'src/components/notes/constants';
+import CategorySelector from 'src/components/notes/Category';
 import TagSelector from 'src/components/notes/TagSelector';
-import { Note, Reference } from 'src/store/notes/types';
+import { useNotes } from 'src/store/notes/actions';
 import Toolbar from 'src/components/notes/Toolbar';
 import Editor from 'src/components/notes/editor';
+import Header from 'src/components/notes/header';
+import { useRef } from 'react';
+import References from 'src/components/notes/RefrenceItem';
 
 const initialNote: Note = {
   id: '',
@@ -21,75 +23,49 @@ const initialNote: Note = {
   content: '',
   tags: [],
   references: [],
+  elements: [],
   lastEdited: new Date(),
   isBookmarked: false,
-  category: 'personal',
+  category: categories[1],
 };
 
-const state = observable({
+interface EditorState {
+  note: Note;
+  showToolbar: boolean;
+  selectedText: { start: number; end: number };
+  showReferenceModal: boolean;
+  newReference: Reference;
+  activeCategory: Category | null;
+  saveAlert: boolean;
+}
+
+const state = observable<EditorState>({
   note: initialNote,
   showToolbar: true,
   selectedText: { start: 0, end: 0 },
   showReferenceModal: false,
   newReference: { type: 'book', title: '' } as Reference,
-  activeCategory: '',
+  activeCategory: categories[1],
   saveAlert: false,
 });
 
 
-const Header = ({ onSave, isBookmarked, onBookmarkToggle }: {
-  onSave: () => void;
-  isBookmarked: boolean;
-  onBookmarkToggle: () => void;
-}) => (
-  <View className="flex-row justify-between items-center p-4 pt-12 bg-black/30">
-    <TouchableOpacity onPress={() => router.back()} className="p-2">
-      <X size={24} color="white" />
-    </TouchableOpacity>
-    <View className="flex-row">
-      <TouchableOpacity
-        onPress={onBookmarkToggle}
-        className="p-2 mr-2"
-      >
-        {isBookmarked ? (
-          <BookmarkCheck size={24} color="white" />
-        ) : (
-          <Bookmark size={24} color="white" />
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onSave}
-        className="bg-white rounded-full px-4 py-2"
-      >
-        <Text className="font-bold text-blue-500">Save</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-);
-
-const References = ({ references }: { references: BaseReference[] }) => (
-  <View className="mb-4">
-    <Text className="text-lg font-bold mb-2">References</Text>
-    {references.map((ref, index) => (
-      <ReferenceItem key={index} reference={ref} />
-    ))}
-  </View>
-);
-
 export const AddNote = observer(() => {
-  const [, actions] = useNotes();
+  const {addNote} = useNotes();
 
-  const handleTextFormat = (
-    format: 'bold' | 'italic' | 'underline' | 'highlight',
-    value?: string
-  ) => {
-    // const currentText = state.note.content.get();
-    // const { start, end } = state.selectedText.get();
-    // Add your text formatting logic here
-  };
+  const renders = useRef(0);
+  console.log(`Create Note: ${++renders.current}`);
+  const {
+    showToolbar,activeCategory, newReference,
+    note:{ 
+      tags: selectedTags, isBookmarked: isBookmarked, references:references,
+      title, content, category
+    }, 
+     saveAlert, selectedText, showReferenceModal,
+  } = state.get()
 
   const addReference = () => {
-    if (!state.newReference.title.get()) return;
+    if (!newReference.title) return;
 
     batch(() => {
       state.note.references.push(state.newReference.get());
@@ -98,11 +74,13 @@ export const AddNote = observer(() => {
     });
   };
 
-  const handleSave = () => {
-    const { category, content, tags, title, references, isBookmarked } = state.note.get();
-    if(!title || !content) return
+  const handleSave = async () => {
+    const note = state.note.get();
+    console.log(note)
+    if (title || content) return;
+    
     state.saveAlert.set(true);
-    actions.addNote({ category, content, tags, title, references, isBookmarked });
+    await addNote(note);
     state.saveAlert.set(false);
     router.back();
   };
@@ -116,41 +94,30 @@ export const AddNote = observer(() => {
   };
 
   const handleBookmarkToggle = () => {
-    state.note.isBookmarked.set(!state.note.isBookmarked.get());
+    state.note.isBookmarked.set(!isBookmarked);
   };
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = (category: Category) => {
     state.activeCategory.set(category);
+    state.note.category.set(category);
   };
 
   const handleReferenceModalToggle = (show: boolean) => {
     state.showReferenceModal.set(show);
   };
 
-  const references = state.note.references.get();
-  const showToolbar = state.showToolbar.get();
-  const isBookmarked = state.note.isBookmarked.get();
-  const selectedTags = state.note.tags.get();
-  const activeCategory = state.activeCategory.get();
-  const showReferenceModal = state.showReferenceModal.get();
-  const newReference = state.newReference.get();
-  const saveAlert = state.saveAlert.get();
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1"
-    >
-      <View className="flex-1 bg-gray-100">
+    <KeyboardAvoidingView className="flex-1 bg-gray-50 dark:bg-gray-800">
+      <View className="flex-1 bg-gray-100 dark:bg-gray-800">
         <Header
           onSave={handleSave}
           isBookmarked={isBookmarked}
           onBookmarkToggle={handleBookmarkToggle}
         />
 
-        <ScrollView className="flex-1 bg-white rounded-t-3xl -mt-6 pt-6 px-4">
+        <View className="flex-1 rounded-t-3xl bg-gray-50 -mt-6 pt-6 px-4 dark:bg-gray-800">
           <CategorySelector
-            activeCategory={activeCategory}
+            activeCategory={activeCategory as Category}
             setActiveCategory={handleCategoryChange}
           />
 
@@ -165,11 +132,10 @@ export const AddNote = observer(() => {
             selectedTags={selectedTags}
             onTagPress={handleTagPress}
           />
-        </ScrollView>
+        </View>
 
         {showToolbar && (
           <Toolbar
-            handleTextFormat={handleTextFormat}
             setShowReferenceModal={handleReferenceModalToggle}
           />
         )}

@@ -11,7 +11,6 @@ import Animated, {
   LinearTransition,
   FadeInUp,
 } from 'react-native-reanimated';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Clock, MapPin, Trash2, Hourglass, CheckCircle, CheckCircle2, Leaf, AlertCircle } from 'lucide-react-native';
 import { format, isPast, isWithinInterval, addMinutes } from 'date-fns';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -132,7 +131,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     const interval = setInterval(updateStatus, 60000);
 
     return () => clearInterval(interval);
-  }, [item]);
+  }, [item, setStatus]);
 
   const PriorityBadge = ({ priority }: { priority: ScheduleItem['priority'] }) => {
     const Icon = priorityConfig[priority].icon
@@ -156,12 +155,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     </LinearGradient>
   )};
 
-  const handleComplete = useCallback(() => {
+  const handleComplete = useCallback(async() => {
     completedAnim.value = withSequence(
       withTiming(0.8, { duration: 100 }),
       withTiming(0.5, { duration: 200 })
     );
-    markCompleted(item.id);
+   await markCompleted(item.id);
   }, [item.id, completedAnim]);
 
   const getStatusColor = () => {
@@ -253,8 +252,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               </View>
               {item.duration && (
                 <View className="flex-row items-center">
-                  <Ionicons
-                    name="hourglass-outline"
+                  <Hourglass
                     size={16}
                     color={colorScheme.get() === 'light' ? '#6B7280' : '#9CA3AF'}
                     style={{ marginRight: 4 }}

@@ -16,9 +16,9 @@ const EXAMPLE_PROMPTS = [
   "Transferred $1000 to savings account"
 ];
   const { addTransaction } = useFinancialStore();
-  const handleAccept = (transaction: Transaction) => {
+  const handleAccept = async(transaction: Transaction) => {
     console.log(`Accepted transaction with ID: ${transaction}`);
-    addTransaction(transaction)
+    await addTransaction(transaction)
   }
 
   const handleDelete = (id: string) => {
@@ -36,9 +36,10 @@ const EXAMPLE_PROMPTS = [
       inputPlaceholder="Describe your financial goal or budget plan..."
       examplePrompts={EXAMPLE_PROMPTS}
       type="finance"
-      endpoint={`${endpoint}/ai/finance`}
+      endpoint={`${endpoint}/ai/transaction`}
       addManualRoute="financeadd"
       addManualButtonText="Add Transaction"
+      theme='sunset'
       ItemComponent={TransactionCard}
       itemComponentProps={{
         onAccept: handleAccept,

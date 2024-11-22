@@ -19,9 +19,9 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 import { observer } from '@legendapp/state/react';
-import { Observable, observable } from '@legendapp/state';
+import { observable } from '@legendapp/state';
+import { CheckCircle, LockIcon, Mail, Phone } from 'lucide-react-native';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android') {
@@ -41,7 +41,7 @@ interface CustomFormFieldProps extends Omit<TextInputProps, 'onChangeText'> {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: any;
   required?: boolean;
   helper?: string;
   validation?: ValidationRule[];
@@ -203,11 +203,10 @@ export const CustomFormField = observer(({
         <View className="flex-row items-center">
           {icon && (
             <View className="pl-4">
-              <Ionicons
-                name={icon}
+              {/* <React.cloneElement(icon)
                 size={20}
                 color={fieldState.errors.get().length ? '#EF4444' : (fieldState.isFocused.get() ? '#3B82F6' : '#94A3B8')}
-              />
+              /> */}
             </View>
           )}
 
@@ -234,17 +233,17 @@ export const CustomFormField = observer(({
               onPress={() => fieldState.showPassword.set(!fieldState.showPassword.get())}
               className="pr-4"
             >
-              <Ionicons
+              {/* <Ionicons
                 name={fieldState.showPassword.get() ? 'eye-off-outline' : 'eye-outline'}
                 size={20}
                 color="#94A3B8"
-              />
+              /> */}
             </TouchableOpacity>
           )}
 
           {showSuccessCheck && !fieldState.errors.get().length && fieldState.hasInteracted.get() && value && (
             <Animated.View className="pr-4" style={successIconStyle}>
-              <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+              <CheckCircle size={20} color="#10B981" />
             </Animated.View>
           )}
         </View>
@@ -259,7 +258,6 @@ export const CustomFormField = observer(({
       {successMessage && !fieldState.errors.get().length && fieldState.hasInteracted.get() && value && (
         <Animated.Text 
           className="text-sm text-emerald-500 mt-1 ml-1"
-          entering={withDelay(300, withSpring(1))}
         >
           {successMessage}
         </Animated.Text>
@@ -269,7 +267,6 @@ export const CustomFormField = observer(({
         <Animated.Text
           key={index}
           className="text-sm text-red-500 mt-1 ml-1"
-          entering={withDelay(index * 100, withSpring(1))}
         >
           {error}
         </Animated.Text>
@@ -325,7 +322,7 @@ export const FormFieldExample = observer(() => {
         label="Email Address"
         value={formData$.email.get()}
         onChangeText={(text) => formData$.email.set(text)}
-        icon="mail-outline"
+        icon={Mail}
         required
         helper="We'll never share your email address"
         validation={emailValidation}
@@ -338,7 +335,7 @@ export const FormFieldExample = observer(() => {
         label="Password"
         value={formData$.password.get()}
         onChangeText={(text) => formData$.password.set(text)}
-        icon="lock-closed-outline"
+        icon={LockIcon}
         required
         helper="Use a strong password to secure your account"
         validation={passwordValidation}
@@ -349,7 +346,7 @@ export const FormFieldExample = observer(() => {
         label="Phone Number"
         value={formData$.phone.get()}
         onChangeText={(text) => formData$.phone.set(text)}
-        icon="call-outline"
+        icon={Phone}
         helper="For account recovery and notifications"
         validation={phoneValidation}
         type="phone"

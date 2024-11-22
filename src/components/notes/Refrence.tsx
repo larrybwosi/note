@@ -1,6 +1,6 @@
 import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { Reference } from './ts';
+import { Reference } from 'src/store/notes/types';
+import { BookCheck, FilePenLineIcon, Globe2, Video } from 'lucide-react-native';
 
 interface ReferenceModalProps {
   showReferenceModal: boolean;
@@ -28,7 +28,10 @@ export const ReferenceModal: React.FC<ReferenceModalProps> = ({
         <Text className="text-xl font-rbold mb-4">Add Reference</Text>
 
         <View className="flex-row mb-4">
-          {['book', 'website', 'article', 'video'].map((type) => (
+          {['book', 'website', 'article', 'video'].map((type) => {
+            
+          const Icon = type === 'book'? BookCheck :type === 'website'? Globe2 : type === 'article'? FilePenLineIcon : Video
+            return(
             <TouchableOpacity
               key={type}
               onPress={() =>
@@ -38,21 +41,12 @@ export const ReferenceModal: React.FC<ReferenceModalProps> = ({
                 newReference.type === type ? 'bg-blue-500' : 'bg-gray-200'
               }`}
             >
-              <FontAwesome5
-                name={
-                  type === 'book'
-                    ? 'book'
-                    : type === 'website'
-                      ? 'globe'
-                      : type === 'article'
-                        ? 'file-alt'
-                        : 'video'
-                }
+              <Icon
                 size={20}
                 color={newReference.type === type ? 'white' : 'black'}
               />
             </TouchableOpacity>
-          ))}
+          )})}
         </View>
 
         <TextInput

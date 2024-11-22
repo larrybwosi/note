@@ -1,9 +1,8 @@
 import { observer, useObservable } from '@legendapp/state/react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { NewCategoryProps } from './provider';
-import { X } from 'lucide-react-native';
+import { PlusCircle, Tag, X } from 'lucide-react-native';
 
 
 const NewCategory = observer(({type, close}:NewCategoryProps) => {
@@ -46,7 +45,7 @@ const NewCategory = observer(({type, close}:NewCategoryProps) => {
           <View>
             <Text className="text-sm font-rmedium text-gray-700 mb-2">Category Name</Text>
             <View className="flex-row items-center rounded-xl p-3 border border-gray-200 focus:border-blue-500">
-              <Ionicons name="pricetag" size={20} color="#6B7280" />
+              <Tag size={20} color="#6B7280" />
               <TextInput
                 value={name.get()}
                 onChangeText={name.set}
@@ -83,7 +82,7 @@ const NewCategory = observer(({type, close}:NewCategoryProps) => {
               className="flex-1 py-3.5 rounded-xl bg-blue-500 shadow-lg shadow-blue-500/30"
             >
               <View className="flex-row items-center justify-center space-x-2">
-                <Ionicons name="add-circle" size={20} color="white" />
+                <PlusCircle size={20} color="white" />
                 <Text className="text-center font-rmedium text-white">Add Category</Text>
               </View>
             </TouchableOpacity>

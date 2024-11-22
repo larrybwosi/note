@@ -5,6 +5,7 @@ import { colorScheme } from "nativewind";
 import { View } from "react-native";
 import { Text } from "react-native";
 import Animated, { BounceIn, FadeIn, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import useFinancialStore from "src/store/finance/store";
 
 const InsightCard = observer(({ title, value, trend, color }: { 
   title: string;
@@ -36,17 +37,12 @@ const InsightCard = observer(({ title, value, trend, color }: {
   );
 }); 
 
-const FinanceSummary = observer(({ 
-  totalIncome, 
-  totalExpenses, 
-  guiltFreeBalance,
-  style
-}: { 
-  totalIncome: number; 
-  totalExpenses: number; 
-  guiltFreeBalance: number;
-  style: any;
-}) => {
+const FinanceSummary = observer(() => {
+  const { getTotalIncome, getTotalExpenses, getGuiltFreeBalance } = useFinancialStore();
+  
+  const guiltFreeBalance = getGuiltFreeBalance();
+  const totalExpenses = getTotalExpenses();
+  const totalIncome = getTotalIncome();
   const scale = useSharedValue(1);
   const rotateValue = useSharedValue(0);
   
@@ -63,7 +59,7 @@ const FinanceSummary = observer(({
   return (
     <Animated.View 
       entering={FadeIn.duration(800).delay(300)}
-      style={[animatedStyle, style]}
+      style={[animatedStyle]}
       className="mt-4 rounded-2xl overflow-hidden shadow-lg"
     >
       <LinearGradient

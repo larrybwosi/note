@@ -1,3 +1,4 @@
+import { Calendar1, ChevronRight, Settings2 } from 'lucide-react-native';
 import { observer, useComputed } from '@legendapp/state/react';
 import { currentTime } from '@legendapp/state/helpers/time';
 import Animated, {
@@ -7,36 +8,36 @@ import Animated, {
   useSharedValue,
   SharedValue,
   FadeIn,
+  SlideInRight,
+  SlideOutRight,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text, View, ScrollView } from 'react-native';
-import { useEffect, useCallback, useRef } from 'react';
-import { colorScheme, } from 'nativewind';
+import { Text, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { useEffect, useCallback } from 'react';
+import { colorScheme } from 'nativewind';
 
 import { useProfile } from 'src/store/profile/actions';
 import TodayCard from 'src/components/home/today.card';
 import Progress from 'src/components/home/progress';
 
 import {
-  motivationalQuotes,
+  MOTIVATIONAL_QUOTES,
   homeState,
 } from 'src/components/home/data';
 import { WaterReminderSection } from 'src/components/home/water.reminder';
-import QuickActionsSection from 'src/components/home/quickactions';
-import { UpcomingTasksSection } from 'src/components/home/upcoming';
 import { FocusInsightsSection } from 'src/components/home/focus';
+import { View } from 'react-native';
 
-// Enhanced gradient configurations
 const gradientConfigs = {
   dark: {
-    morning: ['#2dd4bf', '#0d9488', '#121212'],
-    afternoon: ['#1DB954', '#155e75', '#121212'],
-    evening: ['#7c3aed', '#4c1d95', '#121212'],
+    morning: ['#3B82F6', '#2563EB', '#1E40AF', '#1E3A8A'],
+    afternoon: ['#10B981', '#059669', '#047857', '#065F46'],
+    evening: ['#8B5CF6', '#7C3AED', '#6D28D9', '#5B21B6'],
   },
   light: {
-    morning: ['#14b8a6', '#0d9488', '#2c6aa0'],
-    afternoon: ['#059669', '#357abd', '#2c6aa0'],
-    evening: ['#8b5cf6', '#6d28d9', '#2c6aa0'],
+    morning: ['#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8'],
+    afternoon: ['#34D399', '#10B981', '#059669', '#047857'],
+    evening: ['#A78BFA', '#8B5CF6', '#7C3AED', '#6D28D9'],
   },
 };
 
@@ -58,7 +59,12 @@ const HeaderSection = ({ timeOfDay, name, greeting, quote, scrollY }: HeaderSect
   }));
 
   return (
-    <Animated.View style={welcomeScale} className="space-y-3">
+    <Animated.View style={[welcomeScale, { 
+      shadowColor: '#000', 
+      shadowOffset: { width: 0, height: 4 }, 
+      shadowOpacity: 0.1, 
+      shadowRadius: 6 
+    }]} className="space-y-4">
       <Animated.View entering={FadeIn.duration(800)} className="flex-row items-center gap-2">
         <Text className="text-white text-3xl font-rbold">
           Good {timeOfDay}, {name}!
@@ -72,11 +78,16 @@ const HeaderSection = ({ timeOfDay, name, greeting, quote, scrollY }: HeaderSect
         {greeting}
       </Animated.Text>
       <Animated.View
-        entering={FadeIn.duration(1000).delay(600)}
-        className="mt-4 bg-white/10 p-4 rounded-2xl backdrop-blur-lg shadow-lg"
+        entering={SlideInRight.duration(600).delay(400)}
+        exiting={SlideOutRight}
+        className="bg-white/30 p-5 rounded-3xl border border-white/20"
       >
-        <Text className="text-white font-rmedium leading-6">{quote.quote}</Text>
-        <Text className="text-gray-200 mt-2 font-plregular">- {quote.author}</Text>
+        <Text className="text-white text-lg font-rmedium leading-7">
+          "{quote.quote}"
+        </Text>
+        <Text className="text-white/80 text-sm font-aregular text-right mt-2">
+          - {quote.author}
+        </Text>
       </Animated.View>
     </Animated.View>
   );
@@ -88,8 +99,6 @@ const HomeScreen = observer(() => {
   
   const scrollY = useSharedValue(0);
 
-  // const renders = ++useRef(0).current
-  // console.log(`HomeCard: ${renders}`)
   const timeOfDay = useComputed(() => {
     const hour = currentTime.get().getHours();
     if (hour < 12) return 'morning';
@@ -112,9 +121,16 @@ const HomeScreen = observer(() => {
   });
 
   const dailyQuote = useComputed(() => {
-    const quotes = motivationalQuotes;
+    const quotes = MOTIVATIONAL_QUOTES;
     return quotes[Math.floor(Math.random() * quotes.length)];
   });
+
+  const generatedSchedule = [
+    { time: '09:00', activity: 'Deep Work', duration: 120 },
+    { time: '11:00', activity: 'Break', duration: 30 },
+    { time: '11:30', activity: 'Meeting', duration: 60 },
+    { time: '12:30', activity: 'Exercise', duration: 45 },
+  ];
 
   useEffect(() => {
     const timeInterval = setInterval(() => {
@@ -122,7 +138,6 @@ const HomeScreen = observer(() => {
     }, 60000);
     return () => clearInterval(timeInterval);
   }, []);
-
 
   const onScroll = useCallback(
     (event: any) => {
@@ -139,9 +154,22 @@ const HomeScreen = observer(() => {
     >
       <LinearGradient
         colors={headerGradient}
-        className="px-3 pt-16 pb-10"
+        className="px-2 pt-16 pb-12"
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
+        style={{ 
+          ...Platform.select({
+            ios: {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 6,
+            },
+            android: {
+              elevation: 8,
+            }
+          })
+        }}
       >
         <HeaderSection
           timeOfDay={timeOfDay.get()}
@@ -151,30 +179,76 @@ const HomeScreen = observer(() => {
           scrollY={scrollY}
         />
       </LinearGradient>
-      <Animated.View entering={FadeIn.duration(800).delay(300)}>
-        <WaterReminderSection />
-      </Animated.View>
-      
-      <Animated.View entering={FadeIn.duration(800).delay(400)}>
-        <TodayCard />
-      </Animated.View>
-      
-      {/* <Animated.View entering={FadeIn.duration(800).delay(500)}>
-        <QuickActionsSection/>
-      </Animated.View> */}
-      
-      <Animated.View entering={FadeIn.duration(800).delay(600)}>
-        <UpcomingTasksSection />
-      </Animated.View>
-      
-      <Animated.View entering={FadeIn.duration(800).delay(700)}>
-        <Progress />
-      </Animated.View>
-      
-      <Animated.View entering={FadeIn.duration(800).delay(800)}>
-        <FocusInsightsSection />
-      </Animated.View>
+      <View className="px-1 space-y-8 mt-8 gap-1">
+        <Animated.View entering={FadeIn.duration(800).delay(300)}>
+          <WaterReminderSection />
+        </Animated.View>
+        
+        <Animated.View entering={FadeIn.duration(800).delay(400)}>
+          <TodayCard />
+        </Animated.View>
 
+        <Animated.View entering={FadeIn.duration(800).delay(600)}>
+          <View className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-6 border dark:border-gray-800 border-gray-100">
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-2xl font-amedium dark:text-gray-50 text-gray-900">Your Schedule</Text>
+              <View className="flex-row items-center space-x-4">
+                <Calendar1 color="#8b5cf6" size={22} />
+                <Text className="text-gray-600 font-aregular dark:text-gray-50">Today</Text>
+                <ChevronRight color="#9ca3af" size={22} />
+              </View>
+            </View>
+
+            <View className="space-y-4">
+              {generatedSchedule.map((item, index) => (
+                <View
+                  key={index}
+                  className="flex-row items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-900
+                   rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm"
+                  style={{
+                    ...Platform.select({
+                      ios: {
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                      },
+                      android: {
+                        elevation: 3,
+                      }
+                    })
+                  }}
+                >
+                  <Text className="w-20 text-gray-600 dark:text-gray-50 font-amedium">{item.time}</Text>
+                  <View className="flex-1">
+                    <Text className="text-gray-900 dark:text-gray-50 font-rmedium text-lg">{item.activity}</Text>
+                    <Text className="text-gray-500 dark:text-gray-50 font-rregular">{item.duration} minutes</Text>
+                  </View>
+                  <TouchableOpacity 
+                    className="bg-purple-100 p-2 rounded-full"
+                    style={{
+                      shadowColor: '#8b5cf6',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 4,
+                    }}
+                  >
+                    <Settings2 color="#8b5cf6" size={22} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        </Animated.View>
+        
+        <Animated.View entering={FadeIn.duration(800).delay(700)}>
+          <Progress />
+        </Animated.View>
+        
+        <Animated.View entering={FadeIn.duration(800).delay(800)}>
+          <FocusInsightsSection />
+        </Animated.View>
+      </View>
     </ScrollView>
   );
 });
