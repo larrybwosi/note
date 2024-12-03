@@ -1,289 +1,234 @@
-import { useCallback } from 'react';
-import { useObservable, useComputed, observer, Reactive, Memo } from '@legendapp/state/react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
-import { Bell, CheckCircle, Settings, User } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { batch } from '@legendapp/state';
-import { colorScheme } from 'nativewind';
+import React, { useCallback, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Switch } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { observer } from '@legendapp/state/react';
+import Animated, { FadeInDown, FadeInRight, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { Camera, Save } from 'lucide-react-native';
 
-import { useProfile } from 'src/store/profile/actions';
+import { observable } from '@legendapp/state';
+import { Avatar } from 'src/components/profile/avatar';
+import { SectionHeader } from 'src/components/profile/sect-head';
+import { InputField } from 'src/components/profile/input';
+import { ProgressRing } from 'src/components/profile/ProgressRing';
 
-type ThemeMode = 'system' | 'light' | 'dark';
-type ColorScheme = {
-  name: string;
-  value: string;
-  gradient: [string, string];
-};
+const profileState = observable({
+  name: 'John Doe',
+  email: 'john.doe@example.com',
+  dateOfBirth: '1990-01-01',
+  image: 'https://example.com/avatar.jpg',
+  height: 180,
+  weight: 75,
+  phone: '+1234567890',
+  address: '123 Main St, City, Country',
+  gender: 'Male',
+  preferredLanguage: 'English',
+  emergencyContact: { name: 'Jane Doe', phone: '+9876543210' },
+  bloodType: 'A+',
+  allergies: ['Peanuts', 'Penicillin'],
+  medicalNotes: 'No significant medical history',
+  sleepGoal: 8,
+  waterIntake: 2000,
+});
 
-const ACCENT_COLORS: ColorScheme[] = [
-  { name: 'Indigo', value: '#4F46E5', gradient: ['#4F46E5', '#7C3AED'] },
-  { name: 'Rose', value: '#E11D48', gradient: ['#E11D48', '#BE123C'] },
-  { name: 'Amber', value: '#D97706', gradient: ['#D97706', '#B45309'] },
-  { name: 'Emerald', value: '#059669', gradient: ['#059669', '#047857'] },
-  { name: 'Sky', value: '#0284C7', gradient: ['#0284C7', '#0369A1'] },
-  { name: 'Purple', value: '#7C3AED', gradient: ['#7C3AED', '#6D28D9'] },
-];
+const ProfileScreen = observer(() => {
+  const saveButtonScale = useSharedValue(1);
+  const editButtonScale = useSharedValue(1);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-const THEME_MODES: ThemeMode[] = ['system', 'light', 'dark'];
-
-// Memoized child components
-const SettingsCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <View className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-4 shadow-sm mx-4">
-    <Text className="text-lg font-rbold mb-2 text-gray-800 dark:text-gray-100">{title}</Text>
-    {children}
-  </View>
-);
-
-const InputField = ({ label, value, onChangeText, keyboardType = 'default' }: {
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  keyboardType?: 'default' | 'email-address' | 'numeric';
-}) => (
-  <Memo>
-    {()=>(
-      <View className="mb-4">
-        <Text className="font-rmedium mb-1 text-gray-700 dark:text-gray-300">{label}</Text>
-        <Reactive.TextInput
-          $value={value}
-          $onChangeText={onChangeText}
-          $keyboardType={keyboardType}
-          $className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-base text-gray-800 dark:text-gray-100 font-rregular"
-        />
-      </View>
-    )}
-  </Memo>
-);
-
-const TimeDisplay = ({ label, value, onPress }: {
-  label: string;
-  value: Date;
-  onPress: () => void;
-}) => (
-  <Memo>
-    {()=>(
-      <TouchableOpacity
-        onPress={onPress}
-        className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-4"
-      >
-        <Text className="text-gray-600 dark:text-gray-400 mb-1 font-rregular">{label}</Text>
-        <Text className="text-base text-gray-800 dark:text-gray-100 font-rmedium">
-          {value.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </Text>
-      </TouchableOpacity>
-    )}
-  </Memo>
-);
-
-// Memoized Theme Mode Button
-const ThemeModeButton = ({ mode, currentMode, selectedTheme, onPress }: {
-  mode: ThemeMode;
-  currentMode: ThemeMode;
-  selectedTheme: ColorScheme;
-  onPress: () => void;
-}) => (
-  <Memo>
-    {()=>(
-      <TouchableOpacity
-        onPress={onPress}
-        className={`p-3 rounded-lg my-2 flex-row justify-between items-center ${
-          currentMode === mode 
-            ? 'bg-gray-200 dark:bg-gray-600' 
-            : 'bg-gray-100 dark:bg-gray-700'
-        }`}
-      >
-        <Text className="text-gray-800 dark:text-gray-100 font-rmedium capitalize">
-          {mode}
-        </Text>
-        {currentMode === mode && (
-          <CheckCircle size={20} color={selectedTheme.value} />
-        )}
-      </TouchableOpacity>
-    )}
-  </Memo>
-);
-
-// Memoized Color Button
-const ColorButton = ({ color, selectedTheme, onPress }: {
-  color: ColorScheme;
-  selectedTheme: ColorScheme;
-  onPress: () => void;
-}) => (
-  <Memo>
-    {()=>(
-      <TouchableOpacity
-        onPress={onPress}
-        className="w-12 h-12 rounded-full shadow-sm my-2"
-        style={{
-          backgroundColor: color.value,
-          borderWidth: color.name === selectedTheme.name ? 2 : 0,
-          borderColor: 'white'
-        }}
-      />
-    )}
-  </Memo>
-);
-
-// Profile Header Component
-const ProfileHeader = observer(({ personalInfo, bio, selectedTheme }: {
-  personalInfo: any;
-  bio: string;
-  selectedTheme: ColorScheme;
-}) => (
-  <LinearGradient
-    colors={selectedTheme.gradient}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    className="pt-12 pb-16"
-  >
-    <View className="flex-row justify-between px-4 mb-8">
-      <TouchableOpacity className="bg-white/20 p-2.5 rounded-xl">
-        <Settings size={24} color="white" />
-      </TouchableOpacity>
-      <TouchableOpacity className="bg-white/20 p-2.5 rounded-xl">
-        <Bell size={24} color="white" />
-      </TouchableOpacity>
-    </View>
-
-    <View className="items-center">
-      <View className="h-24 w-24 rounded-full bg-white/30 mb-4 items-center justify-center border-4 border-white/30">
-        <User size={48} color="white" />
-      </View>
-      <Text className="text-white/90 text-lg font-rregular mb-2">
-        Good morning, {personalInfo.name.split(' ')[0]}! 👋
-      </Text>
-      <Text className="text-2xl font-rbold text-white mb-1">
-        {personalInfo.name}
-      </Text>
-      <Text className="font-rregular text-white/80">{bio}</Text>
-    </View>
-  </LinearGradient>
-));
-
-const ProfileSettingsPage: React.FC = observer(() => {
-  const settingsState = useObservable({
-    personalInfo: {
-      bio: 'Productivity Enthusiast',
-    },
-    theme: {
-      mode: 'system' as ThemeMode,
-      accent: ACCENT_COLORS[0]
-    }
+  const animatedSaveButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: saveButtonScale.value }],
+    };
   });
 
-  const { personalInfo, productivityMetrics, updatePersonalInfo } = useProfile();
-  const schedule = productivityMetrics.schedule;
-  const theme = settingsState.theme;
-
-  const selectedTheme = useComputed(() => theme.accent.get());
-
-  const switchTheme = useCallback((mode: ThemeMode) => {
-    colorScheme.set(mode);
-  }, []);
-
-  const setAccentColor = useCallback((color: ColorScheme) => {
-    theme.accent.set(color);
-  }, []);
-
-  const saveChanges = useCallback(() => {
-    batch(() => {
-      // Implement save logic here
-      console.log('Saving changes...');
+  const handleSave = useCallback(() => {
+    saveButtonScale.value = withSpring(0.9, {}, () => {
+      saveButtonScale.value = withSpring(1);
     });
+    // Here you would typically send the updated profile to your backend
+    console.log('Profile saved:', profileState.get());
   }, []);
 
-  const handleBioChange = useCallback((text: string) => {
-    settingsState.personalInfo.bio.set(text);
+  const handleEdit = useCallback(() => {
+    editButtonScale.value = withSpring(0.9, {}, () => {
+      editButtonScale.value = withSpring(1);
+    });
+    setIsEditMode(true);
+  }, []);
+
+  const handleImagePick = useCallback(async () => {
+    //TODO
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100 dark:bg-gray-900">
-      <ScrollView className="flex-1">
-        <ProfileHeader 
-          personalInfo={personalInfo} 
-          bio={settingsState.personalInfo.bio.get()} 
-          selectedTheme={selectedTheme.get()} 
-        />
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
+      <ScrollView className="flex-1 px-4">
+        <Animated.View 
+          entering={FadeInDown.duration(600).springify()} 
+          className="items-center mt-6 mb-8"
+        >
+          <TouchableOpacity onPress={handleImagePick} disabled={!isEditMode}>
+              <Avatar
+                size={120} 
+                source={{ uri: profileState.image.get() }} 
+              />
+              {!isEditMode && (
+                <View className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-2">
+                  <Camera size={20} color="white" />
+                </View>
+              )}
+            </TouchableOpacity>
+          <Text className="mt-4 text-2xl font-rbold text-gray-900 dark:text-white">
+            {profileState.name.get()}
+          </Text>
+          <Text className="text-gray-600 dark:text-gray-400">
+            {profileState.email.get()}
+          </Text>
+        </Animated.View>
 
-        <View className="mt-4">
-          <SettingsCard title="Profile Information">
-            <InputField
-              label="Name"
-              value={personalInfo.name}
-              onChangeText={(text) => updatePersonalInfo('name', text)}
-            />
-            <InputField
-              label="Bio"
-              value={settingsState.personalInfo.bio.get()}
-              onChangeText={handleBioChange}
-            />
-            <InputField
-              label="Email"
-              value={personalInfo.email}
-              onChangeText={(text) => updatePersonalInfo('email', text)}
-              keyboardType="email-address"
-            />
-          </SettingsCard>
-
-          <SettingsCard title="Schedule">
-            <TimeDisplay
-              label="Work Start Time"
-              value={schedule.workStartTime!}
-              onPress={() => {}}
-            />
-            <TimeDisplay
-              label="Work End Time"
-              value={schedule.workEndTime!}
-              onPress={() => {}}
-            />
-            <InputField
-              label="Break Duration (minutes)"
-              value={schedule.breakDuration?.toString()!}
-              onChangeText={(text) => console.log(text)}
-              keyboardType="numeric"
-            />
-          </SettingsCard>
-
-          <SettingsCard title="Theme Settings">
-            <Text className="font-rmedium mb-3 text-gray-700 dark:text-gray-300">Theme Mode</Text>
-            <View className="space-y-2 mb-6">
-              {THEME_MODES.map((mode) => (
-                <ThemeModeButton
-                  key={mode}
-                  mode={mode}
-                  currentMode={colorScheme.get()!}
-                  selectedTheme={selectedTheme.get()}
-                  onPress={() => switchTheme(mode)}
-                />
-              ))}
-            </View>
-
-            <Text className="font-rmedium mb-3 text-gray-700 dark:text-gray-300">Accent Color</Text>
-            {/* <View className="flex-row flex-wrap gap-2 space-y-2">
-              {ACCENT_COLORS.map((color) => (
-                <ColorButton
-                  key={color.name}
-                  color={color}
-                  selectedTheme={selectedTheme.get()}
-                  onPress={() => setAccentColor(color)}
-                />
-              ))}
-            </View> */}
-          </SettingsCard>
-
-          <TouchableOpacity
-            onPress={saveChanges}
-            className="mx-4 p-4 rounded-lg items-center mb-8"
-            style={{ backgroundColor: selectedTheme.value.get() }}
+        <View className="px-4 -mt-8">
+          <Animated.View 
+            entering={FadeInDown.delay(200).duration(600).springify()}
+            className="bg-white dark:bg-gray-800 rounded-xl p-4 flex-row justify-between items-center shadow-md"
           >
-            <Text className="text-white text-base font-rmedium">
-              Save Changes
-            </Text>
-          </TouchableOpacity>
+            <View>
+              <Text className="text-lg font-rbold text-gray-900 dark:text-white">Health Score</Text>
+              <Text className="text-gray-600 dark:text-gray-400">Based on your profile</Text>
+            </View>
+            <ProgressRing progress={75} size={60} strokeWidth={6} />
+          </Animated.View>
         </View>
+
+        <SectionHeader title="Personal Information" />
+        <Animated.View entering={FadeInRight.duration(600).delay(200)}>
+          <InputField
+            label="Name"
+            value={profileState.name}
+              editable={isEditMode}
+            placeholder="Enter your name"
+          />
+          <InputField
+            label="Email"
+            value={profileState.email}
+            placeholder="Enter your email"
+              editable={isEditMode}
+            keyboardType="email-address"
+          />
+          <InputField
+            label="Phone"
+            value={profileState.phone}
+              editable={isEditMode}
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+          />
+          <InputField
+            label="Address"
+            value={profileState.address}
+              editable={isEditMode}
+            placeholder="Enter your address"
+            multiline
+          />
+          <InputField
+            label="Gender"
+            value={profileState.gender}
+              editable={isEditMode}
+            placeholder="Enter your gender"
+          />
+          <InputField
+            label="Preferred Language"
+            value={profileState.preferredLanguage}
+              editable={isEditMode}
+            placeholder="Enter your preferred language"
+          />
+        </Animated.View>
+
+        <SectionHeader title="Medical Information" />
+        <Animated.View entering={FadeInRight.duration(600).delay(400)}>
+          <InputField
+            label="Blood Type"
+            value={profileState.bloodType}
+            editable={isEditMode}
+            placeholder="Enter your blood type"
+          />
+          <InputField
+            label="Allergies"
+            value={profileState.allergies}
+            editable={isEditMode}
+            placeholder="Enter your allergies (comma-separated)"
+            onChangeText={(text) => profileState.allergies.set(text.split(', '))}
+          />
+          <InputField
+            label="Medical Notes"
+            value={profileState.medicalNotes}
+            editable={isEditMode}
+            placeholder="Enter any medical notes"
+            multiline
+          />
+        </Animated.View>
+
+        <SectionHeader title="Emergency Contact" />
+        <Animated.View entering={FadeInRight.duration(600).delay(600)}>
+          <InputField
+            label="Name"
+            value={profileState.emergencyContact.name}
+            editable={isEditMode}
+            placeholder="Enter emergency contact name"
+          />
+          <InputField
+            label="Phone"
+            value={profileState.emergencyContact.phone}
+            editable={isEditMode}
+            placeholder="Enter emergency contact phone"
+            keyboardType="phone-pad"
+          />
+        </Animated.View>
+
+        <SectionHeader title="Health Goals" />
+        <Animated.View entering={FadeInRight.duration(600).delay(800)}>
+          <InputField
+            label="Sleep Goal (hours)"
+            value={profileState.sleepGoal}
+            placeholder="Enter your daily sleep goal"
+            keyboardType="numeric"
+            editable={isEditMode}
+            onChangeText={(text) => profileState.sleepGoal.set(Number(text))}
+          />
+          <InputField
+            label="Water Intake Goal (ml)"
+            value={profileState.waterIntake}
+            placeholder="Enter your daily water intake goal"
+            keyboardType="numeric"
+            editable={isEditMode}
+            onChangeText={(text) => profileState.waterIntake.set(Number(text))}
+          />
+        </Animated.View>
       </ScrollView>
+
+      <Animated.View 
+        style={[animatedSaveButtonStyle, { 
+          position: 'absolute', 
+          bottom: 20, 
+          right: 20,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }]}
+      >
+        <TouchableOpacity
+          onPress={handleSave}
+          className="bg-blue-500 p-4 rounded-full"
+        >
+          <Save color="white" size={24} />
+        </TouchableOpacity>
+      </Animated.View>
     </SafeAreaView>
   );
 });
 
-export default ProfileSettingsPage;
+export default ProfileScreen;
+

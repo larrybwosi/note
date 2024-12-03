@@ -1,10 +1,9 @@
-import { router } from "expo-router";
 import { Bookmark, BookmarkCheck, X } from "lucide-react-native";
-import { Text, TouchableOpacity } from "react-native";
-import { View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import { router } from "expo-router";
 
 interface HeaderProps {
-  onSave: () => void;
+  onSave: () => void; 
   isBookmarked: boolean;
   onBookmarkToggle: () => void;
 }

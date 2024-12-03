@@ -1,39 +1,56 @@
-import { createContext, useState, useContext, useRef, useMemo, ReactNode } from 'react';
-import { Modal, View, StyleSheet, TouchableWithoutFeedback, Animated } from 'react-native';
-import NewCategory from './new.category';
-import Postpone from './postpone';
-import CustomRuleForm from './new.customrule';
-import { colorScheme } from 'nativewind';
+import { createContext, useContext, useMemo, ReactNode, memo } from 'react';
+import { Modal, View, TouchableWithoutFeedback } from 'react-native';
+import { observer, useObservable } from '@legendapp/state/react';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming, 
+  Easing,
+  runOnJS
+} from 'react-native-reanimated';
+import { Category } from 'src/store/notes/types';
 
-export interface NewCategoryProps{
-  type:"INCOME"|"EXPENSES"
+// Constants
+const ANIMATION_DURATION = 300;
+const ANIMATION_CONFIG = {
+  duration: ANIMATION_DURATION,
+  easing: Easing.out(Easing.exp)
+};
+
+// Types
+export interface NewCategoryProps {
+  type: "INCOME" | "EXPENSES";
 }
+
 export interface PostponeProps {
-  itemId:string;
-  isVisible:boolean;
+  itemId: string;
+  isVisible: boolean;
 }
 
-export interface CustomRuleProps {
-  isVisible:boolean;
+export interface NoteCategorySelectProps {
+  categories: readonly Category[];
+  selectedCategoryId: string;
+  onSelectCategory: (categoryId: string) => void;
+  onClose: () => void;
 }
 
 export interface ModalConfig {
   NewCategory: NewCategoryProps;
   Postpone: PostponeProps;
-  CustomRuleForm:any
+  NoteCategorySelect: NoteCategorySelectProps
+  CustomRuleForm: any;
 }
 
 export type ModalName = keyof ModalConfig;
 
-// Type for the modal components mapping
 type ModalComponents = {
-  [K in ModalName]: React.FC<ModalConfig[K]>;
+  [K in ModalName]: React.FC<ModalConfig[K] & { onClose: () => void }>;
 };
 
 interface ModalContextType {
   show: <T extends ModalName>(
     modalName: T,
-    props?: Omit<ModalConfig[T], 'onClose'>
+    props: Omit<ModalConfig[T], 'onClose'>
   ) => void;
   close: () => void;
 }
@@ -43,120 +60,118 @@ interface ModalState<T extends ModalName = ModalName> {
   props?: Omit<ModalConfig[T], 'onClose'>;
 }
 
-// Constants
-const ANIMATION_DURATION = 300;
-const INITIAL_SCALE = 0.8;
-
+// Lazy load modal components
 const modalComponents: ModalComponents = {
-  NewCategory,
-  Postpone,
-  CustomRuleForm
+  NewCategory: memo(require('./new.category').default),
+  Postpone: memo(require('./postpone').default),
+  CustomRuleForm: memo(require('./custom.rule').default),
+  NoteCategorySelect: memo(require('./note.category.select').default)
 };
 
 const ModalContext = createContext<ModalContextType | null>(null);
+
+// Memoized Modal Content Component
+const ModalContent = memo(({ 
+  modalName, 
+  modalProps, 
+  animatedStyles, 
+  onClose 
+}: { 
+  modalName: ModalName; 
+  modalProps: any; 
+  animatedStyles: any; 
+  onClose: () => void;
+}) => {
+  const ModalComponent = modalComponents[modalName];
+  const props = {
+    ...modalProps,
+    onClose,
+    isVisible: true,
+  };
+
+  return (
+    <Modal
+      visible={true}
+      transparent={true}
+      statusBarTranslucent
+      onRequestClose={onClose}
+      animationType="none"
+    >
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View className="flex-1 bg-black/50 justify-center items-center">
+          <TouchableWithoutFeedback>
+            <Animated.View
+              className="bg-white dark:bg-gray-800 p-6 rounded-3xl w-11/12 max-w-md shadow-lg"
+              style={animatedStyles}
+            >
+              <ModalComponent {...props} />
+            </Animated.View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+});
 
 interface ModalProviderProps {
   children: ReactNode;
 }
 
 const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
-  const [modalState, setModalState] = useState<ModalState>({ name: null });
-  const animationValue = useRef(new Animated.Value(0)).current;
-  const isDark = colorScheme.get() === 'dark';
+  const state$ = useObservable<ModalState>({ name: null });
+  const modalState = state$.get();
+  const setModalState = state$.set;
 
-  const animations = useMemo(
-    () => ({
-      show: Animated.timing(animationValue, {
-        toValue: 1,
-        duration: ANIMATION_DURATION,
-        useNativeDriver: true,
-      }),
-      hide: Animated.timing(animationValue, {
-        toValue: 0,
-        duration: ANIMATION_DURATION,
-        useNativeDriver: true,
-      }),
-    }),
-    [animationValue]
-  );
+  // Shared animation values
+  const scale = useSharedValue(0.8);
+  const opacity = useSharedValue(0);
+ 
+  const animatedStyles = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }), []);
 
-  const animatedStyles = useMemo(
-    () => ({
-      scale: animationValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: [INITIAL_SCALE, 1],
-      }),
-      opacity: animationValue,
-    }),
-    [animationValue]
-  );
-
-  const show = <T extends ModalName>(
+  const show = useMemo(() => <T extends ModalName>(
     name: T,
-    props?: Omit<ModalConfig[T], 'onClose'>
+    props: Omit<ModalConfig[T], 'onClose'>
   ) => {
     setModalState({ name, props });
-    animations.show.start();
-  };
+    scale.value = withTiming(1, ANIMATION_CONFIG);
+    opacity.value = withTiming(1, { duration: ANIMATION_DURATION });
+  }, [scale, opacity, setModalState]);
 
-  const close = () => {
-    animations.hide.start(() => {
-      setModalState({ name: null });
+  const close = useMemo(() => () => {
+    scale.value = withTiming(0.8, {
+      ...ANIMATION_CONFIG,
+      easing: Easing.in(Easing.exp)
     });
-  };
+    opacity.value = withTiming(0, { duration: ANIMATION_DURATION }, (finished) => {
+      if (finished) {
+        runOnJS(setModalState)({ name: null });
+      }
+    });
+  }, [scale, opacity, setModalState]);
 
-  const contextValue = useMemo(
-    () => ({ show, close }),
-    [] // Empty dependency array since show and close don't depend on any props
-  );
-
-  const renderModal = () => {
-    if (!modalState.name) return null;
-    const ModalComponent = modalComponents[modalState.name];
-    const modalProps = {
-      ...modalState.props,
-      onClose: close,
-    } as ModalConfig[typeof modalState.name];
-
-    return <ModalComponent/>
-  };
+  const contextValue = useMemo(() => ({ 
+    show, 
+    close 
+  }), [show, close]);
 
   return (
-    <ModalContext.Provider value={contextValue}>
+    <ModalContext.Provider value={contextValue}> 
       {children}
       {modalState.name && (
-        <Modal
-          visible={true}
-          animationType="none"
-          transparent={true}
-          statusBarTranslucent
-          onRequestClose={close}
-        >
-          <TouchableWithoutFeedback onPress={close}>
-            <View style={styles.modalOverlay}>
-              <TouchableWithoutFeedback>
-                <Animated.View
-                  style={[
-                    styles.modalContent,
-                    isDark && styles.modalContentDark,
-                    {
-                      transform: [{ scale: animatedStyles.scale }],
-                      opacity: animatedStyles.opacity,
-                    },
-                  ]}
-                >
-                  {renderModal()}
-                </Animated.View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
+        <ModalContent
+          modalName={modalState.name}
+          modalProps={modalState.props}
+          animatedStyles={animatedStyles}
+          onClose={close}
+        />
       )}
     </ModalContext.Provider>
   );
 };
 
-// Custom hook with proper return type
 export const useModal = (): ModalContextType => {
   const context = useContext(ModalContext);
   if (!context) {
@@ -165,32 +180,4 @@ export const useModal = (): ModalContextType => {
   return context;
 };
 
-// Styles
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 16,
-    width: '90%',
-    maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalContentDark: {
-    backgroundColor: '#1F2937',
-  },
-});
-
-export default ModalProvider;
+export default observer(ModalProvider);

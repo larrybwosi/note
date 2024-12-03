@@ -1,24 +1,26 @@
+import { LucideIcon } from "lucide-react-native";
 
-export const ICONS = ['school', 'assignment', 'business', 'science', 'book'] as const;
 export const REFERENCE_TYPES = ['book', 'website', 'article', 'video'] as const;
 
-export type IconName = typeof ICONS[number];
 export type ReferenceType = typeof REFERENCE_TYPES[number];
 
 export interface ColorScheme {
-  gradient: readonly [string, string];
+  gradient: [string, string];
   accent: string;
 }
 
 export interface Category {
   id: string;
   name: string;
-  icon: IconName;
+  icon: LucideIcon;
   color: string;
   colorScheme?: ColorScheme;
 }
 
+export type CategoryReference = Pick<Category, 'id'>;
+
 export interface Reference {
+  id:string
   type: ReferenceType;
   title: string;
   author?: string;
@@ -38,12 +40,21 @@ export interface Note {
   title: string;
   content: string;
   tags: string[];
-  category: Category;
+  categoryId: CategoryReference['id'];
   references: Reference[];
   elements: Element[];
   lastEdited: Date;
   isBookmarked: boolean;
+  comments: Comment[];
 }
+
+export interface Comment {
+  id: string;
+  content: string;
+  author: string;
+  createdAt: Date;
+}
+
 
 export interface NoteQueryOptions {
   limit?: number;
@@ -62,7 +73,7 @@ export interface NoteSummary {
   id: string;
   title: string;
   preview: string;
-  category: Category;
+  categoryId: CategoryReference['id'];
   tags: string[];
   lastEdited: Date;
   isBookmarked: boolean;
@@ -81,6 +92,7 @@ export interface NoteStatistics {
     deleted: number;
   };
 }
+
 export type NoteWithoutId = Omit<Note, 'id'>;
 export type CategoryWithoutId = Omit<Category, 'id'>;
-export type UpdateableNoteFields = Partial<Omit<Note, 'id' | 'category'>>;
+export type UpdateableNoteFields = Partial<Omit<Note, 'id' | 'categoryId'>>;

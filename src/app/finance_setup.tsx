@@ -13,15 +13,10 @@ import Animated, {
   interpolateColor,
   LinearTransition,
 } from 'react-native-reanimated';
-import {
-  BudgetRuleType,
-  Category,
-  CategoryType,
-  EXPENSE_CATEGORIES,
-  INCOME_CATEGORIES
-} from 'src/store/finance/types';
+import { BudgetRuleType, Category, CategoryType, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from 'src/store/finance/types';
 import BudgetRuleSelector from 'src/components/budget.rule';
 import useFinanceStore from 'src/store/finance/actions';
+import { useModal } from 'src/components/modals/provider';
 
 interface Rule {
   type: BudgetRuleType;
@@ -61,14 +56,14 @@ const FinanceSetup: React.FC = () => {
   const { store } = useFinanceStore();
   const progressValue = useSharedValue(0);
   const isDarkMode = useColorScheme().colorScheme === 'dark';
-  const showNewCategoryModal$ = useObservable(false);
+  const {show} = useModal()
 
   const Pressable = Animated.createAnimatedComponent(TouchableOpacity);
 
   const state$ = useObservable({
     step: 1,
     selectedRule: BudgetRuleType.RULE_50_30_20,
-    activeTab: 'income' as CategoryType,
+    activeTab: 'INCOME' as CategoryType,
     monthlyIncome: '0',
     customRules: [
       {
@@ -215,10 +210,10 @@ const FinanceSetup: React.FC = () => {
             justifyContent: 'center',
           }}
         >
-          {type === 'INCOME' ? 
+          {type === 'income' ? 
             <ArrowUpCircle size={24} color={activeTab === type ? '#3B82F6' : '#6B7280'}/> :
             <ArrowDownCircle size={24} color={activeTab === type ? '#3B82F6' : '#6B7280'}/>
-            }
+          }
           <Text
             className="font-rmedium ml-2"
             style={{
@@ -365,7 +360,7 @@ const FinanceSetup: React.FC = () => {
 
             {/* Add New Category Button */}
             <TouchableOpacity
-              onPress={() => showNewCategoryModal$.set(true)}
+              onPress={() => show('NewCategory',{type:"INCOME"})}
               className="flex-row items-center justify-center bg-gray-100 rounded-xl p-4 mt-4"
             >
               <PlusCircle size={24} color="#3B82F6" />

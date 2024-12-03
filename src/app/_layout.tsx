@@ -62,6 +62,7 @@ export default function Root() {
               <Stack.Screen name="finance_setup" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="other" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="id" options={{ headerShown: false, presentation: 'modal' }} />
             </Stack>
             </KeyboardProvider>
           </ModalProvider>

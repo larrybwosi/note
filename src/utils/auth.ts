@@ -48,11 +48,11 @@ import { observablePersistMMKV } from "@legendapp/state/persist-plugins/mmkv";
  
 export const authClient = createAuthClient({
     baseURL: 'http://localhost:3000', /* base url of your Better Auth backend. */
-    storage: observablePersistMMKV
+    storage: observablePersistMMKV,
     // plugins: [
-    //     expoClient({
-    //         scheme: 'myapp',
-    //         storagePrefix: "myapp"
-    //     })
+    //   expoClient({
+    //     scheme: 'note',
+    //     storagePrefix: "auth"
+    //   })
     // ]
 });

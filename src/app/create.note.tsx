@@ -5,7 +5,6 @@ import {KeyboardAvoidingView} from 'react-native-keyboard-controller'
 import { router } from 'expo-router';
 
 import SaveConfirmationModal from 'src/components/notes/SaveConfirmation';
-import { categories, tagOptions } from 'src/components/notes/constants';
 import { Note, Reference, Category } from 'src/store/notes/types';
 import { ReferenceModal } from 'src/components/notes/Refrence';
 import CategorySelector from 'src/components/notes/Category';
@@ -16,6 +15,7 @@ import Editor from 'src/components/notes/editor';
 import Header from 'src/components/notes/header';
 import { useRef } from 'react';
 import References from 'src/components/notes/RefrenceItem';
+import { categories } from 'src/store/notes/data';
 
 const initialNote: Note = {
   id: '',
@@ -26,7 +26,7 @@ const initialNote: Note = {
   elements: [],
   lastEdited: new Date(),
   isBookmarked: false,
-  category: categories[1],
+  categoryId: categories[1].id,
 };
 
 interface EditorState {
@@ -59,7 +59,7 @@ export const AddNote = observer(() => {
     showToolbar,activeCategory, newReference,
     note:{ 
       tags: selectedTags, isBookmarked: isBookmarked, references:references,
-      title, content, category
+      title, content, categoryId
     }, 
      saveAlert, selectedText, showReferenceModal,
   } = state.get()
@@ -75,10 +75,11 @@ export const AddNote = observer(() => {
   };
 
   const handleSave = async () => {
-    const note = state.note.get();
+    const note = state.note.peek();
     console.log(note)
-    if (title || content) return;
+    if (!title || !content) return;
     
+    return
     state.saveAlert.set(true);
     await addNote(note);
     state.saveAlert.set(false);
@@ -99,7 +100,7 @@ export const AddNote = observer(() => {
 
   const handleCategoryChange = (category: Category) => {
     state.activeCategory.set(category);
-    state.note.category.set(category);
+    state.note.categoryId.set(category.id);
   };
 
   const handleReferenceModalToggle = (show: boolean) => {
@@ -121,14 +122,20 @@ export const AddNote = observer(() => {
             setActiveCategory={handleCategoryChange}
           />
 
-          <Editor state={state.note} noteType="note" />
+          <Editor
+            title={title}
+            content={content}
+            noteType="note"
+            setTitle={state.note.title.set}
+            setContent={state.note.content.set}
+          />
+
 
           {references.length > 0 && (
             <References references={references} />
           )}
 
           <TagSelector
-            tagOptions={tagOptions}
             selectedTags={selectedTags}
             onTagPress={handleTagPress}
           />

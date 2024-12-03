@@ -1,7 +1,6 @@
 {
   "cli": {
-    "version": ">= 3.15.1",
-    "appVersionSource": "manifest"
+    "version": ">= 3.15.1"
   },
   "build": {
     "development": {

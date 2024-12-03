@@ -1,19 +1,11 @@
 import { ScrollView, TouchableOpacity, Text, View } from 'react-native';
-
-interface TagOption {
-  id: string;
-  name: string;
-  color: string;
-}
-
+import { tagOptions } from 'src/store/notes/data';
 interface TagSelectorProps {
-  tagOptions: TagOption[];
   selectedTags: string[];
   onTagPress: (tagName: string) => void;
 }
 
 const TagSelector: React.FC<TagSelectorProps> = ({
-  tagOptions,
   selectedTags,
   onTagPress,
 }) => (

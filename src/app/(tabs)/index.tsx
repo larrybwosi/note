@@ -28,18 +28,6 @@ import { WaterReminderSection } from 'src/components/home/water.reminder';
 import { FocusInsightsSection } from 'src/components/home/focus';
 import { View } from 'react-native';
 
-const gradientConfigs = {
-  dark: {
-    morning: ['#3B82F6', '#2563EB', '#1E40AF', '#1E3A8A'],
-    afternoon: ['#10B981', '#059669', '#047857', '#065F46'],
-    evening: ['#8B5CF6', '#7C3AED', '#6D28D9', '#5B21B6'],
-  },
-  light: {
-    morning: ['#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8'],
-    afternoon: ['#34D399', '#10B981', '#059669', '#047857'],
-    evening: ['#A78BFA', '#8B5CF6', '#7C3AED', '#6D28D9'],
-  },
-};
 
 interface HeaderSectionProps {
   timeOfDay: string;
@@ -49,38 +37,86 @@ interface HeaderSectionProps {
   scrollY: SharedValue<number>;
 }
 
-const HeaderSection = ({ timeOfDay, name, greeting, quote, scrollY }: HeaderSectionProps) => {
+const gradientConfigs = {
+  dark: {
+    morning: ['#3B82F6', '#2563EB', '#1E40AF'],
+    afternoon: ['#10B981', '#059669', '#047857'],
+    evening: ['#8B5CF6', '#7C3AED', '#6D28D9'],
+  },
+  light: {
+    morning: ['#60A5FA', '#3B82F6', '#2563EB'],
+    afternoon: ['#34D399', '#10B981', '#059669'],
+    evening: ['#A78BFA', '#8B5CF6', '#7C3AED'],
+  }
+};
+
+const HeaderSection = ({ 
+  timeOfDay, 
+  name, 
+  greeting, 
+  quote, 
+  scrollY 
+}:HeaderSectionProps) => {
   const welcomeScale = useAnimatedStyle(() => ({
     transform: [
-      { scale: interpolate(scrollY.value, [0, 100], [1, 0.8], Extrapolation.CLAMP) },
-      { translateY: interpolate(scrollY.value, [0, 100], [0, -20], Extrapolation.CLAMP) },
+      { 
+        scale: interpolate(
+          scrollY.value, 
+          [0, 100], 
+          [1, 0.9], 
+          Extrapolation.CLAMP
+        ) 
+      },
+      { 
+        translateY: interpolate(
+          scrollY.value, 
+          [0, 100], 
+          [0, -15], 
+          Extrapolation.CLAMP
+        ) 
+      },
     ],
-    opacity: interpolate(scrollY.value, [0, 100], [1, 0.8], Extrapolation.CLAMP),
+    opacity: interpolate(
+      scrollY.value, 
+      [0, 100], 
+      [1, 0.9], 
+      Extrapolation.CLAMP
+    ),
   }));
 
   return (
-    <Animated.View style={[welcomeScale, { 
-      shadowColor: '#000', 
-      shadowOffset: { width: 0, height: 4 }, 
-      shadowOpacity: 0.1, 
-      shadowRadius: 6 
-    }]} className="space-y-4">
-      <Animated.View entering={FadeIn.duration(800)} className="flex-row items-center gap-2">
+    <Animated.View 
+      style={[
+        welcomeScale, 
+        { 
+          shadowColor: '#000', 
+          shadowOpacity: 0.1, 
+          shadowRadius: 6 
+        }
+      ]} 
+      className="space-y-5"
+    >
+      <Animated.View 
+        entering={FadeIn.duration(800)} 
+        className="flex-row items-center gap-3"
+      >
         <Text className="text-white text-3xl font-rbold">
           Good {timeOfDay}, {name}!
         </Text>
-        <Text className="text-3xl ml-2">✨</Text>
+        <Text className="text-3xl">✨</Text>
       </Animated.View>
+      
       <Animated.Text
         entering={FadeIn.duration(1000).delay(300)}
         className="text-gray-100 text-base font-aregular"
       >
         {greeting}
       </Animated.Text>
+      
       <Animated.View
         entering={SlideInRight.duration(600).delay(400)}
         exiting={SlideOutRight}
-        className="bg-white/30 p-5 rounded-3xl border border-white/20"
+        className="bg-white/20 p-5 rounded-3xl border border-white/10"
       >
         <Text className="text-white text-lg font-rmedium leading-7">
           "{quote.quote}"
@@ -92,6 +128,7 @@ const HeaderSection = ({ timeOfDay, name, greeting, quote, scrollY }: HeaderSect
     </Animated.View>
   );
 };
+
 
 const HomeScreen = observer(() => {
   const isDark = colorScheme.get() === 'dark';
