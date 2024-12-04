@@ -1,10 +1,15 @@
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
-import { PostponeProps } from './provider';
 import { scheduleStore } from 'src/store/shedule/store';
 import { format } from 'date-fns';
 import DateTimePickerComponent from '../date.time';
 import useScheduleStore from 'src/store/shedule/actions';
 import { observer, useObservable } from '@legendapp/state/react';
+
+
+export interface PostponeProps {
+  itemId: string;
+  isVisible: boolean;
+}
 
 const Postpone: React.FC<PostponeProps & { onClose: () => void }> = ({ itemId, onClose }) => {
 

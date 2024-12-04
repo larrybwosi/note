@@ -39,7 +39,7 @@ export const EnhancedNoteCard: React.FC<EnhancedNoteCardProps> = ({ note, catego
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         activeOpacity={0.8}
-        onPress={() => router.navigate('id')}
+        onPress={() => router.navigate('note.view')}
       >
         <LinearGradient
           colors={scheme.gradient}

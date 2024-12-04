@@ -20,11 +20,11 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
     >
       <TouchableOpacity
         onPress={() => onSelectCategory(null)}
-        className={`mr-2 px-4 py-2 rounded-full ${
+        className={`mr-2 px-4 py-2 rounded-xl ${
           selectedCategory === null ? 'bg-gray-200 dark:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800'
         }`}
       >
-        <Text className={`text-sm ${
+        <Text className={`text-sm  font-amedium${
           selectedCategory === null ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'
         }`}>
           All
@@ -34,12 +34,12 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
         <TouchableOpacity
           key={category.id}
           onPress={() => onSelectCategory(category.id)}
-          className={`mr-2 px-4 py-2 rounded-full flex-row items-center ${
+          className={`mr-2 px-4 py-2 rounded-xl flex-row items-center ${
             selectedCategory === category.id ? 'bg-gray-200 dark:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800'
           }`}
         >
           <category.icon size={16} color={category.color} />
-          <Text className={`ml-2 text-sm ${
+          <Text className={`ml-2 text-sm font-amedium ${
             selectedCategory === category.id ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'
           }`}>
             {category.name}

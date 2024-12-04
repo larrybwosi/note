@@ -8,7 +8,10 @@ import Animated, {
   Easing,
   runOnJS
 } from 'react-native-reanimated';
-import { Category } from 'src/store/notes/types';
+import { Category, Reference } from 'src/store/notes/types';
+import { AddReferenceModalProps } from './refrence';
+import { PostponeProps } from './postpone';
+import { NewCategoryProps } from './new.category';
 
 // Constants
 const ANIMATION_DURATION = 300;
@@ -18,14 +21,7 @@ const ANIMATION_CONFIG = {
 };
 
 // Types
-export interface NewCategoryProps {
-  type: "INCOME" | "EXPENSES";
-}
 
-export interface PostponeProps {
-  itemId: string;
-  isVisible: boolean;
-}
 
 export interface NoteCategorySelectProps {
   categories: readonly Category[];
@@ -38,6 +34,7 @@ export interface ModalConfig {
   NewCategory: NewCategoryProps;
   Postpone: PostponeProps;
   NoteCategorySelect: NoteCategorySelectProps
+  AddReferenceModal:AddReferenceModalProps
   CustomRuleForm: any;
 }
 
@@ -65,7 +62,8 @@ const modalComponents: ModalComponents = {
   NewCategory: memo(require('./new.category').default),
   Postpone: memo(require('./postpone').default),
   CustomRuleForm: memo(require('./custom.rule').default),
-  NoteCategorySelect: memo(require('./note.category.select').default)
+  NoteCategorySelect: memo(require('./note.category.select').default),
+  AddReferenceModal: memo(require('./refrence').default)
 };
 
 const ModalContext = createContext<ModalContextType | null>(null);

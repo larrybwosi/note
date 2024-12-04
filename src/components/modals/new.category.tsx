@@ -1,8 +1,11 @@
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
-import { NewCategoryProps } from './provider';
 import { PlusCircle, Tag, X } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useObservable } from '@legendapp/state/react';
+
+export interface NewCategoryProps {
+  type: "INCOME" | "EXPENSES";
+}
 
 const NewCategory: React.FC<NewCategoryProps & { onClose: () => void }> = ({ type, onClose }) => {
   const state = useObservable({

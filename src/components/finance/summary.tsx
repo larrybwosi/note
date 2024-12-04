@@ -4,7 +4,7 @@ import { TrendingUp } from "lucide-react-native";
 import { colorScheme } from "nativewind";
 import { View } from "react-native";
 import { Text } from "react-native";
-import Animated, { BounceIn, FadeIn, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Animated, { BounceIn, FadeIn, Layout, LinearTransition, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import useFinancialStore from "src/store/finance/store";
 
 const InsightCard = observer(({ title, value, trend, color }: { 
@@ -13,16 +13,10 @@ const InsightCard = observer(({ title, value, trend, color }: {
   trend: number;
   color: string;
 }) => {
-  const scale = useSharedValue(1);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
     <Animated.View
       entering={BounceIn.duration(1000)}
-      style={animatedStyle}
+      layout={LinearTransition.springify()}
       className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm"
     >
       <Text className="text-sm font-rmedium text-gray-500 dark:text-gray-400">{title}</Text>
@@ -43,23 +37,13 @@ const FinanceSummary = observer(() => {
   const guiltFreeBalance = getGuiltFreeBalance();
   const totalExpenses = getTotalExpenses();
   const totalIncome = getTotalIncome();
-  const scale = useSharedValue(1);
-  const rotateValue = useSharedValue(0);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { rotate: `${rotateValue.value}deg` }
-    ],
-  }));
-
   const savingsRate = ((totalIncome - totalExpenses) / totalIncome * 100).toFixed(1);
   const monthlyChange = ((guiltFreeBalance / totalIncome) * 100).toFixed(1);
 
   return (
     <Animated.View 
       entering={FadeIn.duration(800).delay(300)}
-      style={[animatedStyle]}
+      layout={LinearTransition.springify()}
       className="mt-4 rounded-2xl overflow-hidden shadow-lg"
     >
       <LinearGradient

@@ -63,6 +63,10 @@ export default function Root() {
               <Stack.Screen name="other" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="id" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="transactions" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="budget.planner" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="createtransactions" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="note.view" options={{ headerShown: false, presentation: 'modal' }} />
             </Stack>
             </KeyboardProvider>
           </ModalProvider>

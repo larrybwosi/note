@@ -42,36 +42,24 @@ const config: ExpoConfig = {
       backgroundColor: '#191015',
     },
   },
-  web: {
-    favicon: './assets/images/app-icon-web-favicon.png',
-    splash: {
-      image: './assets/images/splash-logo-web.png',
-      resizeMode: 'contain',
-      backgroundColor: '#191015',
-    },
-    bundler: 'metro',
-  },
   plugins: [
     'expo-font',
     'expo-location',
-      [
-        "expo-notifications",
-        {
-          icon: "./assets/images/app-icon-ios.png",
-          color: "#ffffff",
-          defaultChannel: "default",
-          sounds: [
-            "./assets/sounds/not1.wav",
-            "./assets/sounds/not2.wav",
-            "./assets/sounds/not3.wav",
-            "./assets/sounds/not4.wav",
-            "./assets/sounds/not5.wav",
-            "./assets/sounds/not6.wav",
-            "./assets/sounds/not7.wav",
-          ],
-          enableBackgroundRemoteNotifications: false,
-        }
-      ]
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/images/app-icon-ios.png",
+        color: "#ffffff",
+        defaultChannel: "default",
+        sounds: [
+          "./assets/sounds/not1.wav",
+          "./assets/sounds/not2.wav",
+          "./assets/sounds/not3.wav",
+          "./assets/sounds/not4.wav",
+        ],
+        enableBackgroundRemoteNotifications: false,
+      }
+    ]
   ],
   experiments: {
     tsconfigPaths: true,
