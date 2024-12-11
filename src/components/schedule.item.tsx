@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, Pressable, Image } from 'react-native';
 import Animated, {
   FadeOut,
   SlideInRight,
@@ -20,6 +20,7 @@ import { ScheduleItem } from 'src/store/shedule/types';
 import { colorScheme } from 'nativewind';
 import { observer, useObservable } from '@legendapp/state/react';
 import { useModal } from './modals/provider';
+import { SvgXml } from 'react-native-svg';
 
 interface ItemCardProps {
   item: ScheduleItem;
@@ -252,11 +253,20 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               </View>
               {item.duration && (
                 <View className="flex-row items-center">
+                  
+                  {/* <SvgXml
+                    xml={require('../../assets/images/hour-glass.svg')}
+                    width={16} 
+                    height={16}
+                    color={colorScheme.get() === 'light' ? '#6B7280' : '#9CA3AF'}
+                    style={{ marginRight: 4 }}
+                  /> */}
                   <Hourglass
                     size={16}
                     color={colorScheme.get() === 'light' ? '#6B7280' : '#9CA3AF'}
                     style={{ marginRight: 4 }}
                   />
+                  
                   <Text className="text-sm text-gray-500 dark:text-gray-400">
                     {item?.countdown! > 60
                       ? `${Math.floor(item?.countdown! / 60)}hr ${item?.countdown! % 60}min`

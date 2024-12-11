@@ -42,7 +42,7 @@ export interface Note {
   tags: string[];
   categoryId: CategoryReference['id'];
   references: Reference[];
-  elements: Element[];
+  elements?: Element[];
   lastEdited: Date;
   isBookmarked: boolean;
   comments: Comment[];
@@ -51,7 +51,6 @@ export interface Note {
 export interface Comment {
   id: string;
   content: string;
-  author: string;
   createdAt: Date;
 }
 

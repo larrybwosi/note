@@ -17,6 +17,7 @@ export const TransactionSchema = z.object({
   category: CategorySchema,
   createdAt: z.string(),
   type: TransactionTypeSchema,
+  description:z.string()
 });
 
 export const BudgetRuleTypeSchema = z.enum(['RULE_50_30_20', 'RULE_70_20_10', 'RULE_15_65_20', 'CUSTOM']);

@@ -5,6 +5,7 @@ import { observer, useObservable } from '@legendapp/state/react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Animated, { FadeInDown, FadeInUp, useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 import { CalendarDays } from 'lucide-react-native';
+import { useProfile } from 'src/store/profile/actions';
 
 type Profile = {
   personalInfo: {
@@ -34,6 +35,7 @@ const ProfileSetupPage: React.FC = observer(() => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const submitScale = useSharedValue(1);
   const scrollProgress = useSharedValue(0);
+  const { personalInfo, addWaterIntake, updateSleep, updatePersonalInfo } = useProfile()
 
   const profile = useObservable<Profile>({
     personalInfo: {
@@ -181,7 +183,7 @@ const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
                   value={profile.personalInfo.dateOfBirth.get() ? new Date(profile.personalInfo.dateOfBirth.get()) : new Date()}
                   mode="date"
                   display="default"
-                  onChange={handleDateChange}
+                  // onChange={handleDateChange}
                 />
               )}
               

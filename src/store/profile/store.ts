@@ -2,15 +2,15 @@ import { observable } from '@legendapp/state';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 import { synced } from '@legendapp/state/sync';
 import { format } from 'date-fns';
-import { Profile } from './types';
+import { Profile, ProfileSchema, HealthStore, HealthStoreSchema } from './types';
 
 const initialProfile: Profile = {
   personalInfo: {
     name: 'Jane Doe',
-    email: 'jane@dealio.com',
-    dateOfBirth: format(new Date(), 'dd MM yyyy'),
-    height: 0,
-    weight: 0,
+    email: 'jane@example.com',
+    dateOfBirth: format(new Date(), 'yyyy-MM-dd'),
+    height: 165,
+    weight: 60,
     image: 'https://via.placeholder.com/150',
   },
   healthMetrics: {
@@ -49,25 +49,53 @@ const initialProfile: Profile = {
   },
   systemSettings: {
     theme: 'system',
-    accentColor: 'indigo',
-    gradient: {
-      startColor: '#4F46E5',
-      endColor: '#7C3AED',
-    },
     notifications: {
       reminders: true,
       waterReminder: true,
       exerciseReminder: true,
       sleepReminder: true,
-    }
-  }
+    },
+    gradient: {
+      startColor: '#4F46E5',
+      endColor: '#7C3AED',
+    },
+  },
+};
+
+const initialHealthStore: HealthStore = {
+  workouts: {},
+  exercises: {},
+  meals: {},
+  sleep: {},
+  vitals: {},
+  goals: {
+    daily_calories: 2000,
+    daily_protein: 150,
+    daily_steps: 10000,
+    weekly_workouts: 4,
+  },
+  settings: {
+    units: 'metric',
+    notifications_enabled: true,
+    reminder_times: ['07:00', '12:00', '18:00'],
+  },
 };
 
 export const profileStore = observable(
   synced<Profile>({
-    initial: initialProfile,
+    initial: ProfileSchema.parse(initialProfile),
     persist: {
       name: 'profile',
+      plugin: ObservablePersistMMKV,
+    },
+  })
+);
+
+export const healthStore = observable(
+  synced<HealthStore>({
+    initial: HealthStoreSchema.parse(initialHealthStore),
+    persist: {
+      name: 'health',
       plugin: ObservablePersistMMKV,
     },
   })

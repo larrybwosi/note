@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import {Activity, Wallet2, Calendar, StickyNote, User, CalendarDays, Wallet, FileText} from 'lucide-react-native';
+import {Activity, User, CalendarDays, Wallet, FileText} from 'lucide-react-native';
 
 export default function TabLayout() {
   return (

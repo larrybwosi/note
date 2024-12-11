@@ -9,42 +9,7 @@ import { PRIORITY_LEVELS, RECURRENCE_PATTERNS, TASK_TYPES } from 'src/store/shed
 import DateTimePickerComponent from 'src/components/date.time';
 import useScheduleStore from 'src/store/shedule/actions';
 import { scheduleStore } from 'src/store/shedule/store';
-
-const priorityColors = {
-  Low: {
-    bg: 'bg-emerald-500',
-    text: 'text-emerald-500',
-    light: 'bg-emerald-100',
-    border: 'border-emerald-500',
-  },
-  Medium: {
-    bg: 'bg-blue-500',
-    text: 'text-blue-500',
-    light: 'bg-blue-100',
-    border: 'border-blue-500',
-  },
-  High: {
-    bg: 'bg-amber-500',
-    text: 'text-amber-500',
-    light: 'bg-amber-100',
-    border: 'border-amber-500',
-  },
-  Critical: {
-    bg: 'bg-rose-500',
-    text: 'text-rose-500',
-    light: 'bg-rose-100',
-    border: 'border-rose-500',
-  },
-};
-
-const typeColors = {
-  Work: { bg: 'bg-blue-100', text: 'text-blue-600  font-amedium' },
-  Personal: { bg: 'bg-green-100', text: 'text-green-600  font-amedium' },
-  Health: { bg: 'bg-rose-100', text: 'text-rose-600  font-amedium' },
-  Learning: { bg: 'bg-purple-100', text: 'text-purple-600  font-amedium' },
-  Social: { bg: 'bg-amber-100', text: 'text-amber-600  font-amedium' },
-  Urgent: { bg: 'bg-red-100', text: 'text-red-600  font-amedium' },
-};
+import { priorityColors, typeColors } from 'src/utils/theme/shedule';
 
 const CreateShedule = () => {
   const isEvent = scheduleStore.newItem.scheduleType.get() === 'event';
@@ -72,7 +37,7 @@ const CreateShedule = () => {
               {scheduleStore.editingItem.get() ? 'Edit Item' : 'Add New Item'}
             </Text>
             <TouchableOpacity
-              onPress={() => router.push("/ai.schedule")}
+              onPress={() => router.push("/ai.create.schedule")}
               className="bg-blue-500 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
             >
               <Sparkles size={20} color="white" />

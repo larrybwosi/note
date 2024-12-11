@@ -1,10 +1,10 @@
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeOutUp, LinearTransition, FadeInDown }from 'react-native-reanimated';
 import { PlusCircle, CheckCircle } from 'lucide-react-native';
-import { BudgetRuleType } from 'src/store/finance/types';
 import { observer, } from '@legendapp/state/react';
-import { View } from 'react-native';
 import { useState } from 'react';
+
+import { BudgetRuleType } from 'src/store/finance/types';
 import { useModal } from './modals/provider';
 
 interface Rule {
@@ -65,7 +65,7 @@ const BudgetRuleSelector = ({ rules }: { rules: Rule[] }) => {
 
         <Pressable
           className="bg-white dark:bg-gray-800 rounded-2xl p-6 mt-4 shadow-md border-2 border-dashed border-gray-300"
-          onPress={() => show('CustomRuleForm')}
+          onPress={() => show('CustomRuleForm',{})}
         >
           <View className="flex-row items-center justify-center">
             <PlusCircle size={24} color="#3B82F6" />

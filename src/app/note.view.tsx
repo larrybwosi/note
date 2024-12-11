@@ -1,22 +1,22 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Linking, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Linking, TextInput, ImageBackground, StatusBar } from 'react-native';
+import { Book, Link, Video, Newspaper, Bookmark, BookmarkCheck, Calendar, ArrowLeft, ExternalLink, ChevronDown, Edit, Save, Plus, X } from 'lucide-react-native';
+import { observer, useObservable } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { observable } from '@legendapp/state';
+import { format } from 'date-fns';
 import Animated, { 
   FadeIn,
   FadeInDown,
   SlideInRight,
 } from 'react-native-reanimated';
-import { format } from 'date-fns';
+
 import { Note, Reference, Reference as ReferenceType } from 'src/store/notes/types';
-import Markdown from 'react-native-markdown-display';
 import { useModal } from 'src/components/modals/provider';
-import { observable } from '@legendapp/state';
-import { observer, useObservable } from '@legendapp/state/react';
-import { categories } from 'src/store/notes/data';
-import { Book, Link, Video, Newspaper, Bookmark, BookmarkCheck, Calendar, ArrowLeft, ExternalLink, ChevronDown, Edit, Save, Plus, X } from 'lucide-react-native';
-import { router, useLocalSearchParams } from 'expo-router';
 import { useNotes } from 'src/store/notes/actions';
+import { categories } from 'src/store/notes/data';
+import { colorScheme } from 'nativewind';
 
 const initialNote: Note = {
   id: '',
@@ -25,20 +25,11 @@ const initialNote: Note = {
   tags: [],
   categoryId: '1',
   references: [],
-  elements: [],
   lastEdited: new Date(),
   isBookmarked: false,
   comments: [],
 };
 
-const NoteViewer = observer(() => {
-  const {noteId} = useLocalSearchParams();
-  const {getNote, updateNote} = useNotes();
-  const note = getNote(noteId as string);
-  const noteState = useObservable(note || initialNote);
-  const isEditing = useObservable(false);
-  const showReferences = useObservable(false);
-  const newTag = useObservable('');
   const newReference = observable<ReferenceType>({
     id: '',
     title: '',
@@ -46,93 +37,50 @@ const NoteViewer = observer(() => {
     url: '',
   });
 
+const NoteViewer = () => {
+  const { noteId } = useLocalSearchParams();
+  const { getNote, updateNote, addNote } = useNotes();
+  const note$ = getNote(noteId as string);
+  const noteState$ = useObservable(note$ || initialNote);
+  const isEditing$ = useObservable(note$? false: true);
+  const showReferences$ = useObservable(note$? false: true);
+  const newTag$ = useObservable('');
+
   const { show, close } = useModal();
-
-  const markdownStyles = {
-    body: {
-      color: '#1F2937',
-      fontSize: 16,
-      lineHeight: 24,
-      fontFamily: 'aregular',
-    },
-    heading1: {
-      color: '#111827',
-      fontSize: 24,
-      fontFamily: 'rbold',
-      marginBottom: 16,
-      marginTop: 24,
-    },
-    heading2: {
-      color: '#1F2937',
-      fontSize: 20,
-      fontFamily: 'rmedium',
-      marginBottom: 12,
-      marginTop: 20,
-    },
-    link: {
-      color: '#6366F1',
-      // textDecorationLine: 'none',
-      fontFamily: 'rmedium',
-    },
-    blockquote: {
-      backgroundColor: '#F3F4F6',
-      borderLeftColor: '#6366F1',
-      borderLeftWidth: 4,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      marginVertical: 16,
-      borderRadius: 8,
-    },
-    code_inline: {
-      backgroundColor: '#F3F4F6',
-      color: '#6366F1',
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderRadius: 4,
-      fontFamily: 'rmedium',
-    },
-    code_block: {
-      backgroundColor: '#F3F4F6',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderRadius: 8,
-      marginVertical: 16,
-    },
-    list_item: {
-      marginVertical: 8,
-    },
-  };
-
   const handleCategoryChange = (newCategoryId: string) => {
-    noteState.categoryId.set(newCategoryId);
+    noteState$.categoryId.set(newCategoryId);
     close();
   };
 
   const handleToggleBookmark = () => {
-    noteState.isBookmarked.set(!noteState.isBookmarked.get());
+    noteState$.isBookmarked.set(!noteState$.isBookmarked.get());
   };
 
   const handleSave = () => {
-    isEditing.set(false);
-    const updatedNote = noteState.get();
-    // updateNote(updatedNote);
-    console.log('Note saved:', updatedNote);
+    // isEditing$.set(false);
+    const note = noteState$.get();
+    if (noteId){
+      updateNote(noteId as string,note);
+    } else {
+      addNote(note)
+    }
+    // noteState$.
   };
 
   const handleAddTag = () => {
-    if (newTag.get().trim()) {
-      noteState.tags.push(newTag.get().trim());
-      newTag.set('');
+    if (newTag$.get()?.trim()) {
+      noteState$.tags.push(newTag$.get()?.trim());
+      newTag$.set('');
     }
   };
 
   const handleDeleteTag = (index: number) => {
-    noteState.tags.splice(index, 1);
+    noteState$.tags.splice(index, 1);
   };
 
   const handleAddReference = () => {
-    if (newReference.title.get().trim()) {
-      noteState.references.push({
+    if (newReference.title.get()?.trim()) {
+      noteState$.references.push({
         ...newReference.get(),
         id: Date.now().toString(),
       });
@@ -146,12 +94,13 @@ const NoteViewer = observer(() => {
     }
   };
 
-  const handleFieldChange = (field: keyof Reference, value: string | Reference['type']) => {
+  const handleFieldChange = (field: keyof Reference, value: Reference['type']) => {
     console.log(value)
-    // newReference[field].set(value);
+    newReference[field].set(value);
   };
 
-  const category = categories.find(c => c.id === noteState.categoryId.get())!;
+  const category = categories.find(c => c.id === noteState$.categoryId.get())!;
+  const scheme = category.colorScheme || { gradient: ['#CBD5E1', '#94A3B8'] as [string, string] };
 
   const ReferenceIcon = ({ type }: { type: ReferenceType['type'] }) => {
     switch (type) {
@@ -217,7 +166,7 @@ const NoteViewer = observer(() => {
       <Text className="text-indigo-700 dark:text-indigo-200 text-sm font-rmedium">
         {label}
       </Text>
-      {isEditing.get() && (
+      {isEditing$.get() && (
         <TouchableOpacity onPress={onDelete} className="ml-2">
           <X size={14} color="#4F46E5" />
         </TouchableOpacity>
@@ -234,7 +183,7 @@ const NoteViewer = observer(() => {
         Start adding content to your note. You can include text, references, and tags to organize your thoughts.
       </Text>
       <TouchableOpacity
-        onPress={() => isEditing.set(true)}
+        onPress={() => isEditing$.set(true)}
         className="bg-indigo-500 px-6 py-3 rounded-full"
       >
         <Text className="text-white font-rbold">Start Editing</Text>
@@ -242,17 +191,34 @@ const NoteViewer = observer(() => {
     </View>
   );
 
+  const renderContent =()=>{
+    if(noteState$.content.get()){
+      return(
+        <View className='mt-4'>
+          <Text className='font-abold mb-4 dark:text-gray-300'>Your Note</Text>
+          <Text className='font-aregular dark:text-gray-200'>
+            {noteState$.content.get()}
+          </Text>
+        </View>
+      )
+    } else {
+      return(
+        <EmptyState />
+      )
+    }
+  }
+
+  //trim
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <View className="flex-1 bg-gray-50 dark:bg-gray-900">
+      <StatusBar hidden/>
       <Animated.View 
         entering={FadeInDown.duration(500)}
         className="flex-1"
       >
         {/* Header */}
-        <LinearGradient
-          colors={['#4F46E5', '#6366F1']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <ImageBackground
+          source={require('../../assets/images/image3.png')}
           className="p-6 pb-8 rounded-b-[32px] shadow-lg"
         >
           <View className="flex-row items-center justify-between mb-6">
@@ -267,18 +233,18 @@ const NoteViewer = observer(() => {
                 onPress={handleToggleBookmark}
                 className="bg-white/20 p-2 rounded-xl mr-2"
               >
-                {noteState.isBookmarked.get() ? (
+                {noteState$.isBookmarked.get() ? (
                   <BookmarkCheck size={24} color="white" />
                 ) : (
                   <Bookmark size={24} color="white" />
                 )}
               </TouchableOpacity>
               <TouchableOpacity 
-                onPress={() => isEditing.set(!isEditing.get())}
+                onPress={() => isEditing$.set(!isEditing$.get())}
                 className="bg-white/20 p-2 rounded-xl"
               >
-                {isEditing.get() ? (
-                  <Save size={24} color="white" />
+                {isEditing$.get() ? (
+                  <Save size={24} color="white" onPress={handleSave} />
                 ) : (
                   <Edit size={24} color="white" />
                 )}
@@ -286,31 +252,31 @@ const NoteViewer = observer(() => {
             </View>
           </View>
 
-          {isEditing.get() ? (
+          {isEditing$.get() ? (
             <TextInput
-              value={noteState.title.get()}
-              onChangeText={(text) => noteState.title.set(text)}
-              className="text-3xl font-rbold text-white mb-4"
+              value={noteState$.title.get()}
+              onChangeText={(text) => noteState$.title.set(text)}
+              className="text-3xl font-rbold text-white mb-4 dark:text-gray-700"
               placeholder="Enter note title"
-              placeholderTextColor="rgba(255,255,255,0.6)"
+              placeholderTextColor={colorScheme.get()==='light'?"rgba(255,255,255,0.6)":'white'}
             />
           ) : (
             <Text className="text-3xl font-rbold text-white mb-4">
-              {noteState.title.get() || "Untitled Note"}
+              {noteState$.title.get() || "Untitled Note"}
             </Text>
           )}
 
           <View className="flex-row items-center mb-4">
             <Calendar size={16} color="white" className="opacity-80" />
             <Text className="text-white/80 ml-2 font-aregular">
-              {format(new Date(noteState.lastEdited.get()), 'MMM dd, yyyy')}
+              {format(new Date(noteState$.lastEdited.get()), 'MMM dd, yyyy')}
             </Text>
           </View>
           <TouchableOpacity 
             onPress={() => show('NoteCategorySelect', {
               categories,
               onSelectCategory: handleCategoryChange,
-              selectedCategoryId: noteState.categoryId.get(),
+              selectedCategoryId: noteState$.categoryId.get(),
             })}
             className="flex-row items-center mb-4"
           >
@@ -324,18 +290,18 @@ const NoteViewer = observer(() => {
             showsHorizontalScrollIndicator={false}
             className="flex-row flex-wrap"
           >
-            {noteState.tags.get().map((tag, index) => (
+            {noteState$.tags.get().map((tag, index) => (
               <Tag 
                 key={index} 
                 label={tag} 
                 onDelete={() => handleDeleteTag(index)}
               />
             ))}
-            {isEditing.get() && (
+            {isEditing$.get() && (
               <View className="flex-row items-center">
                 <TextInput
-                  value={newTag.get()}
-                  onChangeText={(text) => newTag.set(text)}
+                  value={newTag$.get()}
+                  onChangeText={(text) => newTag$.set(text)}
                   onSubmitEditing={handleAddTag}
                   placeholder="Add tag"
                   placeholderTextColor="rgba(255,255,255,0.6)"
@@ -347,54 +313,50 @@ const NoteViewer = observer(() => {
               </View>
             )}
           </ScrollView>
-        </LinearGradient>
+        </ImageBackground>
 
         {/* Content */}
         <ScrollView 
           className="flex-1 px-6"
           showsVerticalScrollIndicator={false}
         >
-          {noteState.content.get() ? (
-            <View className="py-6">
-              {isEditing.get() ? (
-                <TextInput
-                  value={noteState.content.get()}
-                  onChangeText={(text) => noteState.content.set(text)}
-                  multiline
-                  className="text-gray-900 dark:text-gray-100 font-aregular"
-                  placeholder="Start typing your note here..."
-                  placeholderTextColor="#9CA3AF"
-                />
-              ) : (
-                <Markdown style={markdownStyles}>
-                  {noteState.content.get()}
-                </Markdown>
-              )}
-            </View>
-          ) : (
-            <EmptyState />
-          )}
+          <View className="py-6">
+            {isEditing$.get() ? (
+              <TextInput
+                value={noteState$.content.get()}
+                onChangeText={(text) => noteState$.content.set(text)}
+                multiline
+                textAlignVertical='top'
+                className='text-gray-800 dark:text-gray-200 font-aregular dark:bg-gray-900 ml-2 text-lg bg-gray-50 min-h-[150px]'
+                placeholder="Start typing your note here..."
+                placeholderTextColor="#9CA3AF"
+              />
+            ) : (
+              renderContent()
+            )}
+          </View>
+            
 
           {/* References Section */}
           <View className="mb-8">
             <TouchableOpacity
-              onPress={() => showReferences.set(!showReferences.get())}
+              onPress={() => showReferences$.set(!showReferences$.get())}
               className="flex-row items-center justify-between mb-4"
             >
               <Text className="text-xl font-rbold text-gray-900 dark:text-gray-100">
                 References
               </Text>
               <Text className="text-indigo-600 dark:text-indigo-400 font-rmedium">
-                {showReferences.get() ? 'Hide' : 'Show'}
+                {showReferences$.get() ? 'Hide' : 'Show'}
               </Text>
             </TouchableOpacity>
 
-            {showReferences.get() && (
+            {showReferences$.get() && (
               <View>
-                {noteState.references.get().map((reference, index) => (
+                {noteState$.references.get().map((reference, index) => (
                   <Reference key={index} reference={reference} />
                 ))}
-                {noteState.references.get().length === 0 && (
+                {noteState$.references.get().length === 0 && (
                   <TouchableOpacity
                     onPress={() => show('AddReferenceModal', {
                       onAddReference: handleAddReference,
@@ -414,9 +376,9 @@ const NoteViewer = observer(() => {
           </View>
         </ScrollView>
       </Animated.View>
-    </SafeAreaView>
+    </View>
   );
-});
+};
 
-export default NoteViewer;
+export default observer(NoteViewer);
 

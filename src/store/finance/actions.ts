@@ -1,185 +1,68 @@
-import financeStore from './store';
-import {
-  BudgetRuleType,
-  Category,
-  CategoryId,
-  CategoryType,
-  ExpenseGroup,
-  FinanceInsights,
-  FinanceStore,
-  IncomeCategory,
-  Transaction,
-} from './types';
-import {
-  calculateBudgetAllocations,
-  calculateCategorySpending,
-  calculateExpensesByGroup,
-  calculateGuiltFreeBalance,
-  calculateIncomeByCategory,
-  calculateSavingsProgress,
-  detectUnusualSpending,
-  projectSavings,
-} from './utils/calculations';
-import {
-  createCategory,
-  getCategoriesBySubgroup,
-  getCategoriesByType,
-  isCategoryValid,
-} from './utils/category';
-import {
-  createTransaction,
-  getMonthlyTransactions,
-  useGetTransactionsByCategory,
-} from './utils/transactions';
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import { budgetService } from "./src/budget";
+import { categoryService } from "./src/category";
+import { incomeExpenseService } from "./src/incomeExpense";
+import { insightService } from "./src/insight";
+import { transactionService } from "./src/transaction";
+import { trendAnalysisService } from "./src/trend";
+import { store } from "./store";
 
-export const updateInsights = (store: FinanceStore): FinanceInsights => {
-  const allocations = calculateBudgetAllocations(store.budgetConfig);
-  const monthlySpendingByCategory = Object.keys(store.categories).reduce(
-    (acc, categoryId) => ({
-      ...acc,
-      [categoryId]: calculateCategorySpending(store.transactions, categoryId),
-    }),
-    {} as Record<string, number>
-  );
-
+const useFinanceStore = () => {
   return {
-    monthlySpendingByCategory,
-    guiltFreeBalance: calculateGuiltFreeBalance(store, allocations),
-    savingsProgress: calculateSavingsProgress(store.budgetConfig.savingsGoals),
-    projectedSavings: projectSavings(store),
-    unusualSpending: detectUnusualSpending(store),
-    trends: {
-      monthly: {},
-      categoryTrends: {},
-    },
-  };
-};
-
-export const useFinanceStore = () => {
-  const { store } = financeStore();
-
-  // Transaction Management
-  const addTransaction = (
-    transaction: Omit<Transaction, 'id' | 'date' | 'time' | 'status' | 'category'>
-  ) => {
-
-    const newTransaction = createTransaction(transaction);
-    console.log(newTransaction);
-
-    store.transactions.set({
-      ...store.transactions.get(),
-      [newTransaction.id]: newTransaction,
-    });
-
-    store.insights.set(updateInsights(store.get()));
-    return newTransaction;
-  };
-
-  const getTransactions = (date?: Date) => getMonthlyTransactions(store.transactions.get(), date);
-
-  const addCustomCategory = (categoryData: Omit<Category, 'id' | 'isDefault' | 'isArchived'>) => {
-    const newCategory = createCategory(categoryData);
-    store.categories.set({
-      ...store.categories.get(),
-      [newCategory.id]: newCategory,
-    });
-    store.customCategories.set([...store.customCategories.get(), newCategory.id]);
-    return newCategory;
-  };
-
-  const addCategory = (categoryData: Omit<Category, 'id' | 'isDefault' | 'isArchived'>) => {
-    const newCategory = createCategory(categoryData);
-    store.categories.set({
-      ...store.categories.get(),
-      [newCategory.id]: newCategory,
-    });
-  };
-
-  const archiveCategory = (categoryId: CategoryId) => {
-    const categories = store.categories.get();
-    const category = categories[categoryId];
-
-    if (!category) {
-      throw new Error(`Category not found: ${categoryId}`);
-    }
-
-    if (!category.isDefault) {
-      store.categories.set({
-        ...categories,
-        [categoryId]: {
-          ...category,
-          isArchived: true,
-        },
-      });
-    } else {
-      throw new Error('Cannot archive default categories');
-    }
-  };
-
-  const deleteCategory = (categoryId: CategoryId) => {
-    const categories = store.categories.get();
-    const { [categoryId]: removed, ...remaining } = categories;
-    store.categories.set(remaining);
-  };
-
-  const getIncomeSummary = (date: Date = new Date()) =>
-    Object.values(IncomeCategory).reduce(
-      (summary, group) => ({
-        ...summary,
-        [group]: calculateIncomeByCategory(store.get(), group, date),
-      }),
-      {} as Record<IncomeCategory, number>
-    );
-
-  const getExpenseSummary = (date: Date = new Date()) =>
-    Object.values(ExpenseGroup).reduce(
-      (summary, group) => ({
-        ...summary,
-        [group]: calculateExpensesByGroup(store.get(), group, date),
-      }),
-      {} as Record<ExpenseGroup, number>
-    );
-
-  // Budget Management
-  const updateBudgetRule = (rule: BudgetRuleType, monthlyIncome?: number) => {
-    store.budgetConfig.set({
-      ...store.budgetConfig.get(),
-      rule,
-      ...(monthlyIncome !== undefined && { monthlyIncome }),
-    });
-    store.insights.set(updateInsights(store.get()));
-  };
-
-  const calculateAllocations = () => calculateBudgetAllocations(store.budgetConfig.get());
-  
-  return {
-    store,
+    isSetUP:  store.isSetUP,
     // Transaction Management
-    addTransaction,
-    getTransactions,
+    addTransaction: transactionService.addTransaction,
+    updateTransaction: transactionService.updateTransaction,
+    getTransactionsByCategory: transactionService.getTransactionsByCategory,
+    getTransactions: transactionService.getTransactions,
+    getTransactionsByDateRange: transactionService.getTransactionsByDateRange,
 
     // Category Management
-    addCategory,
-    addCustomCategory,
-    archiveCategory,
-    deleteCategory,
-    getCategoriesByType: (type: CategoryType) => getCategoriesByType(store.get(), type),
-    getCategoriesBySubgroup: (type: CategoryType, subgroup: ExpenseGroup | IncomeCategory) =>
-      getCategoriesBySubgroup(store.get(), type, subgroup),
-    useGetTransactionsByCategoryId: (categoryId: CategoryId) =>
-      useGetTransactionsByCategory(categoryId),
-    // Reporting & Analytics
-    getIncomeSummary,
-    getExpenseSummary,
+    addCategory: categoryService.addCategory,
+    updateCategory: categoryService.updateCategory,
+    getCategoryBudget: categoryService.getCategoryBudget,
+    getCategories: categoryService.getCategories,
+    getCategoriesByType: categoryService.getCategoriesByType,
 
     // Budget Management
-    calculateBudgetAllocations: calculateAllocations,
-    updateBudgetRule,
+    getTotalBalance: budgetService.getTotalBalance,
+    recalculateBudgets: budgetService.recalculateBudgets,
+    updateMonthlyIncome: budgetService.updateMonthlyIncome,
+    addSavingsGoal: budgetService.addSavingsGoal,
+    updateSavingsProgress: budgetService.updateSavingsProgress,
+    getSavingsProgress: budgetService.getSavingsProgress,
 
-    // Insights
-    updateInsights: () => {
-      store.insights.set(updateInsights(store.get()));
-    },
+    // Insights & Analytics
+    updateInsights: insightService.updateInsights,
+    updateSpendingTrends: insightService.updateSpendingTrends,
+    updateSavingsInsights: insightService.updateSavingsInsights,
+
+    // Income/Expense Management and Analysis
+    addIncome: incomeExpenseService.addIncome,
+    addExpense: incomeExpenseService.addExpense,
+    getTotalIncome: incomeExpenseService.getTotalIncome,
+    getMonthlyIncome: incomeExpenseService.getMonthlyIncome,
+    getTotalExpenses: incomeExpenseService.getTotalExpenses,
+    getMonthlyExpenses: incomeExpenseService.getMonthlyExpenses,
+    getIncomeExpenseSummary: incomeExpenseService.getIncomeExpenseSummary,
+    getMonthlyBreakdown: incomeExpenseService.getMonthlyBreakdown,
+    getAnnualSummary: incomeExpenseService.getAnnualSummary,
+    getGuiltFreeBalance: budgetService.guiltFreeBalance,
+
+    // Trend Analysis
+    calculateIncomeGrowth: trendAnalysisService.calculateIncomeGrowth,
+    getMonthlyIncomeTrend: trendAnalysisService.getMonthlyIncomeTrend,
+    getTopExpenseCategories: trendAnalysisService.getTopExpenseCategories,
+    calculateBudgetCompliance: trendAnalysisService.calculateBudgetCompliance,
+
+    // Utility Methods
+    updateIncomeStats: incomeExpenseService.updateIncomeStats,
+    updateExpenseStats: incomeExpenseService.updateExpenseStats,
+    checkBudgetAlerts: budgetService.checkBudgetAlerts,
+    checkAlerts: budgetService.checkAlerts,
+
+    // Export store for external access
+    store,
   };
 };
 

@@ -2,7 +2,6 @@ import { scheduleStore } from './store';
 import { ScheduleItem, PostponementRecord, TaskType, TASK_TYPES, RecurrencePattern, PRIORITY_LEVELS, RECURRENCE_PATTERNS, PriorityLevel } from './types';
 import { addDays, isAfter, isBefore, addWeeks, addMonths, format, isValid } from 'date-fns';
 import { notificationHandlers } from './notifications';
-import { z } from 'zod';
 
 
 interface PostponeOptions {
@@ -155,9 +154,7 @@ const updatePerformanceMetrics = (): void => {
   });
 };
 
-export const createItem = async(
-  item: Omit<ScheduleItem, 'id' | 'postponements' | 'completed' | 'inProgress'>
-) => {
+export const createItem = async (item: Omit<ScheduleItem, 'id' | 'postponements' | 'completed' | 'inProgress'>): Promise<void> => {
   const newItem: ScheduleItem = {
     ...item,
     id: generateId(),
@@ -168,19 +165,26 @@ export const createItem = async(
   };
 
   if (!validateScheduleItem(newItem)) return;
+
   if (newItem.recurrence !== 'None') {
-    await notificationHandlers.createRecurring({
-      ...newItem,
-      time: new Date(newItem.startDate),
-      body: newItem.description,
-      frequency: newItem.recurrence === 'Daily' ? 'daily' : 'weekly',
-    });
-  }else {
-    await notificationHandlers.onCreateItem(newItem)
+    await createRecurringNotification(newItem);
+  } else {
+    await notificationHandlers.onCreateItem(newItem);
   }
+
   scheduleStore.items.push(newItem);
 
   updatePerformanceMetrics();
+};
+
+const createRecurringNotification = async (item: ScheduleItem) => {
+  await notificationHandlers.createRecurring({
+    title: item.title,
+    body: item.description,
+    time: new Date(item.startDate),
+    frequency: item.recurrence === 'Daily' ? 'daily' : 'weekly',
+    priority:item.priority
+  });
 };
 
 export const deleteItem = async (id: number): Promise<void> => {
@@ -188,11 +192,9 @@ export const deleteItem = async (id: number): Promise<void> => {
   if (item) {
     const deletedItem = { ...item, deletedAt: new Date() };
     scheduleStore.deletedItems.push(deletedItem);
-    scheduleStore.items.find((item) => item.id.get() === id)?.delete()
     scheduleStore.items.set(scheduleStore.items.get().filter((item) => item.id !== id));
   }
   await notificationHandlers.onDeleteItem(id);
-
   updatePerformanceMetrics();
 };
 
@@ -280,6 +282,7 @@ export const postponeItem = async (
 
   const duration = item.endDate.getTime() - item.startDate.getTime();
   const newEndDate = new Date(newDate.getTime() + duration);
+  
 
   scheduleStore.items.set((prev) =>
     prev.map((item) =>
@@ -321,6 +324,9 @@ const createRecurringInstance = async (item: ScheduleItem) => {
   });
 };
 
+const getTaskById = (id: number): ScheduleItem | undefined => {
+  return scheduleStore.get().items.find((item) => item.id === id);
+};
 
 export const getOverdueTasks = (): ScheduleItem[] => {
   const now = new Date();
@@ -369,9 +375,10 @@ export const resetForm = () => {
 
 export const handleAddItem = async() => {
   const item = scheduleStore.newItem.get() as ScheduleItem;
+  console.dir(JSON.stringify(item, null, 2))
   if (!item) return;
   await createItem(item);
-  // resetForm();
+  resetForm();
 };
 
 export const restoreDeletedItem = (id: number) => {
@@ -412,6 +419,7 @@ const useScheduleStore = () => {
     updateItem,
     getOverdueTasks,
     getUpcomingTasks,
+    getTaskById,
     getTasksByPriority,
     getBlockedTasks,
     resetForm,

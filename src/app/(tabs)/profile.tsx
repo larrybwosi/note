@@ -1,206 +1,136 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCallback, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { observer } from '@legendapp/state/react';
 import Animated, { FadeInDown, FadeInRight, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { Camera, Save } from 'lucide-react-native';
+import { Camera, Edit, Moon, Sun } from 'lucide-react-native';
+import { router } from 'expo-router';
 
-import { observable } from '@legendapp/state';
 import { Avatar } from 'src/components/profile/avatar';
 import { SectionHeader } from 'src/components/profile/sect-head';
-import { InputField } from 'src/components/profile/input';
+import LabelField from 'src/components/profile/input';
 import { ProgressRing } from 'src/components/profile/ProgressRing';
-
-const profileState = observable({
-  name: 'John Doe',
-  email: 'john.doe@example.com',
-  dateOfBirth: '1990-01-01',
-  image: 'https://example.com/avatar.jpg',
-  height: 180,
-  weight: 75,
-  phone: '+1234567890',
-  address: '123 Main St, City, Country',
-  gender: 'Male',
-  preferredLanguage: 'English',
-  emergencyContact: { name: 'Jane Doe', phone: '+9876543210' },
-  bloodType: 'A+',
-  allergies: ['Peanuts', 'Penicillin'],
-  medicalNotes: 'No significant medical history',
-  sleepGoal: 8,
-  waterIntake: 2000,
-});
+import { useProfile } from 'src/store/profile/actions';
+import { Card } from 'src/components/ui/Card';
+import { colorScheme } from 'nativewind';
 
 const ProfileScreen = observer(() => {
   const saveButtonScale = useSharedValue(1);
   const editButtonScale = useSharedValue(1);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const { personalInfo } = useProfile();
+  const isDarkMode = colorScheme.get()==='dark'
+  console.log(isDarkMode)
+  const { 
+    name, dateOfBirth, email, height, weight, phone, allergies, bloodType, 
+    image, waterIntake, address, gender, calorieGoal, emergencyContact, 
+    preferredLanguage, medicalNotes, sleepGoal 
+  } = personalInfo;
 
-  const animatedSaveButtonStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: saveButtonScale.value }],
-    };
-  });
+  const animatedSaveButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: saveButtonScale.value }],
+  }));
 
   const handleSave = useCallback(() => {
     saveButtonScale.value = withSpring(0.9, {}, () => {
       saveButtonScale.value = withSpring(1);
     });
     // Here you would typically send the updated profile to your backend
-    console.log('Profile saved:', profileState.get());
-  }, []);
+    console.log('Profile saved:', personalInfo);
+  }, [personalInfo]);
 
   const handleEdit = useCallback(() => {
     editButtonScale.value = withSpring(0.9, {}, () => {
       editButtonScale.value = withSpring(1);
     });
-    setIsEditMode(true);
+    router.push('/create.profile');
   }, []);
 
   const handleImagePick = useCallback(async () => {
-    //TODO
+    // TODO: Implement image picking functionality
   }, []);
 
+  const toggleDarkMode = () => {
+    colorScheme.toggle();
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <View className={`flex-1 bg-gray-900 dark:bg-gray-50`}>
       <ScrollView className="flex-1 px-4">
+        <View className="flex-row justify-between items-center mt-4 mb-6">
+          <Text className={`text-2xl font-rbold text-white dark:text-gray-900`}>
+            My Profile
+          </Text>
+          <View className="flex-row items-center">
+            <Sun size={20} color={isDarkMode ? '#9CA3AF' : '#4B5563'} />
+            <Switch
+              value={isDarkMode}
+              onValueChange={toggleDarkMode}
+              trackColor={{ false: '#767577', true: '#81b0ff' }}
+              thumbColor={isDarkMode ? '#f5dd4b' : '#f4f3f4'}
+              ios_backgroundColor="#3e3e3e"
+              style={{ marginHorizontal: 8 }}
+            />
+            <Moon size={20} color={isDarkMode ? '#F3F4F6' : '#6B7280'} />
+          </View>
+        </View>
+
         <Animated.View 
           entering={FadeInDown.duration(600).springify()} 
-          className="items-center mt-6 mb-8"
+          className="items-center mb-8"
         >
-          <TouchableOpacity onPress={handleImagePick} disabled={!isEditMode}>
-              <Avatar
-                size={120} 
-                source={{ uri: profileState.image.get() }} 
-              />
-              {!isEditMode && (
-                <View className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-2">
-                  <Camera size={20} color="white" />
-                </View>
-              )}
-            </TouchableOpacity>
-          <Text className="mt-4 text-2xl font-rbold text-gray-900 dark:text-white">
-            {profileState.name.get()}
+          <TouchableOpacity onPress={handleImagePick}>
+            <Avatar size={120} source={{ uri: image || '' }} />
+            <View className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-2">
+              <Camera size={20} color="white" />
+            </View>
+          </TouchableOpacity>
+          <Text className={`mt-4 text-2xl font-rbold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            {name}
           </Text>
-          <Text className="text-gray-600 dark:text-gray-400">
-            {profileState.email.get()}
+          <Text className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            {email}
           </Text>
         </Animated.View>
 
-        <View className="px-4 -mt-8">
+        <Card className={`mb-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <Animated.View 
             entering={FadeInDown.delay(200).duration(600).springify()}
-            className="bg-white dark:bg-gray-800 rounded-xl p-4 flex-row justify-between items-center shadow-md"
+            className="p-4 flex-row justify-between items-center"
           >
             <View>
-              <Text className="text-lg font-rbold text-gray-900 dark:text-white">Health Score</Text>
-              <Text className="text-gray-600 dark:text-gray-400">Based on your profile</Text>
+              <Text className={`text-lg font-rbold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Health Score</Text>
+              <Text className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} font-rregular`}>Based on your profile</Text>
             </View>
             <ProgressRing progress={75} size={60} strokeWidth={6} />
           </Animated.View>
-        </View>
+        </Card>
 
-        <SectionHeader title="Personal Information" />
+        <SectionHeader title="Personal Information"/>
         <Animated.View entering={FadeInRight.duration(600).delay(200)}>
-          <InputField
-            label="Name"
-            value={profileState.name}
-              editable={isEditMode}
-            placeholder="Enter your name"
-          />
-          <InputField
-            label="Email"
-            value={profileState.email}
-            placeholder="Enter your email"
-              editable={isEditMode}
-            keyboardType="email-address"
-          />
-          <InputField
-            label="Phone"
-            value={profileState.phone}
-              editable={isEditMode}
-            placeholder="Enter your phone number"
-            keyboardType="phone-pad"
-          />
-          <InputField
-            label="Address"
-            value={profileState.address}
-              editable={isEditMode}
-            placeholder="Enter your address"
-            multiline
-          />
-          <InputField
-            label="Gender"
-            value={profileState.gender}
-              editable={isEditMode}
-            placeholder="Enter your gender"
-          />
-          <InputField
-            label="Preferred Language"
-            value={profileState.preferredLanguage}
-              editable={isEditMode}
-            placeholder="Enter your preferred language"
-          />
+          <LabelField label="Name" value={name}/>
+          <LabelField label="Email" value={email}/>
+          <LabelField label="Phone" value={phone}/>
+          <LabelField label="Address" value={address}/>
+          <LabelField label="Gender" value={gender}/>
+          <LabelField label="Preferred Language" value={preferredLanguage}/>
         </Animated.View>
 
-        <SectionHeader title="Medical Information" />
+        <SectionHeader title="Medical Information"/>
         <Animated.View entering={FadeInRight.duration(600).delay(400)}>
-          <InputField
-            label="Blood Type"
-            value={profileState.bloodType}
-            editable={isEditMode}
-            placeholder="Enter your blood type"
-          />
-          <InputField
-            label="Allergies"
-            value={profileState.allergies}
-            editable={isEditMode}
-            placeholder="Enter your allergies (comma-separated)"
-            onChangeText={(text) => profileState.allergies.set(text.split(', '))}
-          />
-          <InputField
-            label="Medical Notes"
-            value={profileState.medicalNotes}
-            editable={isEditMode}
-            placeholder="Enter any medical notes"
-            multiline
-          />
+          <LabelField label="Blood Type" value={bloodType}/>
+          <LabelField label="Allergies" value={allergies}/>
+          <LabelField label="Medical Notes" value={medicalNotes}/>
         </Animated.View>
 
-        <SectionHeader title="Emergency Contact" />
+        <SectionHeader title="Emergency Contact"/>
         <Animated.View entering={FadeInRight.duration(600).delay(600)}>
-          <InputField
-            label="Name"
-            value={profileState.emergencyContact.name}
-            editable={isEditMode}
-            placeholder="Enter emergency contact name"
-          />
-          <InputField
-            label="Phone"
-            value={profileState.emergencyContact.phone}
-            editable={isEditMode}
-            placeholder="Enter emergency contact phone"
-            keyboardType="phone-pad"
-          />
+          <LabelField label="Name" value={emergencyContact?.name}/>
+          <LabelField label="Phone" value={emergencyContact?.phone}/>
         </Animated.View>
 
-        <SectionHeader title="Health Goals" />
+        <SectionHeader title="Health Goals"/>
         <Animated.View entering={FadeInRight.duration(600).delay(800)}>
-          <InputField
-            label="Sleep Goal (hours)"
-            value={profileState.sleepGoal}
-            placeholder="Enter your daily sleep goal"
-            keyboardType="numeric"
-            editable={isEditMode}
-            onChangeText={(text) => profileState.sleepGoal.set(Number(text))}
-          />
-          <InputField
-            label="Water Intake Goal (ml)"
-            value={profileState.waterIntake}
-            placeholder="Enter your daily water intake goal"
-            keyboardType="numeric"
-            editable={isEditMode}
-            onChangeText={(text) => profileState.waterIntake.set(Number(text))}
-          />
+          <LabelField label="Sleep Goal (hours)" value={sleepGoal}/>
+          <LabelField label="Water Intake Goal (ml)" value={waterIntake}/>
         </Animated.View>
       </ScrollView>
 
@@ -220,13 +150,13 @@ const ProfileScreen = observer(() => {
         }]}
       >
         <TouchableOpacity
-          onPress={handleSave}
+          onPress={handleEdit}
           className="bg-blue-500 p-4 rounded-full"
         >
-          <Save color="white" size={24} />
+          <Edit color="white" size={24} />
         </TouchableOpacity>
       </Animated.View>
-    </SafeAreaView>
+    </View>
   );
 });
 

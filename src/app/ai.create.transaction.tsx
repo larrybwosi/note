@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, StatusBar, useColorScheme } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -8,9 +8,7 @@ import Animated, {
   withRepeat,
   withSequence,
   withTiming,
-  withDelay,
   FadeIn,
-  FadeOut,
   SlideInRight,
   SlideInUp,
   interpolate,
@@ -26,10 +24,9 @@ import {
   Repeat,
   TrendingUp,
   CheckCircle,
-  AlertCircle
 } from 'lucide-react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const GRADIENTS = {
   light: {
     primary: ['#6366F1', '#4F46E5', '#4338CA'], // Indigo gradient
@@ -160,14 +157,14 @@ const CoolTransactionPrompt = () => {
 
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      const mockTransaction = {
-        id: Math.random().toString(36).substr(2, 9),
-        description: prompt,
-        amount: Math.floor(Math.random() * 1000),
-        date: new Date().toISOString(),
-        category: selectedCategory || categories[0].name,
-      };
-      setTransaction(mockTransaction);
+      // const mockTransaction = {
+      //   id: Math.random().toString(36).substr(2, 9),
+      //   description: prompt,
+      //   amount: Math.floor(Math.random() * 1000),
+      //   date: new Date().toISOString(),
+      //   category: selectedCategory || categories[0].name,
+      // };
+      // setTransaction(mockTransaction);
       
       successScale.value = withSequence(
         withSpring(1.2),

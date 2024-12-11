@@ -41,7 +41,6 @@ export const transactionService = {
   addTransaction: async ( transaction: Transaction): Promise<void> => {
     store.transactions[transaction.id].set(transaction);
     await insightService.updateInsights();
-    budgetService.checkAlerts();
   },
 
   updateTransaction: async ( id: string, updates: Partial<Transaction>): Promise<void> => {
@@ -253,7 +252,6 @@ export const incomeExpenseService = {
     store.insights.monthlyExpenses.set(monthlyExpenses.totalExpenses);
     
     await insightService.updateInsights();
-    await budgetService.checkBudgetAlerts();
   },
 
   validateIncomeTransaction: ( transaction: Transaction): boolean => {
@@ -372,32 +370,6 @@ export const budgetService = {
       insightService.updateSavingsInsights();
     }
   },
-
-  checkBudgetAlerts: async (): Promise<void> => {
-    const categories = Object.keys(store.categories.get());
-    
-    for (const categoryId of categories) {
-      const compliance = await trendAnalysisService.calculateBudgetCompliance(categoryId);
-      
-      if (compliance.spendingPercentage >= 90) {
-        store.alerts.categoryOverspend.push({
-          categoryId,
-          currentSpending: compliance.currentSpending,
-          budgetLimit: compliance.budgetLimit,
-          date: new Date().toISOString(),
-          type: 'categoryOverspend',
-          message: `You are spending more than 90% of your budget on ${store.categories.get()[categoryId].name}. Consider adjusting your spending habits or increasing your budget.`,
-          severity: 'high',
-          read: false
-        });
-      }
-    }
-  },
-
-  checkAlerts: async (): Promise<void> => {
-    await budgetService.checkBudgetAlerts();
-  },
-
   calculateCategoryBudget: (categoryType: string, monthlyIncome: number, budgetRule: BudgetRuleType): number => {
     // Implementation of budget calculation based on category type and budget rule
     // This is a placeholder implementation and should be replaced with actual logic

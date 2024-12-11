@@ -28,6 +28,20 @@ const calculateGuiltFreeBalance = (budgetConfig: z.infer<typeof BudgetConfigSche
 };
 
 export const budgetService = {
+  getTotalBalance: (): number => {
+    return calculateGuiltFreeBalance(BudgetConfigSchema.parse(store.budgetConfig.get()));
+  },
+  recalculateBudgets: (): void => {
+    const categories = Object.values(store.categories.get());
+    const monthlyIncome = store.budgetConfig.monthlyIncome.get();
+    const rule = store.budgetConfig.rule.get();
+
+    for (const category of categories) {
+      const budget = budgetService.calculateCategoryBudget(category.type, monthlyIncome, rule);
+      store.categories[category.name].budget.set(budget);
+    }
+  },
+  
   updateMonthlyIncome: (amount: number): void => {
     store.budgetConfig.monthlyIncome.set(amount);
     budgetService.recalculateBudgets();

@@ -137,6 +137,7 @@ export interface FinanceMetadata {
 
 
 export interface FinanceStore {
+  isSetUP: boolean;
   transactions: Record<string, Transaction>;
   categories: Record<string, Category>;
   customCategories: Category[];

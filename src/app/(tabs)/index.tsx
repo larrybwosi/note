@@ -225,58 +225,6 @@ const HomeScreen = observer(() => {
           <TodayCard />
         </Animated.View>
 
-        <Animated.View entering={FadeIn.duration(800).delay(600)}>
-          <View className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-6 border dark:border-gray-800 border-gray-100">
-            <View className="flex-row items-center justify-between mb-6">
-              <Text className="text-2xl font-amedium dark:text-gray-50 text-gray-900">Your Schedule</Text>
-              <View className="flex-row items-center space-x-4">
-                <Calendar1 color="#8b5cf6" size={22} />
-                <Text className="text-gray-600 font-aregular dark:text-gray-50">Today</Text>
-                <ChevronRight color="#9ca3af" size={22} />
-              </View>
-            </View>
-
-            <View className="space-y-4">
-              {generatedSchedule.map((item, index) => (
-                <View
-                  key={index}
-                  className="flex-row items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-900
-                   rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm"
-                  style={{
-                    ...Platform.select({
-                      ios: {
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                      },
-                      android: {
-                        elevation: 3,
-                      }
-                    })
-                  }}
-                >
-                  <Text className="w-20 text-gray-600 dark:text-gray-50 font-amedium">{item.time}</Text>
-                  <View className="flex-1">
-                    <Text className="text-gray-900 dark:text-gray-50 font-rmedium text-lg">{item.activity}</Text>
-                    <Text className="text-gray-500 dark:text-gray-50 font-rregular">{item.duration} minutes</Text>
-                  </View>
-                  <TouchableOpacity 
-                    className="bg-purple-100 p-2 rounded-full"
-                    style={{
-                      shadowColor: '#8b5cf6',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.2,
-                      shadowRadius: 4,
-                    }}
-                  >
-                    <Settings2 color="#8b5cf6" size={22} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          </View>
-        </Animated.View>
         
         <Animated.View entering={FadeIn.duration(800).delay(700)}>
           <Progress />

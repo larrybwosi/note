@@ -6,7 +6,7 @@ import { Reference } from 'src/store/notes/types';
 export interface AddReferenceModalProps {
   onAddReference: () => void;
   newReference: any;
-  handleFieldChange: (field: keyof Reference, value: string | Reference['type']) => void
+  handleFieldChange: (field: keyof Reference, value: Reference['type']) => void
 }
 
 const AddReferenceModal: React.FC<AddReferenceModalProps> = observer(({ onAddReference, newReference,handleFieldChange }) => {

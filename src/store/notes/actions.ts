@@ -69,6 +69,7 @@ export function useNotes(): NoteActions {
       console.log('newNote added', newNote);
 
       const validation = validateNote(newNote);
+      console.log(validation)
       if (!validation.success) {
         return {
           success: false,
@@ -110,6 +111,7 @@ export function useNotes(): NoteActions {
       };
       
       const validation = validateNote(updatedNote);
+      console.log(validation)
       if (!validation.success) {
         return {
           success: false,

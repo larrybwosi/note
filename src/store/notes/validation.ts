@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ICONS, REFERENCE_TYPES } from './types';
+import { REFERENCE_TYPES } from './types';
 
 export class ValidationError extends Error {
   constructor(
@@ -20,7 +20,7 @@ export const ColorSchemeSchema = z.object({
 export const CategorySchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Category name is required'),
-  icon: z.enum(ICONS),
+  icon: z.enum(['book', 'book-open', 'book-open-page-variant', 'book-multiple', 'book-open-page-variant-outline']).optional(),
   color: z.string(),
   colorScheme: ColorSchemeSchema,
 }).strict();
@@ -43,13 +43,14 @@ export const ElementSchema = z.object({
 export const NoteSchema = z.object({
   id: z.string(),
   title: z.string().min(1, 'Note title is required'),
-  content: z.string(),
-  tags: z.array(z.string()),
-  category: CategorySchema,
-  references: z.array(ReferenceSchema),
-  elements: z.array(ElementSchema),
-  lastEdited: z.date(),
-  isBookmarked: z.boolean(),
+  content: z.string().min(1, 'Note content is required'),
+  tags: z.array(z.string()).default([]).optional(),
+  categoryId: z.string().optional(),
+  references: z.array(ReferenceSchema).optional(),
+  elements: z.array(ElementSchema).optional(),
+  lastEdited: z.date().optional(),
+  isBookmarked: z.boolean().default(false).optional(),
+  comments:z.array(z.string()).optional()
 }).strict();
 
 export const validateNote = (note: unknown) => {
@@ -59,6 +60,7 @@ export const validateNote = (note: unknown) => {
       data: NoteSchema.parse(note)
     };
   } catch (error) {
+    console.log(error)
     if (error instanceof z.ZodError) {
       return {
         success: false as const,

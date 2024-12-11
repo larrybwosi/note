@@ -4,17 +4,17 @@ import { enableReactTracking } from '@legendapp/state/config/enableReactTracking
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import {KeyboardProvider} from 'react-native-keyboard-controller'
+import { KeyboardProvider } from 'react-native-keyboard-controller'
 import { colorScheme as colorSchemeNW } from 'nativewind';
 import { SplashScreen, Stack } from 'expo-router';
 import { ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
 
 import ModalProvider from 'src/components/modals/provider';
-import { customFontsToLoad } from '@/theme';
 import './global.css';
 
 import { initializeNotifications } from 'src/utils/notifications';
+import { customFontsToLoad } from 'src/utils/theme/fonts';
 
 // bf94542d-923b-4506-8a8b-b8a2baac45ca
 
@@ -54,19 +54,18 @@ export default function Root() {
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="create.schedule" options={{ headerShown: false }} />
-              <Stack.Screen name="create.transaction" options={{ headerShown: false }} />
+              <Stack.Screen name="plans" options={{ headerShown: false }} />
               <Stack.Screen name="create.profile" options={{ headerShown: false, presentation: 'modal' }} />
-              <Stack.Screen name="create.note" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="create.transactions" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="ai.schedule" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="ai.transaction" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="finance_setup" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="other" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
-              <Stack.Screen name="id" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="transactions" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="budget.planner" options={{ headerShown: false, presentation: 'modal' }} />
-              <Stack.Screen name="createtransactions" options={{ headerShown: false, presentation: 'modal' }} />
-              <Stack.Screen name="note.view" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="note.view" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
+              <Stack.Screen name="ai.create.transaction" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
             </Stack>
             </KeyboardProvider>
           </ModalProvider>

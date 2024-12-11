@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export const TASK_TYPES = ['Work', 'Personal', 'Health', 'Learning', 'Social', 'Urgent'] as const;
 export type TaskType = (typeof TASK_TYPES)[number];
 
@@ -102,3 +104,22 @@ export interface ScheduleStore {
   filterPriority?: PriorityLevel;
   filterType?: TaskType;
 }
+
+
+export const scheduleSchema = z.object({
+  scheduleType: z.enum(['task', 'event']),
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  type: z.enum(TASK_TYPES),
+  priority: z.enum(PRIORITY_LEVELS),
+  startDate: z.date(),
+  duration: z.number().min(1, 'Duration must be at least 1 minute'),
+  recurrence: z.enum(RECURRENCE_PATTERNS),
+  location: z.string().optional(),
+  reminder: z.number().min(0),
+  tags: z.array(z.string()),
+  notes: z.string().optional(),
+});
+
+export type ScheduleFormData = z.infer<typeof scheduleSchema>;
+

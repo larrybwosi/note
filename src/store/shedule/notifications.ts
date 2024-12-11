@@ -66,75 +66,65 @@ const NOTIFICATION_CONTENT: {
     title: `${TASK_ICONS[item.type]} ${item.title} - ${item.priority} Priority`,
     body: `Starting in ${differenceInMinutes(item.startDate, new Date())} minutes`,
     style: {
-      text: `📝 ${item.description}\n\n⏰ Start: ${format(item.startDate, 'MMM d, h:mm a')}\n⌛ Duration: ${item.duration} minutes\n📍 ${item.location || 'No location set'}\n🏷️ ${item.tags.join(', ') || 'No tags'}\n\nTap to view details or take action.`,
+      text: `📝 ${item.description}\n⏰ Start: ${format(item.startDate, 'MMM d, h:mm a')}\n⌛ Duration: ${item.duration} minutes\n📍 ${item.location || 'No location'}\n🏷️ ${item?.tags?.join(', ') || 'No tags'}\n\nTap for details or actions.`,
     },
     actions: [
-      { title: '▶️ Start Now', pressAction: { id: 'start' } },
+      { title: '▶️ Start', pressAction: { id: 'start' } },
       { title: '⏭️ Postpone', pressAction: { id: 'postpone' } },
       { title: '✅ Complete', pressAction: { id: 'complete' } },
     ],
   }),
 
   reminder: (item: ScheduleItem): NotificationContent => ({
-    title: `⏰ Reminder: ${item.title} - Starting Soon`,
-    body: `Your ${item.priority} priority task begins in ${item.reminder} minutes`,
+    title: `⏰ Reminder: ${item.title}`,
+    body: `${item.priority} priority task in ${item.reminder} minutes`,
     style: {
-      text: `🔔 Upcoming ${item.type.toLowerCase()} task:\n\n📝 ${item.description}\n⏰ Starts at ${format(item.startDate, 'h:mm a')}\n⌛ Duration: ${item.duration} minutes\n📍 ${item.location || 'No location set'}\n\nAre you ready to begin?`,
+      text: `🔔 ${item.type} task:\n📝 ${item.description}\n⏰ Starts: ${format(item.startDate, 'h:mm a')}\n⌛ Duration: ${item.duration} min\n📍 ${item.location || 'No location'}\n\nReady to start?`,
     },
     actions: [
-      { title: "👍 I'm Ready", pressAction: { id: 'acknowledge' } },
-      { title: '⏭️ Need More Time', pressAction: { id: 'postpone' } },
+      { title: "👍 Ready", pressAction: { id: 'acknowledge' } },
+      { title: '⏭️ Postpone', pressAction: { id: 'postpone' } },
     ],
   }),
 
-  completion: (item: ScheduleItem): NotificationContent => {
-    const duration = item.actualDuration || item.estimatedDuration;
-    const efficiency = item.actualDuration
-      ? Math.round((item.estimatedDuration / item.actualDuration) * 100)
-      : 100;
-    return {
-      title: `🎉 Task Complete: ${item.title}`,
-      body: `Great job on finishing this ${item.priority} priority ${item.type.toLowerCase()} task!`,
-      style: {
-        text: `✨ Task completed successfully!\n\n⏱️ Actual Duration: ${duration} minutes\n📊 Efficiency: ${efficiency}%\n🎯 Estimated: ${item.estimatedDuration} minutes\n\n${efficiency > 100 ? '💪 You completed the task faster than estimated!' : efficiency === 100 ? '👍 You completed the task right on time!' : `💡 The task took ${Math.round((item.actualDuration! / item.estimatedDuration) * 100 - 100)}% longer than estimated.`}\n\nTap to add notes or review your performance.`,
-      },
-      actions: [
-        { title: '📝 Add Notes', pressAction: { id: 'add_notes' } },
-        { title: '📊 View Stats', pressAction: { id: 'view_stats' } },
-      ],
-    };
-  },
-
-  overdue: (item: ScheduleItem): NotificationContent => {
-    const overdueDuration = differenceInMinutes(new Date(), item.endDate);
-    return {
-      title: `⚠️ Overdue Alert: ${item.title}`,
-      body: `Urgent: This ${item.priority} priority task is ${Math.round(overdueDuration / 60)} hours overdue`,
-      style: {
-        text: `⚠️ Immediate attention required!\n\n📝 ${item.description}\n⏰ Was due: ${format(item.endDate, 'MMM d, h:mm a')}\n⚡ Priority: ${item.priority}\n⌛ Overdue by: ${Math.round(overdueDuration / 60)} hours\n\nPlease take action now to address this overdue task.`,
-      },
-      actions: [
-        { title: '▶️ Start Now', pressAction: { id: 'start' } },
-        { title: '📅 Reschedule', pressAction: { id: 'postpone' } },
-        { title: '❌ Cancel Task', pressAction: { id: 'cancel' } },
-      ],
-    };
-  },
-
-  startTask: (item: ScheduleItem): NotificationContent => ({
-    title: `🚀 Task Starting: ${item.title}`,
-    body: `Your ${item.priority} priority ${item.type.toLowerCase()} task is beginning now`,
+  completion: (item: ScheduleItem): NotificationContent => ({
+    title: `🎉 Completed: ${item.title}`,
+    body: `Great job on this ${item.priority} priority task!`,
     style: {
-      text: `🚀 It's time to start your task!\n\n📝 ${item.description}\n⏰ Scheduled start: ${format(item.startDate, 'h:mm a')}\n⌛ Duration: ${item.duration} minutes\n📍 ${item.location || 'No location set'}\n\nAre you ready to begin? Tap to view task details or take action.`,
+      text: `✨ Task completed!\n⏱️ Duration: ${item.actualDuration || item.estimatedDuration} min\n📊 Efficiency: ${Math.round(((item.estimatedDuration / (item.actualDuration || item.estimatedDuration)) * 100))}%\n\nTap to add notes or review.`,
     },
     actions: [
-      { title: '👍 Start Now', pressAction: { id: 'start_now' } },
+      { title: '📝 Add Notes', pressAction: { id: 'add_notes' } },
+      { title: '📊 View Stats', pressAction: { id: 'view_stats' } },
+    ],
+  }),
+
+  overdue: (item: ScheduleItem): NotificationContent => ({
+    title: `⚠️ Overdue: ${item.title}`,
+    body: `${item.priority} priority task is ${Math.round(differenceInMinutes(new Date(), item.endDate) / 60)} hours overdue`,
+    style: {
+      text: `⚠️ Attention needed!\n📝 ${item.description}\n⏰ Due: ${format(item.endDate, 'MMM d, h:mm a')}\n⚡ Priority: ${item.priority}\n⌛ Overdue: ${Math.round(differenceInMinutes(new Date(), item.endDate) / 60)} hours\n\nPlease take action now.`,
+    },
+    actions: [
+      { title: '▶️ Start', pressAction: { id: 'start' } },
+      { title: '📅 Reschedule', pressAction: { id: 'postpone' } },
+      { title: '❌ Cancel', pressAction: { id: 'cancel' } },
+    ],
+  }),
+
+  startTask: (item: ScheduleItem): NotificationContent => ({
+    title: `🚀 Starting: ${item.title}`,
+    body: `${item.priority} priority ${item.type.toLowerCase()} task begins now`,
+    style: {
+      text: `🚀 Time to start!\n📝 ${item.description}\n⏰ Start: ${format(item.startDate, 'h:mm a')}\n⌛ Duration: ${item.duration} min\n📍 ${item.location || 'No location'}\n\nReady to begin?`,
+    },
+    actions: [
+      { title: '👍 Start', pressAction: { id: 'start_now' } },
       { title: '⏭️ Delay 15min', pressAction: { id: 'delay_15' } },
       { title: '📅 Reschedule', pressAction: { id: 'reschedule' } },
     ],
   }),
 };
-
 interface CreateNotificationProps {
   id: string;
   content: NotificationContent;
@@ -204,29 +194,49 @@ const createNotification = async ({
 
 // Notification handler functions
 export const scheduleItemNotification = async (item: ScheduleItem): Promise<string> => {
-  const trigger: TimestampTrigger = {
-    type: TriggerType.TIMESTAMP,
-    timestamp: item.startDate.getTime(),
-    alarmManager: true,
-  };
-
-  const notificationId = await createNotification({
-    id: `item_${item.id}`,
-    content: NOTIFICATION_CONTENT.scheduleItem(item),
-    channelId: getChannelId(item.priority),
-    priority: item.priority,
-    trigger,
-    data: {
-      itemId: item.id.toString(),
-      type: 'schedule_item',
-    },
-  });
-
-  if (item.reminder) {
-    await scheduleReminder(item);
+  if (!item || !item.startDate) {
+    console.error('Invalid item or start date');
+    return '';
   }
 
-  return notificationId;
+  const now = new Date().getTime();
+  const startTime = item.startDate.getTime();
+
+  if (startTime <= now) {
+    console.warn('Cannot schedule notification for past or current time');
+    return '';
+  }
+
+  const trigger: TimestampTrigger = {
+    type: TriggerType.TIMESTAMP,
+    timestamp: startTime,
+    alarmManager: {
+      allowWhileIdle: true,
+    },
+  };
+
+  try {
+    const notificationId = await createNotification({
+      id: `item_${item.id}`,
+      content: NOTIFICATION_CONTENT.scheduleItem(item),
+      channelId: getChannelId(item.priority),
+      priority: item.priority,
+      trigger,
+      data: {
+        itemId: item.id.toString(),
+        type: 'schedule_item',
+      },
+    });
+
+    if (item.reminder && typeof item.reminder === 'number') {
+      await scheduleReminder(item);
+    }
+
+    return notificationId;
+  } catch (error) {
+    console.error('Failed to schedule item notification:', error);
+    return '';
+  }
 };
 
 const scheduleReminder = async (item: ScheduleItem): Promise<void> => {

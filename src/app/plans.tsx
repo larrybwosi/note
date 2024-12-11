@@ -1,16 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Zap, Rocket, Crown, Check, ChevronRight, Clock, Users, Star } from 'lucide-react-native';
+import { Zap, Rocket, Crown, ChevronRight, Clock, Users, Star } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInRight, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { PlanCard } from 'src/components/plans/plan.card';
 import { FeatureList } from 'src/components/plans/features';
-import { TestimonialCarousel } from 'src/components/plans/testimonial';
 import { ComparisonTable } from 'src/components/plans/comparison';
-
-
-const { width } = Dimensions.get('window');
 
 const PlansScreen: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);

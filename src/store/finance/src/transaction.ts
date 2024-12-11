@@ -22,7 +22,8 @@ export const transactionService = {
 
   getTransactions: (): Transaction[] => {
     const transactions = Object.values(store.transactions.get());
-    return transactions.map(tx => TransactionSchema.parse(tx));
+    // return transactions.map(tx => TransactionSchema.parse(tx));
+    return transactions;
   },
 
   getTransactionsByCategory: (categoryName: string, startDate?: Date, endDate?: Date): Transaction[] => {

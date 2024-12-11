@@ -97,6 +97,14 @@ export const incomeExpenseService = {
     return transactions.reduce((sum, tx) => sum + (tx.type === TransactionTypeSchema.enum.EXPENSE ? Math.abs(tx.amount) : 0), 0);
   },
 
+  getMonthlyIncome: (): number => {
+    const transactions = Object.values(store.transactions.get());
+    return transactions.reduce((sum, tx) => sum + (tx.type === TransactionTypeSchema.enum.INCOME ? tx.amount : 0), 0);
+  },
+  getMonthlyExpenses: (): number => {
+    const transactions = Object.values(store.transactions.get());
+    return transactions.reduce((sum, tx) => sum + (tx.type === TransactionTypeSchema.enum.EXPENSE ? Math.abs(tx.amount) : 0), 0);
+  },
   getAnnualSummary: async (year: number): Promise<Record<string, z.infer<typeof MonthlyBreakdownSchema>>> => {
     const summary: Record<string, z.infer<typeof MonthlyBreakdownSchema>> = {};
     

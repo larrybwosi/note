@@ -9,6 +9,7 @@ import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
 import { authClient, handleGoogleSignIn } from 'src/utils/auth';
 import { FormData, THEME } from 'types';
+import { Button } from '@/components';
 
 const useAuthState = () => {
   const state = useObservable({
@@ -275,6 +276,11 @@ const AuthScreen = observer(() => {
                   : "Join us! Create your account to get started"
               }
             >
+              <TouchableOpacity onPress={async()=>{
+                authClient.signIn.social({provider:'github'})
+              }}>
+                <Text className='text-xl'>Google</Text>
+              </TouchableOpacity>
               <View className="p-8 space-y-4">
                 <Memo>
                   {() => (

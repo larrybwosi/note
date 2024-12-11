@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useAnimatedScrollHandler,
@@ -19,14 +19,14 @@ import { useColorScheme } from 'nativewind';
 import { router } from 'expo-router';
 
 import FinanceSummary from 'src/components/finance/summary';
-import useFinancialStore from 'src/store/finance/store';
+import useFinanceStore from 'src/store/finance/actions';
 
-const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const FinancePage: React.FC = observer(() => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { getTransactions } = useFinancialStore();
+  const { getTransactions } = useFinanceStore();
   const scrollY = useSharedValue(0);
 
   const gradientStyle = useAnimatedStyle(() => {
@@ -195,14 +195,14 @@ const FinancePage: React.FC = observer(() => {
         </Text>
         <View className="flex-row justify-between">
           <TouchableOpacity
-            onPress={() => router.navigate('/createtransactions')}
+            onPress={() => router.navigate('/create.transactions?type=expense')}
             className="bg-red-100 p-4 rounded-xl items-center justify-center w-[48%]"
           >
             <CreditCard size={24} className="text-red-500 mb-2" />
             <Text className="text-red-500 font-amedium">Add Expense</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => router.navigate('/create.transaction')}
+            onPress={() => router.navigate('/create.transactions?type=income')}
             className="bg-green-100 p-4 rounded-xl items-center justify-center w-[48%]"
           >
             <DollarSign size={24} className="text-green-500 mb-2" />
@@ -260,7 +260,7 @@ const FinancePage: React.FC = observer(() => {
               <TouchableOpacity
                 onPressIn={onPressIn}
                 onPressOut={onPressOut}
-                onPress={() => router.push('/create-transaction')}
+                onPress={() => router.push('/create.transactions')}
                 className="bg-white dark:bg-gray-800 px-4 py-3 rounded-xl flex-row items-center shadow-sm"
               >
                 <PlusCircle size={20} className="text-blue-500" />

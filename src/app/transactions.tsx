@@ -10,12 +10,12 @@ import useFinancialStore from 'src/store/finance/store';
 import { mockTrans } from 'src/components/fin/dt';
 
 const FinanceScreen: React.FC = () => {
-  const [transactions] = useState<Transaction[]>(mockTrans);
+  const { getTransactions } = useFinancialStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState<{
-    type?: TransactionType;
+    type?: TransactionType; 
     status?: TransactionStatus;
     category?: string;
   }>({});
@@ -23,10 +23,7 @@ const FinanceScreen: React.FC = () => {
     key: keyof Transaction;
     direction: 'asc' | 'desc';
   }>({ key: 'createdAt', direction: 'desc' });
-
-  
-  const { getTransactions } = useFinancialStore();
-  const trans = getTransactions();
+  const transactions = getTransactions();
 
   const filteredAndSortedTransactions = useMemo(() => {
     return transactions
@@ -41,8 +38,10 @@ const FinanceScreen: React.FC = () => {
         return matchesSearch && matchesType && matchesStatus && matchesCategory;
       })
       .sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
+        const aValue = a[sortConfig.key]!;
+        const bValue = b[sortConfig.key]!;
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
   }, [transactions, searchQuery, activeFilters, sortConfig]);

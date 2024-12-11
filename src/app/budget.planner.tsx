@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Defs, LinearGradient, Stop } from 'react-native-svg';
@@ -42,7 +42,6 @@ const BudgetPlannerScreen: React.FC = () => {
         <View className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 shadow-sm">
           <Text className="text-lg font-rmedium text-gray-900 dark:text-white mb-2">Current Budget Allocation</Text>
           <View className="aspect-square">
-            {/* <PieChart style={{ height: '100%' }} data={budgetData} innerRadius="58%" padAngle={0.01}>
               <Defs>
                 <LinearGradient id="gradient1" x1="0" y1="0" x2="0" y2="1">
                   <Stop offset="0%" stopColor="#4F46E5" />
@@ -57,7 +56,6 @@ const BudgetPlannerScreen: React.FC = () => {
                   <Stop offset="100%" stopColor="#D97706" />
                 </LinearGradient>
               </Defs>
-            </PieChart> */}
           </View>
           <View className="flex-row justify-around mt-4">
             {budgetData.map((item) => (
