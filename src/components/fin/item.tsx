@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Transaction, TransactionStatus, TransactionType } from './ts';
+import { Transaction, TransactionStatus, TransactionType } from 'src/store/finance/types';
 import { ArrowUp, ArrowDown, RefreshCw, DollarSign, TrendingUp, CreditCard } from 'lucide-react-native';
 
 interface TransactionItemProps {

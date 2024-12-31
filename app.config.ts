@@ -6,7 +6,7 @@ const config: ExpoConfig = {
   scheme: 'note',
   version: '1.0.0',
   orientation: 'portrait',
-  userInterfaceStyle: 'automatic',
+  userInterfaceStyle: 'dark',
   icon: './assets/images/app-icon-all.png',
   splash: {
     image: './assets/images/splash-logo-all.png',

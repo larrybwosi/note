@@ -20,7 +20,7 @@ import { router } from 'expo-router';
 
 import FinanceSummary from 'src/components/finance/summary';
 import useFinanceStore from 'src/store/finance/actions';
-
+ 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const FinancePage: React.FC = observer(() => {
@@ -90,7 +90,7 @@ const FinancePage: React.FC = observer(() => {
         </View>
 
         <View className="space-y-5">
-          <View className="bg-blue-50 dark:bg-gray-700/50 p-4 rounded-2xl">
+          <View className="bg-blue-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-4">
             <View className="flex-row justify-between items-center">
               <View className="flex-row items-center">
                 <View className="bg-blue-500/10 p-2 rounded-xl mr-3">
@@ -104,7 +104,7 @@ const FinancePage: React.FC = observer(() => {
             </View>
           </View>
 
-          <View className="flex-row justify-between space-x-4">
+          <View className="flex-row justify-between gap-2 space-x-4">
             <View className="flex-1 bg-green-50 dark:bg-gray-700/50 p-4 rounded-2xl">
               <View className="flex-row items-center mb-2">
                 <View className="bg-green-500/10 p-2 rounded-xl mr-2">

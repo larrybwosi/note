@@ -1,7 +1,7 @@
 import { CategorySchema, Category, CategoryTypeSchema } from './types';
-import { budgetService } from '../services';
 import { store } from '../store';
 import { z } from 'zod';
+import { budgetService } from './budget';
 
 export const categoryService = {
   addCategory: (category: Category): void => {

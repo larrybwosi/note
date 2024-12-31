@@ -8,16 +8,34 @@ import { router } from 'expo-router';
 import { PRIORITY_LEVELS, RECURRENCE_PATTERNS, TASK_TYPES } from 'src/store/shedule/types';
 import DateTimePickerComponent from 'src/components/date.time';
 import useScheduleStore from 'src/store/shedule/actions';
-import { scheduleStore } from 'src/store/shedule/store';
+import { sheduleStore } from 'src/store/shedule/store';
 import { priorityColors, typeColors } from 'src/utils/theme/shedule';
 
 const CreateShedule = () => {
-  const isEvent = scheduleStore.newItem.scheduleType.get() === 'event';
+  const isEvent = sheduleStore.newItem.scheduleType.get() === 'event';
   const showDatePicker$ = useObservable(false);
   const showTimePicker$ = useObservable(false);
   const showDatePicker = showDatePicker$.get();
   const showTimePicker = showDatePicker$.get();
 
+  const newItem$ = sheduleStore.newItem.get()
+  const editingItem$ = sheduleStore.editingItem.get();
+  const {
+    title,
+    actualDuration,
+    description,
+    endDate,
+    location,
+    tags,
+    priority,
+    startDate,
+    duration,
+    type,
+    scheduleType,
+    notes,
+    recurrence,
+    reminder,
+  } = sheduleStore.newItem;
   const { addItem, resetForm } = useScheduleStore();
 
   const submit =async()=>{
@@ -32,12 +50,12 @@ const CreateShedule = () => {
         className="bg-white dark:bg-gray-800 rounded-t-2xl p-5"
       >
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View className='justify-between flex-row'>
+          <View className="justify-between flex-row">
             <Text className="text-xl font-abold text-gray-900 dark:text-white mb-4">
-              {scheduleStore.editingItem.get() ? 'Edit Item' : 'Add New Item'}
+              {editingItem$ ? 'Edit Item' : 'Add New Item'}
             </Text>
             <TouchableOpacity
-              onPress={() => router.push("/ai.create.schedule")}
+              onPress={() => router.push('/ai.shedule')}
               className="bg-blue-500 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
             >
               <Sparkles size={20} color="white" />
@@ -48,23 +66,21 @@ const CreateShedule = () => {
           <View className="space-y-3">
             {/* Schedule Type Selection */}
             <View>
-              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
-                Type
-              </Text>
+              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">Type</Text>
               <View className="flex-row gap-3">
                 {['task', 'event'].map((type) => (
                   <TouchableOpacity
                     key={type}
-                    onPress={() => scheduleStore.newItem.scheduleType.set(type as 'task' | 'event')}
+                    onPress={() => scheduleType.set(type as 'task' | 'event')}
                     className={`flex-1 p-4 rounded-xl border ${
-                      scheduleStore.newItem.scheduleType.get() === type
+                      newItem$.scheduleType === type
                         ? 'border-violet-600 bg-violet-50 dark:bg-violet-900/30'
                         : 'border-gray-200 dark:border-gray-700'
                     }`}
                   >
                     <Text
                       className={`text-center font-amedium ${
-                        scheduleStore.newItem.scheduleType.get() === type
+                        newItem$.scheduleType === type
                           ? 'text-violet-600 dark:text-violet-400'
                           : 'text-gray-700 dark:text-gray-300'
                       }`}
@@ -78,13 +94,13 @@ const CreateShedule = () => {
             {/* Title Input */}
             <View className="my-2">
               <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
-                 Title *
+                Title *
               </Text>
               <TextInput
                 className="bg-gray-100 dark:bg-gray-700 p-4 font-aregular rounded-xl text-gray-900 dark:text-white"
                 placeholder="Enter description..."
-                value={scheduleStore.newItem.title.get()}
-                onChangeText={scheduleStore.newItem.title.set}
+                value={newItem$.title}
+                onChangeText={title.set}
                 placeholderTextColor="#9CA3AF"
               />
             </View>
@@ -95,8 +111,8 @@ const CreateShedule = () => {
               <TextInput
                 className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white font-aregular"
                 placeholder="Enter description..."
-                value={scheduleStore.newItem.description.get()}
-                onChangeText={(text) => scheduleStore.newItem.description.set(text)}
+                value={newItem$.description}
+                onChangeText={(text) => description.set(text)}
                 placeholderTextColor="#9CA3AF"
                 multiline
                 numberOfLines={3}
@@ -110,24 +126,22 @@ const CreateShedule = () => {
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2 py-2">
-                  {TASK_TYPES.map((type) => (
+                  {TASK_TYPES.map((t) => (
                     <TouchableOpacity
-                      key={type}
-                      onPress={() => scheduleStore.newItem.type.set(type)}
+                      key={t}
+                      onPress={() => type.set(t)}
                       className={`px-4 py-2 rounded-xl ${
-                        scheduleStore.newItem.type.get() === type
-                          ? typeColors[type].bg
-                          : 'bg-gray-100 dark:bg-gray-700'
+                        newItem$.type === t ? typeColors[t].bg : 'bg-gray-100 dark:bg-gray-700'
                       }`}
                     >
                       <Text
                         className={`${
-                          scheduleStore.newItem.type.get() === type
-                            ? typeColors[type].text
+                          newItem$.type === t
+                            ? typeColors[t].text
                             : 'text-gray-700 dark:text-gray-300 font-amedium text-sm'
                         }`}
                       >
-                        {type}
+                        {t}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -141,24 +155,24 @@ const CreateShedule = () => {
                 Priority
               </Text>
               <View className="flex-row gap-2">
-                {PRIORITY_LEVELS.map((priority) => (
+                {PRIORITY_LEVELS.map((p) => (
                   <TouchableOpacity
-                    key={priority}
-                    onPress={() => scheduleStore.newItem.priority.set(priority)}
+                    key={p}
+                    onPress={() => priority.set(p)}
                     className={`flex-1 p-3 rounded-xl border ${
-                      scheduleStore.newItem.priority.get() === priority
-                        ? `${priorityColors[priority].light} ${priorityColors[priority].border}`
+                      newItem$.priority === p
+                        ? `${priorityColors[p].light} ${priorityColors[p].border}`
                         : 'border-gray-200 dark:border-gray-700'
                     }`}
                   >
                     <Text
                       className={`text-center text-sm font-amedium ${
-                        scheduleStore.newItem.priority.get() === priority
-                          ? priorityColors[priority].text
+                        newItem$.priority === p
+                          ? priorityColors[p].text
                           : 'text-gray-700 dark:text-gray-300'
                       }`}
                     >
-                      {priority}
+                      {p}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -167,9 +181,9 @@ const CreateShedule = () => {
 
             {/* Date and Time Selection */}
             <DateTimePickerComponent
-              value={scheduleStore.newItem.startDate.get() || new Date()}
-              onDateChange={(selectedDate) => scheduleStore.newItem.startDate.set(selectedDate)}
-              onTimeChange={(selectedDate) => scheduleStore.newItem.startDate.set(selectedDate)}
+              value={newItem$.startDate || new Date()}
+              onDateChange={(selectedDate) => startDate.set(selectedDate)}
+              onTimeChange={(selectedDate) => startDate.set(selectedDate)}
               showDatePicker={showDatePicker}
               showTimePicker={showTimePicker}
               setShowDatePicker={showDatePicker$.set}
@@ -183,8 +197,8 @@ const CreateShedule = () => {
               <TextInput
                 className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
                 placeholder="Enter duration..."
-                value={scheduleStore.newItem.duration.get()?.toString()}
-                onChangeText={(text) => scheduleStore.newItem.duration.set(parseInt(text) || 30)}
+                value={newItem$.duration?.toString()}
+                onChangeText={(text) => duration.set(parseInt(text) || 30)}
                 keyboardType="numeric"
                 placeholderTextColor="#9CA3AF"
               />
@@ -200,16 +214,16 @@ const CreateShedule = () => {
                   {RECURRENCE_PATTERNS.map((pattern) => (
                     <TouchableOpacity
                       key={pattern}
-                      onPress={() => scheduleStore.newItem.recurrence.set(pattern)}
+                      onPress={() => recurrence.set(pattern)}
                       className={`px-4 py-2 rounded-xl ${
-                        scheduleStore.newItem.recurrence.get() === pattern
+                        newItem$.recurrence=== pattern
                           ? 'bg-teal-100 dark:bg-teal-900/30'
                           : 'bg-gray-100 dark:bg-gray-700'
                       }`}
                     >
                       <Text
-                        className={`font-abold${ 
-                          scheduleStore.newItem.recurrence.get() === pattern
+                        className={`font-abold${
+                          newItem$.recurrence=== pattern
                             ? 'text-teal-600 dark:text-teal-400'
                             : 'text-gray-700 dark:text-gray-300'
                         }`}
@@ -231,11 +245,11 @@ const CreateShedule = () => {
                 <Reactive.TextInput
                   $className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
                   $placeholder="Enter location..."
-                  $value={scheduleStore.newItem.location?.get() || ''}
-                  $onChangeText={(text) => scheduleStore.newItem.location?.set(text)}
+                  $value={newItem$.location|| ''}
+                  $onChangeText={(text) => location?.set(text)}
                   $placeholderTextColor="#9CA3AF"
                 />
-                {isEvent && !scheduleStore.newItem.location?.get() && (
+                {isEvent && !newItem$.location&& (
                   <Text className="text-sm text-rose-500 mt-1">
                     Location is required for events
                   </Text>
@@ -252,16 +266,16 @@ const CreateShedule = () => {
                 {[5, 15, 30, 60].map((minutes) => (
                   <TouchableOpacity
                     key={minutes}
-                    onPress={() => scheduleStore.newItem.reminder.set(minutes)}
+                    onPress={() => reminder.set(minutes)}
                     className={`flex-1 p-3 rounded-xl border ${
-                      scheduleStore.newItem.reminder.get() === minutes
+                      newItem$.reminder=== minutes
                         ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
                         : 'border-gray-200 dark:border-gray-700'
                     }`}
                   >
                     <Text
                       className={`text-center font-medium ${
-                        scheduleStore.newItem.reminder.get() === minutes
+                        newItem$.reminder=== minutes
                           ? 'text-indigo-600 dark:text-indigo-400'
                           : 'text-gray-700 dark:text-gray-300'
                       }`}
@@ -276,21 +290,21 @@ const CreateShedule = () => {
             {/* Tags Input */}
             <View className="my-2">
               <View className="flex-row items-center py-2 border-b border-gray-200 dark:border-gray-700 gap-2">
-              <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
-                Tags (comma separated)
-              </Text>
-                <Tag size={16} color="#9CA3AF" className='mb-3' />
+                <Text className="text-sm font-abold text-gray-700 dark:text-gray-300 mb-2">
+                  Tags (comma separated)
+                </Text>
+                <Tag size={16} color="#9CA3AF" className="mb-3" />
               </View>
               <Reactive.TextInput
                 $className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white"
                 $placeholder="Enter tags..."
-                $value={scheduleStore.newItem?.tags?.get()?.join(', ')}
+                $value={newItem$?.tags?.join(', ')}
                 $onChangeText={(text) => {
-                  const tags = text
+                  const t = text
                     ?.split(',')
                     ?.map((tag) => tag.trim())
                     ?.filter((tag) => tag.length > 0);
-                  scheduleStore.newItem.tags.set(tags);
+                  tags.set(t);
                 }}
                 $placeholderTextColor="#9CA3AF"
               />
@@ -302,13 +316,13 @@ const CreateShedule = () => {
                 <Text className="text-lg font-amedium text-gray-700 dark:text-gray-300 mb-2">
                   Notes
                 </Text>
-                <FileTextIcon size={16} color="#9CA3AF" className='mb-3' />
+                <FileTextIcon size={16} color="#9CA3AF" className="mb-3" />
               </View>
               <TextInput
                 className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl text-gray-900 dark:text-white min-h-[100px]"
                 placeholder="Enter any additional notes..."
-                value={scheduleStore.newItem.notes.get()}
-                onChangeText={scheduleStore.newItem.notes.set}
+                value={newItem$.notes}
+                onChangeText={notes.set}
                 placeholderTextColor="#9CA3AF"
                 multiline
                 textAlignVertical="top"
@@ -319,15 +333,13 @@ const CreateShedule = () => {
           {/* Action Buttons */}
           <View className="flex-row gap-3 mt-6 mb-4">
             <TouchableOpacity
-              onPress={()=>{
-                resetForm()
-                router.back()
+              onPress={() => {
+                resetForm();
+                router.back();
               }}
               className="flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-xl"
             >
-              <Text className="text-center font-amedium text-gray-900 dark:text-white">
-                Cancel
-              </Text>
+              <Text className="text-center font-amedium text-gray-900 dark:text-white">Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={submit}
@@ -337,7 +349,7 @@ const CreateShedule = () => {
               disabled={!isFormValid()}
             >
               <Text className="text-center font-amedium text-white">
-                {scheduleStore.editingItem.get() ? 'Update' : 'Add'}
+                {editingItem$? 'Update' : 'Add'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -349,16 +361,16 @@ const CreateShedule = () => {
 
 // Form validation function
 const isFormValid = () => {
-  const newItem = scheduleStore.newItem;
-  const isEvent = newItem.scheduleType.get() === 'event';
+  const newItem$ = sheduleStore.newItem;
+  const isEvent = newItem$.scheduleType.get()=== 'event';
 
   const hasRequiredFields =
-    newItem?.title?.get()?.trim() !== '' || undefined &&
-    newItem?.duration?.get()! > 0 &&
-    newItem?.startDate?.get() !== null;
+    newItem$?.title?.get()?.trim() !== '' || undefined &&
+    newItem$?.duration?.get()! > 0 &&
+    newItem$?.startDate!== null;
 
   if (isEvent) {
-    return hasRequiredFields && newItem.location?.get()?.trim() !== '';
+    return hasRequiredFields && newItem$.location?.get()?.trim() !== '';
   }
 
   return hasRequiredFields;

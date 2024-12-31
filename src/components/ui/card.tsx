@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, ViewProps } from 'react-native';
 
 interface CardProps extends ViewProps {

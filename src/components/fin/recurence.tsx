@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { RecurrenceFrequency } from './ts';
+import { RecurrenceFrequency } from 'src/store/finance/types';
 import { Clock } from 'lucide-react-native';
 
 interface RecurrenceSelectorProps {

@@ -1,7 +1,8 @@
 import { observable } from '@legendapp/state';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 import { synced } from '@legendapp/state/sync';
-import { BudgetRuleType, FinanceStore } from './types';
+import { FinanceStore } from './types';
+import { BudgetRuleTypeSchema } from './src/types';
 
   const initial: FinanceStore = {
     isSetUP: false,
@@ -9,7 +10,7 @@ import { BudgetRuleType, FinanceStore } from './types';
     categories: {},
     customCategories: [],
     budgetConfig: {
-      rule: BudgetRuleType.RULE_50_30_20,
+      rule: BudgetRuleTypeSchema.enum['50/30/20'],
       monthlyIncome: 0,
       savingsGoals: {},
       paymentSchedule: {

@@ -1,9 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity, Linking, TextInput, ImageBackground, StatusBar } from 'react-native';
 import { Book, Link, Video, Newspaper, Bookmark, BookmarkCheck, Calendar, ArrowLeft, ExternalLink, ChevronDown, Edit, Save, Plus, X } from 'lucide-react-native';
 import { observer, useObservable } from '@legendapp/state/react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { observable } from '@legendapp/state';
 import { format } from 'date-fns';
 import Animated, { 
@@ -17,6 +15,7 @@ import { useModal } from 'src/components/modals/provider';
 import { useNotes } from 'src/store/notes/actions';
 import { categories } from 'src/store/notes/data';
 import { colorScheme } from 'nativewind';
+import { NoteImages } from 'src/store/notes/images';
 
 const initialNote: Note = {
   id: '',
@@ -207,8 +206,7 @@ const NoteViewer = () => {
       )
     }
   }
-
-  //trim
+  
   return (
     <View className="flex-1 bg-gray-50 dark:bg-gray-900">
       <StatusBar hidden/>
@@ -218,7 +216,7 @@ const NoteViewer = () => {
       >
         {/* Header */}
         <ImageBackground
-          source={require('../../assets/images/image3.png')}
+          source={{uri: NoteImages.Image1}}
           className="p-6 pb-8 rounded-b-[32px] shadow-lg"
         >
           <View className="flex-row items-center justify-between mb-6">

@@ -20,7 +20,7 @@ export const TransactionSchema = z.object({
   description:z.string()
 });
 
-export const BudgetRuleTypeSchema = z.enum(['RULE_50_30_20', 'RULE_70_20_10', 'RULE_15_65_20', 'CUSTOM']);
+export const BudgetRuleTypeSchema = z.enum(['50/30/20', '70/20/10', '15/65/20', 'CUSTOM']);
 
 export const SavingsGoalSchema = z.object({
   id: z.string(),
@@ -52,11 +52,3 @@ export const MonthlyBreakdownSchema = z.object({
   net: z.number(),
   categories: z.record(z.string(), z.number()),
 });
-
-export type Category = z.infer<typeof CategorySchema>;
-export type Transaction = z.infer<typeof TransactionSchema>;
-export type BudgetRuleType = z.infer<typeof BudgetRuleTypeSchema>;
-export type SavingsGoal = z.infer<typeof SavingsGoalSchema>;
-export type BudgetConfig = z.infer<typeof BudgetConfigSchema>;
-export type IncomeExpenseSummary = z.infer<typeof IncomeExpenseSummarySchema>;
-export type MonthlyBreakdown = z.infer<typeof MonthlyBreakdownSchema>;

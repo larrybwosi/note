@@ -1,6 +1,6 @@
-import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { BudgetRuleType } from '../fin/ts';
+import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
+import { BudgetRuleType } from 'src/store/finance/types';
 
 interface BudgetRuleSelectorProps {
   selectedRule: BudgetRuleType;
@@ -8,7 +8,7 @@ interface BudgetRuleSelectorProps {
 }
 
 export const BudgetRuleSelector: React.FC<BudgetRuleSelectorProps> = ({ selectedRule, onSelectRule }) => {
-  const rules = Object.values(BudgetRuleType);
+  const rules = Object.values(BudgetRuleTypeSchema);
 
   return (
     <View className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 shadow-sm">

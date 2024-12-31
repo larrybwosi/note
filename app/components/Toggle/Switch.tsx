@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 
 import { $styles } from '@/theme';
-import { iconRegistry } from '@/components/Icon';
 import { $inputOuterBase, BaseToggleInputProps, Toggle, ToggleProps } from './Toggle';
 import { useAppTheme } from '@/utils/useAppTheme';
 import type { ThemedStyle } from '@/theme';

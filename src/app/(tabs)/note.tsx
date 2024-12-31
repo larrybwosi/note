@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StatusBar } from 'react-native';
 import { observer } from '@legendapp/state/react';
 import { Search, X, Trash2Icon, Plus } from 'lucide-react-native';
@@ -21,14 +21,18 @@ const NotesScreen = observer(() => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const filteredNotes = useMemo(() => {
+  const renders = useRef(0);
+  console.log(`Note view: ${++renders.current}`);
+
+  const getFilteredNotes = () => {
     return notes.filter(note => {
       const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             note.content.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory ? note.categoryId === selectedCategory : true;
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory, notes]);
+  };
+  const filteredNotes = getFilteredNotes()
 
   const handleDeleteAll = () => {
     
@@ -45,11 +49,11 @@ const NotesScreen = observer(() => {
       <StatusBar hidden={false}/>
       <View className="px-4 py-4">
 
-        <View className='flex-row mt-3'>
+        <View className='flex-row mt-8 justify-between'>
           <Text className="text-2xl font-rbold text-gray-900 dark:text-white mb-4">My Notes</Text>
           <TouchableOpacity
             onPress={handleDeleteAll}
-            className="absolute bottom-5 right-6 bg-blue-500 p-3 rounded-lg flex-row mt-1"
+            className="absolute bottom-5 right-5 bg-blue-500 p-3 rounded-lg flex-row mt-1"
           >
             <Trash2Icon size={20} color="white" />
             <Text className="text-white font-rmedium ml-1">Delete All</Text>
@@ -94,13 +98,12 @@ const NotesScreen = observer(() => {
         <Plus size={20} color="white" />
         <Text className="text-white font-rmedium ml-1">Add Note</Text>
       </TouchableOpacity>
-      <SaveConfirmationModal
+      {/* <SaveConfirmationModal
         saveAlert={false}
-        onConfirm={()=>{}}
         setSaveAlert={() => {}}
         title="Delete All Notes"
         message="Are you sure you want to delete all notes? This action cannot be undone."
-      />
+      /> */}
     </SafeAreaView>
   );
 });

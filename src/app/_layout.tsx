@@ -5,7 +5,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { KeyboardProvider } from 'react-native-keyboard-controller'
-import { colorScheme as colorSchemeNW } from 'nativewind';
+import { colorScheme } from 'nativewind';
 import { SplashScreen, Stack } from 'expo-router';
 import { ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
@@ -43,7 +43,7 @@ export default function Root() {
   if (!loaded) {
     return null;
   }
-  const theme = colorSchemeNW.get();
+  const theme = colorScheme.get();
 
   return (
     <GestureHandlerRootView style={$root}>
@@ -53,11 +53,11 @@ export default function Root() {
             <KeyboardProvider>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="create.schedule" options={{ headerShown: false }} />
+              <Stack.Screen name="create.shedule" options={{ headerShown: false }} />
               <Stack.Screen name="plans" options={{ headerShown: false }} />
               <Stack.Screen name="create.profile" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="create.transactions" options={{ headerShown: false, presentation: 'modal' }} />
-              <Stack.Screen name="ai.schedule" options={{ headerShown: false, presentation: 'modal' }} />
+              <Stack.Screen name="ai.shedule" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="ai.transaction" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="finance_setup" options={{ headerShown: false, presentation: 'modal' }} />
               <Stack.Screen name="other" options={{ headerShown: false, presentation: 'modal' }} />

@@ -11,7 +11,7 @@ import { router } from 'expo-router';
 import { useCallback } from 'react';
 
 import TasksList from 'src/components/schedule.item';
-import { scheduleStore } from 'src/store/shedule/store';
+import { sheduleStore } from 'src/store/shedule/store';
 
 const Header = observer(({ streakCount = 5 }) => {
   const time = useComputed(() => format(currentTime.get().getTime(), 'hh:mm'));
@@ -68,9 +68,9 @@ const EmptyState = () => (
   </View>
 );
 
-const AddButton = ({ onPress }: { onPress: () => void }) => (
+const AddButton = () => (
   <TouchableOpacity
-    onPress={() => router.navigate(`/create.schedule`)}
+    onPress={() => router.push(`/create.shedule`)}
     className="bg-blue-500 px-4 py-2 rounded-xl flex-row items-center"
   >
     <Plus size={20} color="white" />
@@ -81,10 +81,10 @@ const AddButton = ({ onPress }: { onPress: () => void }) => (
 
 
 const CalendarApp = observer(function CalendarApp() {
-  const todayItems = useComputed(() => scheduleStore.items.get());
+  const todayItems = useComputed(() => sheduleStore.items.get());
 
   const updateCountdowns = useCallback(() => {
-    scheduleStore.items.set((prevItems) =>
+    sheduleStore.items.set((prevItems) =>
       prevItems.map((item) => ({
         ...item,
         countdown: differenceInMinutes(item.startDate, new Date()),
@@ -116,7 +116,7 @@ const CalendarApp = observer(function CalendarApp() {
                 Today's Schedule
               </Text>
             </View>
-            <AddButton onPress={() => router.navigate('/ai.schedule')} />
+            <AddButton/>
           </View>
 
           {!todayItems?.length ? (

@@ -58,7 +58,7 @@ export const WaterReminderSection = observer(() => {
           </View>
           <TouchableOpacity
             className="bg-blue-500 px-4 py-2 rounded-xl"
-            onPress={()=>router.push('/finance_setup')}
+            onPress={()=>router.push('/schedule')}
           >
             <Text className="text-white font-rmedium">Log</Text>
           </TouchableOpacity>

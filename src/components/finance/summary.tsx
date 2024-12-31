@@ -2,10 +2,9 @@ import { observer } from "@legendapp/state/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { TrendingUp } from "lucide-react-native";
 import { colorScheme } from "nativewind";
-import { View } from "react-native";
-import { Text } from "react-native";
-import Animated, { BounceIn, FadeIn, Layout, LinearTransition, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
-import useFinancialStore from "src/store/finance/store";
+import { View, Text } from 'react-native';
+import Animated, { BounceIn, FadeIn, LinearTransition } from "react-native-reanimated";
+import useFinanceStore from "src/store/finance/actions";
 
 const InsightCard = observer(({ title, value, trend, color }: { 
   title: string;
@@ -32,7 +31,7 @@ const InsightCard = observer(({ title, value, trend, color }: {
 }); 
 
 const FinanceSummary = observer(() => {
-  const { getTotalIncome, getTotalExpenses, getGuiltFreeBalance } = useFinancialStore();
+  const { getTotalIncome, getTotalExpenses, getGuiltFreeBalance } = useFinanceStore();
   
   const guiltFreeBalance = getGuiltFreeBalance();
   const totalExpenses = getTotalExpenses();
@@ -70,7 +69,7 @@ const FinanceSummary = observer(() => {
           </View>
         </View>
 
-        <View className="flex-row space-x-4 mb-6">
+        <View className="flex-row space-x-4 gap-2 mb-6">
           <InsightCard
             title="Monthly Income"
             value={`$${totalIncome.toLocaleString()}`}

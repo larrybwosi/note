@@ -3,18 +3,23 @@ import { DollarSign, Calendar, Tag, FileText, MapPin, Check, Sparkles } from 'lu
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer, useObservable } from '@legendapp/state/react';
+import { router, useLocalSearchParams } from 'expo-router';
 
-import { TransactionType, Category, TransactionStatus, RecurrenceFrequency } from 'src/components/fin/ts';
+import {
+  Category,
+  RecurrenceFrequency,
+  TransactionStatus,
+  TransactionType,
+} from 'src/store/finance/types';
 import { CategorySelector } from 'src/components/fin/category.selector';
 import { RecurrenceSelector } from 'src/components/fin/recurence';
 import { InputField } from 'src/components/fin/input';
 import { Button } from 'src/components/ui/button';
 import { Card } from 'src/components/fin/card';
-import { router, useLocalSearchParams } from 'expo-router';
 
 
 const CreateTransaction: React.FC = observer(() => {
-  const {type} = useLocalSearchParams()
+  const { type } = useLocalSearchParams()
   const transactionState$ = useObservable({
   type: type === 'expense' ? TransactionType.EXPENSE : TransactionType.INCOME,
   amount: '',
@@ -38,11 +43,11 @@ const CreateTransaction: React.FC = observer(() => {
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
       <ScrollView className="flex-1 p-4">
-        <View className='flex-col flex justify-between'>
+        <View className='flex-row mb-3 flex justify-between'>
           <Text className="text-2xl font-rbold text-gray-900 dark:text-white mb-6">Create Transaction</Text>
           <TouchableOpacity
             onPress={() => router.push("/ai.create.transaction")}
-            className="bg-blue-500 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
+            className="bg-blue-500 backdrop-blur-lg px-4 rounded-xl flex-row items-center"
           >
             <Sparkles size={20} color="white" />
             <Text className="text-white font-rmedium ml-1">Try Ai</Text>

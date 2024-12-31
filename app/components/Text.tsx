@@ -1,7 +1,6 @@
 import { StyleProp, Text as RNText, TextProps as RNTextProps, TextStyle } from 'react-native';
 import type { ThemedStyle, ThemedStyleArray } from '@/theme';
 import { useAppTheme } from '@/utils/useAppTheme';
-import { typography } from '@/theme/typography';
 import { ReactNode } from 'react';
 
 type Sizes = keyof typeof $sizeStyles;

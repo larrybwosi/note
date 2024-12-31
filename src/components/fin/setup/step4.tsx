@@ -1,10 +1,11 @@
-import React from 'react';
 import { ScrollView, View, Text } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Check, AlertTriangle, DollarSign, PieChart } from 'lucide-react-native';
 import { BudgetRuleType, CategoryType } from 'src/store/finance/types';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from 'src/components/ui/Card';
 import { Progress } from 'src/components/ui/progress';
+import { Card } from '@/components';
+import { CardContent, CardDescription, CardHeader, CardTitle } from 'src/components/ui/card';
+import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
 
 interface Category {
   id: string;
@@ -34,13 +35,13 @@ const Step4Review: React.FC<Step4ReviewProps> = ({
 
   const getBudgetRuleDescription = (rule: BudgetRuleType) => {
     switch (rule) {
-      case BudgetRuleType.RULE_50_30_20:
+      case BudgetRuleTypeSchema.enum['50/30/20']:
         return "50% needs, 30% wants, 20% savings";
-      case BudgetRuleType.RULE_70_20_10:
+      case BudgetRuleTypeSchema.enum['70/20/10']:
         return "70% expenses, 20% savings, 10% debt/donation";
-      case BudgetRuleType.RULE_15_65_20:
+      case BudgetRuleTypeSchema.enum['15/65/20']:
         return "15% wants, 65% needs, 20% savings";
-      case BudgetRuleType.CUSTOM:
+      case BudgetRuleTypeSchema.enum.CUSTOM:
         return "Custom allocation";
       default:
         return "Unknown rule";
@@ -89,7 +90,7 @@ const Step4Review: React.FC<Step4ReviewProps> = ({
                 <Text className="text-lg font-semibold text-purple-500">{selectedRule}</Text>
               </View>
               <Text className="text-sm text-gray-600 dark:text-gray-400">{getBudgetRuleDescription(selectedRule)}</Text>
-              {selectedRule === BudgetRuleType.RULE_50_30_20 && (
+              {selectedRule === BudgetRuleTypeSchema.enum['50/30/20'] && (
                 <View className="space-y-2 mt-4">
                   <Progress value={50} max={100} label="Needs" color="#3B82F6" showPercentage />
                   <Progress value={30} max={100} label="Wants" color="#10B981" showPercentage />

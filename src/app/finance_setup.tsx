@@ -8,7 +8,6 @@ import { z } from 'zod';
 
 import { BudgetRuleType, Category, CategoryType } from 'src/store/finance/types';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from 'src/store/finance/data';
-import useFinancialStore from 'src/store/finance/store';
 import { FinanceSetupFormData, financeSetupSchema } from 'src/components/fin/setup/schema';
 import { AnimatedTitle, NavigationButtons } from 'src/components/fin/setup/custom';
 import Step1FinancialInfo from 'src/components/fin/setup/step1';
@@ -16,28 +15,29 @@ import Step2BudgetRule from 'src/components/fin/setup/step2';
 import Step3Categories from 'src/components/fin/setup/step3';
 import Step4Review from 'src/components/fin/setup/step4';
 import { useModal } from 'src/components/modals/provider';
+import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
 
 const rules = [
   {
-    type: BudgetRuleType.RULE_50_30_20,
+    type: BudgetRuleTypeSchema.enum['50/30/20'],
     description: 'Balanced approach for stable income',
     breakdown: '50% needs, 30% wants, 20% savings',
     color: '#3B82F6',
   },
   {
-    type: BudgetRuleType.RULE_70_20_10,
+    type: BudgetRuleTypeSchema.enum['70/20/10'],
     description: 'Conservative approach for debt management',
     breakdown: '70% expenses, 20% savings, 10% debt/donation',
     color: '#10B981',
   },
   {
-    type: BudgetRuleType.RULE_15_65_20,
+    type: BudgetRuleTypeSchema.enum['15/65/20'],
     description: 'High savings with controlled spending',
     breakdown: '15% wants, 65% needs, 20% savings',
     color: '#8B5CF6',
   },
   {
-    type: BudgetRuleType.CUSTOM,
+    type: BudgetRuleTypeSchema.enum['CUSTOM'],
     description: 'Personalized allocation based on your goals',
     breakdown: 'Set your own percentages',
     color: '#F59E0B',
@@ -45,7 +45,6 @@ const rules = [
 ];
 
 const FinanceSetup: React.FC = () => {
-  const { store } = useFinancialStore();
   const progressValue = useSharedValue(0);
   const{ show }=useModal()
 
@@ -53,7 +52,7 @@ const FinanceSetup: React.FC = () => {
     step: 1,
     currentBalance: '',
     monthlyIncome: '0',
-    selectedRule: BudgetRuleType.RULE_50_30_20,
+    selectedRule: BudgetRuleTypeSchema.enum['50/30/20'],
     activeTab: 'INCOME' as CategoryType,
     categories: [
       ...Object.entries(INCOME_CATEGORIES).map(([key, value]) => ({

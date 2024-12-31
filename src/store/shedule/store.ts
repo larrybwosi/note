@@ -4,15 +4,15 @@ import { synced } from '@legendapp/state/sync';
 import { addMinutes, format } from 'date-fns';
 import { ScheduleItem, ScheduleStore } from './types';
 
-const initialScheduleState: ScheduleItem[] = [
+const initialSheduleState: ScheduleItem[] = [
 ];
 
-export const scheduleStore = observable(
+export const sheduleStore = observable(
   synced<ScheduleStore>({
     initial: {
       currentDate: new Date(),
       currentTime: format(new Date(), 'HH:mm'),
-      items: initialScheduleState,
+      items: initialSheduleState,
       deletedItems: [],
       completedItems: [],
       filteredItems: [],

@@ -1,10 +1,5 @@
-
-export enum BudgetRuleType {
-  RULE_50_30_20 = '50/30/20 Rule', // Needs/Wants/Savings
-  RULE_70_20_10 = '70/20/10 Rule', // Living/Savings/Debt
-  RULE_15_65_20 = '15/65/20 Rule', // Savings/Living/Debt
-  CUSTOM = 'Custom Rule',
-}
+import { z } from "zod";
+import { BudgetConfigSchema, BudgetRuleTypeSchema, CategorySchema, IncomeExpenseSummarySchema, MonthlyBreakdownSchema, SavingsGoalSchema, TransactionSchema } from "../src/types";
 
 export interface CustomRule {
   categoryId: string;
@@ -34,14 +29,6 @@ export enum TransactionType {
   DEBT_PAYMENT = 'DEBT_PAYMENT'
 }
 
-export interface Category {
-  name: string;
-  type: CategoryType;
-  budget?: number;
-  isSelected?:boolean;
-  description?:string;
-  icon?:any
-}
 
 export enum RecurrenceFrequency {
   NONE = 'none',
@@ -49,65 +36,6 @@ export enum RecurrenceFrequency {
   WEEKLY = 'weekly',
   MONTHLY = 'monthly',
   YEARLY = 'yearly',
-}
-
-export interface Transaction {
-  id: string;
-  amount: number;
-  description: string;
-  createdAt: Date;
-  type: TransactionType;
-  category: Category;
-  status: TransactionStatus;
-  tags?: string[];
-  notes?: string;
-  attachments?: string[];
-  paymentMethod?: string;
-  location?: string;
-  isEssential?: boolean;
-  metadata?: Record<string, unknown>;
-  recurrence?: {
-    frequency: RecurrenceFrequency;
-    endDate?: string;
-    reminderEnabled: boolean;
-    lastProcessed?: string;
-  };
-}
-
-export interface BudgetConfig {
-  rule: BudgetRuleType;
-  monthlyIncome: number;
-  savingsGoals: Record<string, SavingsGoal>;
-  paymentSchedule: {
-    payFrequency: PaymentFrequency;
-    nextPayday: string;
-  };
-}
-
-export interface SavingsGoal {
-  id: string;
-  name: string;
-  target: number;
-  currentAmount: number;
-  deadline?: string;
-}
-
-
-export interface IncomeExpenseSummary {
-  totalIncome: number;
-  totalExpenses: number;
-  netIncome: number;
-  incomeByCategory: Record<string, number>;
-  expensesByCategory: Record<string, number>;
-  savingsRate: number;
-}
-
-export interface MonthlyBreakdown {
-  month: string;
-  income: number;
-  expenses: number;
-  net: number;
-  categories: Record<string, number>;
 }
 
 
@@ -202,3 +130,12 @@ export interface Insights {
     }>;
   };
 }
+
+
+export type Category = z.infer<typeof CategorySchema>;
+export type Transaction = z.infer<typeof TransactionSchema>;
+export type BudgetRuleType = z.infer<typeof BudgetRuleTypeSchema>;
+export type SavingsGoal = z.infer<typeof SavingsGoalSchema>;
+export type BudgetConfig = z.infer<typeof BudgetConfigSchema>;
+export type IncomeExpenseSummary = z.infer<typeof IncomeExpenseSummarySchema>;
+export type MonthlyBreakdown = z.infer<typeof MonthlyBreakdownSchema>;

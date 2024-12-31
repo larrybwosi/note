@@ -1,8 +1,39 @@
-import { useComputed, useSelector } from "@legendapp/state/react";
+import { useComputed } from "@legendapp/state/react";
 import { ObservablePrimitive } from "@legendapp/state";
 import { Profile } from "./types";
 import { profileStore } from "./store";
-import { validators } from "./validators";
+
+const validators = {
+  isValidEmail: (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  },
+
+  isValidHeight: (height: number): boolean => {
+    return height > 0 && height < 300; // Max height in cm
+  },
+
+  isValidWeight: (weight: number): boolean => {
+    return weight > 0 && weight < 500; // Max weight in kg
+  },
+
+  isValidWaterIntake: (amount: number): boolean => {
+    return amount > 0 && amount <= 5000; // Max 5L per addition
+  },
+
+  isValidSleepHours: (hours: number): boolean => {
+    return hours >= 0 && hours <= 24;
+  },
+
+  isValidExerciseMinutes: (minutes: number): boolean => {
+    return minutes > 0 && minutes <= 480; // Max 8 hours per session
+  },
+
+  isValidFocusMinutes: (minutes: number): boolean => {
+    return minutes > 0 && minutes <= 480; // Max 8 hours per session
+  },
+};
+
 
 interface ProfileMetrics {
   personalInfo: Profile['personalInfo'];
@@ -19,14 +50,12 @@ interface ProfileActions {
   updateExercise: (minutes: number) => void;
   updateFocusTime: (minutes: number) => void;
   toggleHabit: (index: number) => void;
-  resetDailyMetrics: () => void;
-  resetWeeklyMetrics: () => void;
 }
 
 export function useProfile(): ProfileMetrics & ProfileActions {
-  const personalInfo = useSelector(() => profileStore.personalInfo.get());
-  const healthMetrics = useSelector(() => profileStore.healthMetrics.get());
-  const productivityMetrics = useSelector(() => profileStore.productivityMetrics.get());
+  const personalInfo = profileStore.personalInfo.get();
+  const healthMetrics = profileStore.healthMetrics.get();
+  const productivityMetrics = profileStore.productivityMetrics.get();
 
   const bmi = useComputed(() => {
     const height = profileStore.personalInfo.height.get() / 100;
@@ -90,39 +119,18 @@ export function useProfile(): ProfileMetrics & ProfileActions {
     }
   };
 
-  const resetDailyMetrics = () => {
-    profileStore.healthMetrics.waterIntake.daily.current.set(0);
-    profileStore.productivityMetrics.focusTime.daily.current.set(0);
-    profileStore.productivityMetrics.habits.forEach((habit, index) => {
-      if (habit.frequency.get() === 'daily') {
-        profileStore.productivityMetrics.habits[index].completed.set(false);
-      }
-    });
-  };
-
-  const resetWeeklyMetrics = () => {
-    profileStore.healthMetrics.exercise.weeklyProgress.set(0);
-    profileStore.productivityMetrics.habits.forEach((habit, index) => {
-      if (habit.frequency.get() === 'weekly') {
-        profileStore.productivityMetrics.habits[index].completed.set(false);
-      }
-    });
-  };
-
   return {
     personalInfo,
     healthMetrics,
     productivityMetrics,
     bmi: bmi.get(),
     updatePersonalInfo,
+    updateSleep,
     updateSchedule,
     addWaterIntake,
-    updateSleep,
     updateExercise,
     updateFocusTime,
     toggleHabit,
-    resetDailyMetrics,
-    resetWeeklyMetrics,
   };
 }
 

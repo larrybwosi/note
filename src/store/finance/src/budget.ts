@@ -11,13 +11,13 @@ const calculateGuiltFreeBalance = (budgetConfig: z.infer<typeof BudgetConfigSche
   const expenses =  incomeExpenseService.getTotalExpenses();
 
   let budgetedAmount: number;
-  if (budgetConfig.rule === BudgetRuleTypeSchema.enum.RULE_15_65_20) {
+  if (budgetConfig.rule === BudgetRuleTypeSchema.enum["15/65/20"]) {
     budgetedAmount = monthlyIncome * 0.3; // 30% for wants
   } else if (budgetConfig.rule === BudgetRuleTypeSchema.enum.CUSTOM) {
     budgetedAmount = monthlyIncome * 0.2; // 20% for savings
-  } else if (budgetConfig.rule === BudgetRuleTypeSchema.enum.RULE_50_30_20) {
+  } else if (budgetConfig.rule === BudgetRuleTypeSchema.enum["50/30/20"]) {
     budgetedAmount = monthlyIncome * 0.5; // 50% for needs
-  } else if (budgetConfig.rule === BudgetRuleTypeSchema.enum.RULE_70_20_10) {
+  } else if (budgetConfig.rule === BudgetRuleTypeSchema.enum["70/20/10"]) {
     budgetedAmount = monthlyIncome * 0.7; // 70% for savings
   } 
   else {
@@ -90,17 +90,17 @@ export const budgetService = {
 
   calculateCategoryBudget: (categoryType: z.infer<typeof CategoryTypeSchema>, monthlyIncome: number, budgetRule: z.infer<typeof BudgetRuleTypeSchema>): number => {
     switch (budgetRule) {
-      case BudgetRuleTypeSchema.enum.RULE_50_30_20:
+      case BudgetRuleTypeSchema.enum["50/30/20"]:
         if (categoryType === CategoryTypeSchema.enum.needs) return monthlyIncome * 0.5;
         if (categoryType === CategoryTypeSchema.enum.wants) return monthlyIncome * 0.3;
         if (categoryType === CategoryTypeSchema.enum.savings) return monthlyIncome * 0.2;
         break;
-      case BudgetRuleTypeSchema.enum.RULE_70_20_10:
+      case BudgetRuleTypeSchema.enum["70/20/10"]:
         if (categoryType === CategoryTypeSchema.enum.needs) return monthlyIncome * 0.7;
         if (categoryType === CategoryTypeSchema.enum.wants) return monthlyIncome * 0.2;
         if (categoryType === CategoryTypeSchema.enum.savings) return monthlyIncome * 0.1;
         break;
-      case BudgetRuleTypeSchema.enum.RULE_15_65_20:
+      case BudgetRuleTypeSchema.enum["15/65/20"]:
         if (categoryType === CategoryTypeSchema.enum.needs) return monthlyIncome * 0.15;
         if (categoryType === CategoryTypeSchema.enum.wants) return monthlyIncome * 0.65;
         if (categoryType === CategoryTypeSchema.enum.savings) return monthlyIncome * 0.2;
