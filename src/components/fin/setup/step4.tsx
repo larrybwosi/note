@@ -3,8 +3,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Check, AlertTriangle, DollarSign, PieChart } from 'lucide-react-native';
 import { BudgetRuleType, CategoryType } from 'src/store/finance/types';
 import { Progress } from 'src/components/ui/progress';
-import { Card } from '@/components';
-import { CardContent, CardDescription, CardHeader, CardTitle } from 'src/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'src/components/ui/card';
 import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
 
 interface Category {

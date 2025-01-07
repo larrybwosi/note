@@ -49,10 +49,8 @@ const createStore = (name:string) => observable<AppState>(
     initial:{
       responses: [],
       isLoading: false,
-      error: null,
       savedPrompts: [],
       prompt: '',
-      successMessage: null,
       hasResult: false,
     },
     persist: {
@@ -375,6 +373,10 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
   promptStyle = 'chips'
 }) => {
   const store = createStore(type);
+  const messages = observable({
+    errors: null,
+    successMessage: null,
+  });
   const selectedTheme = themes[theme];
 
   const renders = useRef(0);
@@ -382,13 +384,9 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
       <ScrollView>
-        <Header 
-          title={title} 
-          subtitle={subtitle} 
-          gradientColors={gradientColors} 
-        />
-        <MessageBanner type="error" store={store} />
-        <MessageBanner type="success" store={store} />
+        <Header title={title} subtitle={subtitle} gradientColors={gradientColors} />
+        <MessageBanner type="error" store={messages} />
+        <MessageBanner type="success" store={messages} />
         <PromptInput
           store={store}
           inputPlaceholder={inputPlaceholder}
@@ -399,15 +397,15 @@ const AICreatorTemplate: React.FC<AICreatorTemplateProps> = ({
           animation={animation}
           layout={layout}
         />
-      <ExamplePrompts
-        store={store} 
-        prompts={examplePrompts}
-        theme={selectedTheme}
-        promptStyle={promptStyle}
-      />
+        <ExamplePrompts
+          store={store}
+          prompts={examplePrompts}
+          theme={selectedTheme}
+          promptStyle={promptStyle}
+        />
 
-        <ResponsesList 
-          store={store} 
+        <ResponsesList
+          store={store}
           ItemComponent={ItemComponent}
           itemComponentProps={itemComponentProps}
         />

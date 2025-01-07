@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react-native';
+import { cn } from 'src/lib/utils/cn';
 
 interface AnimatedTitleProps {
   title: string;
@@ -74,9 +75,9 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({ step, onPr
       </TouchableOpacity>
     )}
 
-    {step < 4 ? (
+    {step < 4 && (
       <TouchableOpacity
-        className={`flex-row items-center bg-blue-500 dark:bg-blue-400 py-3 px-6 rounded-full ml-auto ${isNextDisabled ? 'opacity-50' : ''}`}
+        className={cn('flex-row items-center bg-blue-500 dark:bg-blue-400 py-3 px-6 rounded-full ml-auto', { 'opacity-50': isNextDisabled })}
         onPress={onNext}
         disabled={isNextDisabled}
       >
@@ -85,7 +86,8 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({ step, onPr
         </Text>
         <ArrowRight size={24} color={'#111827'} />
       </TouchableOpacity>
-    ) : (
+    )}
+    { step === 4 && (
       <TouchableOpacity
         className="flex-row items-center bg-green-500 dark:bg-green-400 py-3 px-6 rounded-full ml-auto shadow-lg shadow-green-500/20 dark:shadow-green-400/20"
         onPress={onComplete}

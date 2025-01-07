@@ -46,20 +46,28 @@ const config: ExpoConfig = {
     'expo-font',
     'expo-location',
     [
-      "expo-notifications",
+      'expo-notifications',
       {
-        icon: "./assets/images/app-icon-ios.png",
-        color: "#ffffff",
-        defaultChannel: "default",
+        icon: './assets/images/app-icon-ios.png',
+        color: '#ffffff',
+        defaultChannel: 'default',
         sounds: [
-          "./assets/sounds/not1.wav",
-          "./assets/sounds/not2.wav",
-          "./assets/sounds/not3.wav",
-          "./assets/sounds/not4.wav",
+          './assets/sounds/not1.wav',
+          './assets/sounds/not2.wav',
+          './assets/sounds/not3.wav',
+          './assets/sounds/not4.wav',
         ],
         enableBackgroundRemoteNotifications: false,
-      }
-    ]
+      },
+    ],
+    [
+      '@sentry/react-native/expo',
+      {
+        url: 'https://sentry.io/',
+        project: 'dealio',
+        organization: 'clevery',
+      },
+    ],
   ],
   experiments: {
     tsconfigPaths: true,

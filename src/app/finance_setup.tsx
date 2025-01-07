@@ -3,10 +3,9 @@ import { View, ScrollView } from 'react-native';
 import { observer, useObservable } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue, interpolateColor } from 'react-native-reanimated';
-import { router } from 'expo-router';
 import { z } from 'zod';
 
-import { BudgetRuleType, Category, CategoryType } from 'src/store/finance/types';
+import { CategoryType } from 'src/store/finance/types';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from 'src/store/finance/data';
 import { FinanceSetupFormData, financeSetupSchema } from 'src/components/fin/setup/schema';
 import { AnimatedTitle, NavigationButtons } from 'src/components/fin/setup/custom';
@@ -16,6 +15,7 @@ import Step3Categories from 'src/components/fin/setup/step3';
 import Step4Review from 'src/components/fin/setup/step4';
 import { useModal } from 'src/components/modals/provider';
 import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
+import useFinanceStore from 'src/store/finance/actions';
 
 const rules = [
   {
@@ -46,7 +46,8 @@ const rules = [
 
 const FinanceSetup: React.FC = () => {
   const progressValue = useSharedValue(0);
-  const{ show }=useModal()
+  const { show } = useModal();
+  const { store} =useFinanceStore();
 
   const state$ = useObservable<FinanceSetupFormData & { step: number; activeTab: CategoryType }>({
     step: 1,
@@ -82,8 +83,9 @@ const FinanceSetup: React.FC = () => {
 
   const errors$ = useObservable<Partial<Record<keyof FinanceSetupFormData, string>>>({});
 
-  const state = state$.get()
+  const { currentBalance, monthlyIncome, selectedRule, categories, activeTab, step } = state$.get();
   const errors =errors$.get()
+
   useEffect(() => {
     progressValue.value = withSpring((state$.step.get() - 1) / 3);
   }, [state$.step.get()]);
@@ -143,11 +145,10 @@ const FinanceSetup: React.FC = () => {
 
   const handleSubmit = () => {
     if (validateStep()) {
-      const formData = state;
-      // store.budgetConfig.monthlyIncome.set(parseFloat(formData.monthlyIncome || '0'));
-      // store.budgetConfig.rule.set(formData.selectedRule);
-      // store.budgetConfig.categories.set(formData.categories.filter(cat => cat.isSelected));
-      console.log('Setup completed:', formData);
+      // store.budgetConfig.monthlyIncome.set(parseFloat(monthlyIncome || '0'));
+      // store.budgetConfig.rule.set(selectedRule);
+      // store.budgetConfig.categories.set(categories.filter(cat => cat.isSelected));
+      console.log('Setup completed:', JSON.stringify(state$.get(), null, 2));
       // formData.categories= formData.categories.map((cat)=>cat.id)
       // console.log(formData)
       // router.back();
@@ -155,13 +156,13 @@ const FinanceSetup: React.FC = () => {
   };
 
   const renderStep = () => {
-    switch (state.step) {
+    switch (step) {
       case 1:
         return (
           <Step1FinancialInfo
-            currentBalance={state.currentBalance}
+            currentBalance={currentBalance}
             setCurrentBalance={state$.currentBalance.set}
-            monthlyIncome={state.monthlyIncome}
+            monthlyIncome={monthlyIncome}
             setMonthlyIncome={state$.monthlyIncome.set}
             errors={errors$.get()}
           />
@@ -170,15 +171,15 @@ const FinanceSetup: React.FC = () => {
         return (
           <Step2BudgetRule
             rules={rules}
-            selectedRule={state.selectedRule}
+            selectedRule={selectedRule}
             setSelectedRule={state$.selectedRule.set}
           />
         );
       case 3:
         return (
           <Step3Categories
-            categories={state.categories}
-            activeTab={state.activeTab}
+            categories={categories}
+            activeTab={activeTab}
             handleTabPress={handleTabPress}
             toggleCategory={toggleCategory}
             showNewCategoryModal={()=>show('NewCategory',{type:"INCOME"})}
@@ -188,10 +189,10 @@ const FinanceSetup: React.FC = () => {
       case 4:
         return (
           <Step4Review
-            currentBalance={state.currentBalance}
-            monthlyIncome={state.monthlyIncome}
-            selectedRule={state.selectedRule}
-            categories={state.categories}
+            currentBalance={currentBalance}
+            monthlyIncome={monthlyIncome}
+            selectedRule={selectedRule}
+            categories={categories}
           />
         );
       default:
@@ -221,7 +222,7 @@ const FinanceSetup: React.FC = () => {
           {renderStep()}
 
           <NavigationButtons
-            step={state.step}
+            step={step}
             onPrevious={() => state$.step.set((prev) => Math.max(1, prev - 1))}
             onNext={handleNext}
             onComplete={handleSubmit}

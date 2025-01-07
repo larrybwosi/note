@@ -22,7 +22,7 @@ import { Tab } from 'src/components/ui/tab';
 const ProfileScreen = observer(() => {
   const saveButtonScale = useSharedValue(1);
   const editButtonScale = useSharedValue(1);
-  const { personalInfo, healthMetrics, productivityMetrics } = useProfile();
+  const { personalInfo, productivityMetrics } = useProfile();
   const isDarkMode = colorScheme.get() === 'dark';
   const [activeTab, setActiveTab] = useState('Personal');
 
@@ -47,14 +47,6 @@ const ProfileScreen = observer(() => {
   const animatedSaveButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: saveButtonScale.value }],
   }));
-
-  const handleSave = useCallback(() => {
-    saveButtonScale.value = withSpring(0.9, {}, () => {
-      saveButtonScale.value = withSpring(1);
-    });
-    // Here you would typically send the updated profile to your backend
-    console.log('Profile saved:', personalInfo);
-  }, [personalInfo]);
 
   const handleEdit = useCallback(() => {
     editButtonScale.value = withSpring(0.9, {}, () => {

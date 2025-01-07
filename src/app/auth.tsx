@@ -7,11 +7,15 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ChevronRight, UserCircle } f
 import { observer, Memo, Reactive, useObservable } from '@legendapp/state/react';
 import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
-import { authClient, handleGoogleSignIn } from 'src/utils/auth';
+import { handleGoogleSignIn } from 'src/utils/auth';
 import { FormData, THEME } from 'types';
-import { Button } from '@/components';
+import { account } from 'src/lib/appwrite';
+import { useGlobalContext } from 'src/lib/global.context';
+import { Redirect } from 'expo-router';
 
 const useAuthState = () => {
+  const { isLoggedIn } = useGlobalContext();
+
   const state = useObservable({
     formData: {
       email: '',
@@ -191,10 +195,14 @@ const AuthScreen = observer(() => {
   const state = useAuthState();
 
   
+    const { refetch, loading, isLoggedIn } = useGlobalContext();
+
+    if (!loading && isLoggedIn) return <Redirect href="/" />;
+
+    
   const renders = useRef(0);
   console.log(`Auth Screen: ${++renders.current}`);
 
-  // Memoized handlers
   const handleSubmit = useCallback(async () => {
     const newErrors = validateForm(state.formData.peek(), state.isSignIn.peek());
     state.errors.set(newErrors);
@@ -203,13 +211,15 @@ const AuthScreen = observer(() => {
     
     state.isLoading.set(true);
     try {
-      const formData = state.formData.peek();
-      const res = await authClient.signUp.email({
-        email: formData.email,
-        password: formData.password,
-        name: formData.name
-      });
-      console.log(res);
+      const {email, password, name} = state.formData.peek();
+      const randomValue = Math.random().toString()
+
+      const promise = await account.create(randomValue, email, password, name);
+      console.log(promise)
+      if(promise.status === true){
+        await account.createEmailPasswordSession(email, password);
+      }
+      
       Alert.alert(
         'Success!', 
         state.isSignIn.peek() ? 'Welcome back!' : 'Your account has been created successfully!'
@@ -246,10 +256,7 @@ const AuthScreen = observer(() => {
   };
 
   const handleTest =async()=>{
-    const res = await authClient.signIn.social({
-      provider:"google"
-    })
-    console.log(res)
+    
   }
 
   return (
@@ -277,7 +284,7 @@ const AuthScreen = observer(() => {
               }
             >
               <TouchableOpacity onPress={async()=>{
-                authClient.signIn.social({provider:'github'})
+                await handleTest()
               }}>
                 <Text className='text-xl'>Google</Text>
               </TouchableOpacity>

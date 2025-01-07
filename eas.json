@@ -7,11 +7,11 @@
       "extends": "production",
       "distribution": "internal",
       "android": {
-        "gradleCommand": ":app:assembleRelease",
+        "gradleCommand": ":app:assembleDebug",
         "buildType": "apk"
       },
       "ios": {
-        "buildConfiguration": "Release",
+        "buildConfiguration": "Debug",
         "simulator": true
       }
     },

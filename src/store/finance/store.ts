@@ -12,11 +12,7 @@ import { BudgetRuleTypeSchema } from './src/types';
     budgetConfig: {
       rule: BudgetRuleTypeSchema.enum['50/30/20'],
       monthlyIncome: 0,
-      savingsGoals: {},
-      paymentSchedule: {
-        payFrequency: 'monthly',
-        nextPayday: new Date().toISOString(),
-      },
+      savingsGoals: {}
     },
     insights: {
       guiltFreeBalance: 0,
