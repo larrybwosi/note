@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
+import { BudgetRuleTypeSchema } from 'src/store/src/types';
 
 export const financeSetupSchema = z.object({
   currentBalance: z.string().min(1, 'Current balance is required').regex(/^\d+(\.\d{1,2})?$/, 'Invalid currency format'),

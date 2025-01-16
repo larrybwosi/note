@@ -1,10 +1,10 @@
 import { ScrollView, View, Text } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Check, AlertTriangle, DollarSign, PieChart } from 'lucide-react-native';
-import { BudgetRuleType, CategoryType } from 'src/store/finance/types';
+import { BudgetRuleType, CategoryType } from 'src/store/types';
 import { Progress } from 'src/components/ui/progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'src/components/ui/card';
-import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
+import { BudgetRuleTypeSchema } from 'src/store/src/types';
 
 interface Category {
   id: string;

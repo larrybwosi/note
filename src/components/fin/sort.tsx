@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity } from 'react-native';
-import { Transaction } from 'src/store/finance/types';
+import { Transaction } from 'src/store/types';
 import { ArrowUp, ArrowDown } from 'lucide-react-native';
 
 interface SortModalProps {

@@ -25,6 +25,8 @@ import {
   TrendingUp,
   CheckCircle,
 } from 'lucide-react-native';
+import { Transaction } from 'src/lib/types';
+import { AITransaction } from 'src/components/ai.card';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const GRADIENTS = {
@@ -40,14 +42,15 @@ const GRADIENTS = {
   }
 };
 
+
 const CoolTransactionPrompt = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [transaction, setTransaction] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<any>();
 
   // Enhanced animated values
   const buttonScale = useSharedValue(1);
@@ -125,7 +128,7 @@ const CoolTransactionPrompt = () => {
     });
   }, []);
 
-  // Rest of the animated styles...
+  
   const headerAnimatedStyle = useAnimatedStyle(() => ({
     height: headerHeight.value,
     opacity: interpolate(
@@ -157,14 +160,14 @@ const CoolTransactionPrompt = () => {
 
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      // const mockTransaction = {
-      //   id: Math.random().toString(36).substr(2, 9),
-      //   description: prompt,
-      //   amount: Math.floor(Math.random() * 1000),
-      //   date: new Date().toISOString(),
-      //   category: selectedCategory || categories[0].name,
-      // };
-      // setTransaction(mockTransaction);
+      const mockTransaction = {
+        id: Math.random().toString(36).substr(2, 9),
+        description: prompt,
+        amount: Math.floor(Math.random() * 1000),
+        date: new Date().toISOString(),
+        category: selectedCategory || categories[0].name,
+      };
+      // setTransactions([mockTransaction]);
       
       successScale.value = withSequence(
         withSpring(1.2),
@@ -178,7 +181,25 @@ const CoolTransactionPrompt = () => {
     }
   };
 
-  const CategoryItem = ({ category, onSelect, isSelected }) => (
+  
+
+  const handleAcceptTransaction = (transaction: any) => {
+    // In a real app, you would send this to your backend
+    console.log('Transaction accepted:', transaction);
+    setTransactions(prevTransactions => 
+      prevTransactions.filter(t => t.id !== transaction.id)
+    );
+  };
+
+  const handleRejectTransaction = (transaction: any) => {
+    // In a real app, you might want to keep rejected transactions in a separate list
+    console.log('Transaction rejected:', transaction);
+    setTransactions(prevTransactions => 
+      prevTransactions.filter(t => t.id !== transaction.id)
+    );
+  };
+
+  const CategoryItem = ({ category, onSelect, isSelected }:any) => (
     <TouchableOpacity
       onPress={() => onSelect(category)}
       className={`p-3 rounded-xl mr-3 ${isSelected ? 'bg-blue-100 dark:bg-blue-900' : 'bg-gray-100 dark:bg-gray-800'}`}
@@ -289,33 +310,21 @@ const CoolTransactionPrompt = () => {
           </TouchableOpacity>
 
           {/* Transaction Result */}
-          {transaction && (
-            <Animated.View 
-              entering={SlideInUp.springify().damping(15)}
-              className="mt-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
-            >
-              <View className="flex-row items-center mb-4">
-                <CheckCircle size={24} color="#10B981" />
-                <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 ml-2">
-                  Success!
-                </Text>
-              </View>
-              <View className="space-y-3">
-                <Text className="text-gray-700 dark:text-gray-300">
-                  <Text className="font-medium">Description:</Text> {transaction.description}
-                </Text>
-                <Text className="text-gray-700 dark:text-gray-300">
-                  <Text className="font-medium">Amount:</Text> ${transaction.amount}
-                </Text>
-                <Text className="text-gray-700 dark:text-gray-300">
-                  <Text className="font-medium">Category:</Text> {transaction.category}
-                </Text>
-                <Text className="text-gray-700 dark:text-gray-300">
-                  <Text className="font-medium">Date:</Text> {new Date(transaction.date).toLocaleDateString()}
-                </Text>
-              </View>
-            </Animated.View>
-          )}
+        {transactions.length > 0 && (
+          <View className="mt-8">
+            <Text className="text-xl font-rbold text-gray-900 dark:text-gray-100 mb-4">
+              Pending Transactions
+            </Text>
+            {transactions.map((transaction) => (
+              <AITransaction
+                key={transaction.id}
+                transaction={transaction}
+                onAccept={handleAcceptTransaction}
+                onReject={handleRejectTransaction}
+              />
+            ))}
+          </View>
+        )}
 
           {/* Example Prompts */}
           <View className="mt-12">

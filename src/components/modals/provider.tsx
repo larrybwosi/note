@@ -8,9 +8,6 @@ import Animated, {
   Easing,
   runOnJS
 } from 'react-native-reanimated';
-import { Category, Reference } from 'src/store/notes/types';
-import { AddReferenceModalProps } from './refrence';
-import { PostponeProps } from './postpone';
 import { NewCategoryProps } from './new.category';
 
 // Constants
@@ -22,23 +19,13 @@ const ANIMATION_CONFIG = {
 
 // Types
 
-
-export interface NoteCategorySelectProps {
-  categories: readonly Category[];
-  selectedCategoryId: string;
-  onSelectCategory: (categoryId: string) => void;
-  onClose: () => void;
-}
-
-export interface ModalConfig {
+interface ModalConfig {
   NewCategory: NewCategoryProps;
-  Postpone: PostponeProps;
-  NoteCategorySelect: NoteCategorySelectProps
-  AddReferenceModal:AddReferenceModalProps
   CustomRuleForm: any;
+  SetUp: any
 }
 
-export type ModalName = keyof ModalConfig;
+type ModalName = keyof ModalConfig;
 
 type ModalComponents = {
   [K in ModalName]: React.FC<ModalConfig[K] & { onClose: () => void }>;
@@ -60,10 +47,8 @@ interface ModalState<T extends ModalName = ModalName> {
 // Lazy load modal components
 const modalComponents: ModalComponents = {
   NewCategory: memo(require('./new.category').default),
-  Postpone: memo(require('./postpone').default),
   CustomRuleForm: memo(require('./custom.rule').default),
-  NoteCategorySelect: memo(require('./note.category.select').default),
-  AddReferenceModal: memo(require('./refrence').default)
+  SetUp: memo(require('./setup').default),
 };
 
 const ModalContext = createContext<ModalContextType | null>(null);

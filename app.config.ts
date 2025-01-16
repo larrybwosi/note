@@ -54,8 +54,7 @@ const config: ExpoConfig = {
         sounds: [
           './assets/sounds/not1.wav',
           './assets/sounds/not2.wav',
-          './assets/sounds/not3.wav',
-          './assets/sounds/not4.wav',
+          './assets/sounds/not3.wav'
         ],
         enableBackgroundRemoteNotifications: false,
       },

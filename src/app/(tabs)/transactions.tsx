@@ -1,13 +1,12 @@
 import { useState, useMemo } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Transaction, TransactionType, TransactionStatus } from 'src/store/finance/types';
+import { Transaction, TransactionType, TransactionStatus } from 'src/store/types';
 import { Search, Filter, ArrowUpDown } from 'lucide-react-native';
 import { TransactionItem } from 'src/components/fin/item';
 import { FilterModal } from 'src/components/fin/filter';
 import { SortModal } from 'src/components/fin/sort';
-import { mockTrans } from 'src/components/fin/dt';
-import useFinanceStore from 'src/store/finance/actions';
+import useFinanceStore from 'src/store/actions';
 import { mockTransactions } from 'src/components/fin/mock';
 
 const FinanceScreen: React.FC = () => {

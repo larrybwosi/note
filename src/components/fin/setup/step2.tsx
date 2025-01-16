@@ -1,6 +1,6 @@
 import { Text, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
-import { BudgetRuleType } from 'src/store/finance/types';
+import { BudgetRuleType } from 'src/store/types';
 
 interface Rule {
   type: BudgetRuleType;

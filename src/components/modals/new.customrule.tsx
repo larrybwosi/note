@@ -2,12 +2,10 @@ import { observer, useObservable } from "@legendapp/state/react";
 import { Save, Tag, X } from "lucide-react-native";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { CustomRuleProps } from "./provider";
-import { CustomRule } from "src/store/finance/types";
+import { CustomRule } from "src/store/types";
 
 
-
-const CustomRuleForm = observer(({ isVisible, close }: CustomRuleProps) => {
+const CustomRuleForm = observer(({ isVisible, close }: any) => {
   const newRule$ = useObservable({
     name: '',
     description: '',
@@ -24,6 +22,7 @@ const CustomRuleForm = observer(({ isVisible, close }: CustomRuleProps) => {
     // setSelectedRule(newRule.type);
     // setShowCustomForm(false);
   };
+  
   const handleSubmit = () => {
     if (name && description && breakdown) {
       // onSave({

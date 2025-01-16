@@ -4,7 +4,7 @@ import { PlusCircle, CheckCircle } from 'lucide-react-native';
 import { observer, } from '@legendapp/state/react';
 import { useState } from 'react';
 
-import { BudgetRuleType } from 'src/store/finance/types';
+import { BudgetRuleType } from 'src/store/types';
 import { useModal } from './modals/provider';
 
 interface Rule {

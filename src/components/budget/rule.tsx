@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
-import { BudgetRuleType } from 'src/store/finance/types';
+import { BudgetRuleTypeSchema } from 'src/store/src/types';
+import { BudgetRuleType } from 'src/store/types';
 
 interface BudgetRuleSelectorProps {
   selectedRule: BudgetRuleType;

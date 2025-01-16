@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import {Activity, User, CalendarDays, Wallet, FileText} from 'lucide-react-native';
+import {Activity, User, CalendarDays, Wallet, FileText, Home, Settings} from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -24,38 +24,26 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ color, size }) => <Activity size={size} color={color} />,
-          tabBarLabel: 'Schedule',
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarLabel: 'Home',
         }}
       />
       <Tabs.Screen
-        name="finance"
+        name="transactions"
         options={{
           tabBarIcon: ({ color, size }) => (
             <Wallet size={size} color={color} />
           ),
-          tabBarLabel: 'Finance',
-        }}
-      />
-      <Tabs.Screen
-        name="calendar"
-        options={{
-          tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
-          tabBarLabel: 'Calendar',
-        }}
-      />
-      <Tabs.Screen
-        name="note"
-        options={{
-          tabBarIcon: ({ color, size }) => <FileText size={size} color={color} />,
-          tabBarLabel: 'Notes',
+          tabBarLabel: 'Transactions',
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
-          tabBarLabel: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Settings size={size} color={color} />
+          ),
+          tabBarLabel: 'Settings',
         }}
       />
     </Tabs>

@@ -5,7 +5,7 @@ import { Text, View, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { format } from "date-fns";
 
-import { Transaction, TransactionStatus, TransactionType } from 'src/store/finance/types';
+import { Transaction, TransactionStatus, TransactionType } from 'src/store/types';
 import { colorScheme } from "nativewind";
 
 const StatusBadge = ({ status }: { status: TransactionStatus }) => {

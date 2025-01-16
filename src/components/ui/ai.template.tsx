@@ -18,8 +18,8 @@ import { router } from 'expo-router';
 import { synced } from '@legendapp/state/sync';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 import { AlertCircle, CheckCircle, Plus, Sparkles } from 'lucide-react-native';
-import { Theme } from 'src/store/finance/types/ai.page';
-import { themes } from 'src/store/finance/data';
+import { Theme } from 'src/store/types/ai.page';
+import { themes } from 'src/store/data';
 
 interface AppState {
   responses: any[];

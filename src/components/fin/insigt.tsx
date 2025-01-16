@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Insights } from 'src/store/finance/types';
+import { Insights } from 'src/store/types';
 
 interface InsightsSummaryProps {
   insights: Insights;

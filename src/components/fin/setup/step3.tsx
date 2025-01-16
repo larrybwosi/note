@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 import { ArrowUpCircle, ArrowDownCircle, Check, PlusCircle } from 'lucide-react-native';
-import { CategoryType } from 'src/store/finance/types';
+import { CategoryType } from 'src/store/types';
 
 interface Category {
   id: string;

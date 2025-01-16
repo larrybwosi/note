@@ -5,8 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue, interpolateColor } from 'react-native-reanimated';
 import { z } from 'zod';
 
-import { CategoryType } from 'src/store/finance/types';
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from 'src/store/finance/data';
+import { CategoryType } from 'src/store/types';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from 'src/store/data';
 import { FinanceSetupFormData, financeSetupSchema } from 'src/components/fin/setup/schema';
 import { AnimatedTitle, NavigationButtons } from 'src/components/fin/setup/custom';
 import Step1FinancialInfo from 'src/components/fin/setup/step1';
@@ -14,8 +14,8 @@ import Step2BudgetRule from 'src/components/fin/setup/step2';
 import Step3Categories from 'src/components/fin/setup/step3';
 import Step4Review from 'src/components/fin/setup/step4';
 import { useModal } from 'src/components/modals/provider';
-import { BudgetRuleTypeSchema } from 'src/store/finance/src/types';
-import useFinanceStore from 'src/store/finance/actions';
+import { BudgetRuleTypeSchema } from 'src/store/src/types';
+import useFinanceStore from 'src/store/actions';
 
 const rules = [
   {

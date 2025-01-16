@@ -1,264 +1,298 @@
-import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, Image } from 'react-native';
-import { observer } from '@legendapp/state/react';
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  Switch,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import Animated, {
   FadeInDown,
-  FadeInRight,
+  FadeIn,
+  withSpring,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
 } from 'react-native-reanimated';
-import { Camera, Edit, Moon, Sun, Activity, Award, Settings } from 'lucide-react-native';
-import { colorScheme } from 'nativewind';
+import {
+  Settings,
+  Bell,
+  Moon,
+  Sun,
+  Palette,
+  Lock,
+  DollarSign,
+  Fingerprint,
+  Globe,
+  ChevronRight,
+  Shield,
+  Clock,
+  Smartphone,
+  Eye,
+  Vibrate,
+} from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 import { router } from 'expo-router';
 
-import { ProgressRing } from 'src/components/profile/ProgressRing';
-import { Avatar } from 'src/components/profile/avatar';
-import { useProfile } from 'src/store/profile/actions';
-import { Badge } from 'src/components/ui/badge';
-import { Card } from 'src/components/ui/card';
-import { Tab } from 'src/components/ui/tab';
+// Types
+interface ThemeOption {
+  id: string;
+  name: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+  };
+}
 
-const ProfileScreen = observer(() => {
-  const saveButtonScale = useSharedValue(1);
-  const editButtonScale = useSharedValue(1);
-  const { personalInfo, productivityMetrics } = useProfile();
-  const isDarkMode = colorScheme.get() === 'dark';
-  const [activeTab, setActiveTab] = useState('Personal');
+interface NotificationSetting {
+  id: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+}
 
-  const {
-    name,
-    dateOfBirth,
-    email,
-    height,
-    weight,
-    phone,
-    allergies,
-    bloodType,
-    image,
-    waterIntake,
-    address,
-    gender,
-    preferredLanguage,
-    medicalNotes,
-    sleepGoal,
-  } = personalInfo;
+// Custom Components
+const SettingSection: React.FC<{
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}> = ({ title, icon, children }) => (
+  <Animated.View entering={FadeInDown.duration(400)} className="mb-8">
+    <View className="flex-row items-center mb-4">
+      {icon}
+      <Text className="text-xl font-amedium  dark:text-gray-50  text-gray-800 ml-2">{title}</Text>
+    </View>
+    {children}
+  </Animated.View>
+);
 
-  const animatedSaveButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: saveButtonScale.value }],
+const SettingCard: React.FC<{
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  onPress: () => void;
+}> = ({ title, description, icon, onPress }) => {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
   }));
 
-  const handleEdit = useCallback(() => {
-    editButtonScale.value = withSpring(0.9, {}, () => {
-      editButtonScale.value = withSpring(1);
-    });
-    router.push('/create.profile');
-  }, []);
-
-  const handleImagePick = useCallback(async () => {
-    // TODO: Implement image picking functionality
-  }, []);
-
-  const toggleDarkMode = () => {
-    colorScheme.toggle();
-  };
-
-  const LabelField = ({ label, value }: { label: string; value: any }) => {
-    return (
-      <View className="mb-4">
-        <Text className="mb-2 font-medium text-gray-700 dark:text-gray-300">{label}</Text>
-        <Text className="bg-gray-50 font-normal dark:bg-gray-700 text-gray-900 dark:text-white p-3 rounded-lg">
-          {value}
-        </Text>
-      </View>
-    );
-  };
-
-  const SectionHeader = ({ title }: { title: string }) => {
-    return (
-      <View className="mt-6 mb-4">
-        <Text className="text-xl font-bold text-gray-900 dark:text-gray-50">{title}</Text>
-      </View>
-    );
-  };
-
-  const QuickActionButton = ({
-    icon,
-    label,
-    onPress,
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    onPress: () => void;
-  }) => {
-    return (
-      <TouchableOpacity onPress={onPress} className="items-center">
-        <View className="bg-gray-200 dark:bg-gray-700 rounded-full p-3 mb-2">{icon}</View>
-        <Text className="text-xs text-gray-600 dark:text-gray-300">{label}</Text>
+  return (
+    <Animated.View style={animatedStyle}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={() => (scale.value = withSpring(0.98))}
+        onPressOut={() => (scale.value = withSpring(1))}
+        className="bg-white  dark:bg-gray-900 p-4 rounded-xl mb-3 flex-row items-center border  dark:border-gray-500 border-gray-100"
+      >
+        <View className="bg-blue-50 dark:bg-gray-900 p-3 rounded-xl">{icon}</View>
+        <View className="flex-1 ml-3">
+          <Text className="text-gray-800 dark:text-gray-100 font-amedium">{title}</Text>
+          <Text className="text-gray-600 mt-1 font-aregular text-sm">
+            {description}
+          </Text>
+        </View>
+        <ChevronRight size={20} color="#6b7280" />
       </TouchableOpacity>
-    );
-  };
+    </Animated.View>
+  );
+};
+
+const ColorThemeButton: React.FC<{
+  theme: ThemeOption;
+  selected: boolean;
+  onSelect: () => void;
+}> = ({ theme, selected, onSelect }) => (
+  <TouchableOpacity
+    onPress={onSelect}
+    className={`p-3 rounded-xl mr-3 border-2 ${
+      selected ? 'border-blue-500' : 'border-transparent'
+    }`}
+    style={{ backgroundColor: theme.colors.primary }}
+  >
+    <Text className="text-white font-medium">{theme.name}</Text>
+  </TouchableOpacity>
+);
+
+const SettingsScreen: React.FC = () => {
+  const [darkMode, setDarkMode] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(true);
+  const [selectedTheme, setSelectedTheme] = useState('default');
+  const [notifications, setNotifications] = useState<NotificationSetting[]>([
+    {
+      id: '1',
+      title: 'Transaction Alerts',
+      description: 'Get notified about new transactions',
+      enabled: true,
+    },
+    {
+      id: '2',
+      title: 'Budget Updates',
+      description: 'Receive updates about your budget status',
+      enabled: true,
+    },
+    {
+      id: '3',
+      title: 'Investment Alerts',
+      description: 'Stay informed about investment opportunities',
+      enabled: false,
+    },
+  ]);
+  const colorScheme = useColorScheme()
+
+  const themes: ThemeOption[] = [
+    {
+      id: 'default',
+      name: 'Ocean',
+      colors: { primary: '#3b82f6', secondary: '#93c5fd', background: '#eff6ff' },
+    },
+    {
+      id: 'emerald',
+      name: 'Forest',
+      colors: { primary: '#059669', secondary: '#6ee7b7', background: '#ecfdf5' },
+    },
+    {
+      id: 'purple',
+      name: 'Twilight',
+      colors: { primary: '#7c3aed', secondary: '#c4b5fd', background: '#f5f3ff' },
+    },
+  ];
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-900 py-5">
-      <ScrollView className="flex-1">
-        <Animated.View
-          entering={FadeInDown.duration(600).springify()}
-          className="h-40 bg-blue-500 dark:bg-blue-700"
-        >
-          <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2073&q=80',
-            }}
-            className="w-full h-full opacity-50"
-            resizeMode="cover"
-          />
+    <ScrollView className="flex-1 bg-gray-50  dark:bg-gray-900">
+      <View className="p-3">
+        {/* Header */}
+        <Animated.View entering={FadeIn.delay(200)} className="mb-8">
+          <Text className="text-3xl font-rbold text-gray-800 dark:text-gray-100">Settings</Text>
+          <Text className="text-gray-600 font-aregular text-lg mt-2">
+            Customize your app experience
+          </Text>
         </Animated.View>
 
-        <View className="px-4 -mt-20">
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(600).springify()}
-            className="items-center"
-          >
-            <TouchableOpacity onPress={handleImagePick}>
-              <Avatar size={120} source={{ uri: image || '' }} />
-              <View className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-2">
-                <Camera size={20} color="white" />
+        {/* Appearance */}
+        <SettingSection title="Appearance" icon={<Palette size={24} color="#3b82f6" />}>
+          <View className="bg-white dark:bg-black-200 p-4 rounded-xl mb-4">
+            <View className="flex-row items-center justify-between mb-4">
+              <View className="flex-row items-center">
+                {darkMode ? <Moon size={20} color="#6b7280" /> : <Sun size={20} color="#6b7280" />}
+                <Text className="text-gray-800 dark:text-gray-50 font-amedium ml-2">Dark Mode</Text>
               </View>
-            </TouchableOpacity>
-            <Text className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{name}</Text>
-            <Text className="text-gray-600 dark:text-gray-400">{email}</Text>
-            <Badge variant="secondary" className="mt-2">
-              Premium Member
-            </Badge>
-          </Animated.View>
-
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(600).springify()}
-            className="flex-row justify-around mt-6"
-          >
-            <QuickActionButton
-              icon={<Activity size={24} color={isDarkMode ? '#E5E7EB' : '#4B5563'} />}
-              label="Health"
-              onPress={() => {}}
-            />
-            <QuickActionButton
-              icon={<Award size={24} color={isDarkMode ? '#E5E7EB' : '#4B5563'} />}
-              label="Achievements"
-              onPress={() => {}}
-            />
-            <QuickActionButton
-              icon={<Settings size={24} color={isDarkMode ? '#E5E7EB' : '#4B5563'} />}
-              label="Settings"
-              onPress={() => {}}
-            />
-          </Animated.View>
-
-          <Animated.View
-            entering={FadeInDown.delay(600).duration(600).springify()}
-            className="mt-6"
-          >
-            <Tab
-              tabs={['Personal', 'Health', 'Productivity']}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
-          </Animated.View>
-
-          {activeTab === 'Personal' && (
-            <Animated.View entering={FadeInRight.duration(600)}>
-              <SectionHeader title="Personal Information" />
-              <LabelField label="Name" value={name} />
-              <LabelField label="Email" value={email} />
-              <LabelField label="Phone" value={phone} />
-              <LabelField label="Address" value={address} />
-              <LabelField label="Gender" value={gender} />
-              <LabelField label="Preferred Language" value={preferredLanguage} />
-            </Animated.View>
-          )}
-
-          {activeTab === 'Health' && (
-            <Animated.View entering={FadeInRight.duration(600)}>
-              <SectionHeader title="Health Information" />
-              <Card className="mb-6 bg-white dark:bg-gray-800">
-                <View className="p-4 flex-row justify-between items-center">
-                  <View>
-                    <Text className="text-lg font-bold text-gray-900 dark:text-white">
-                      Health Score
-                    </Text>
-                    <Text className="text-gray-600 dark:text-gray-400 font-normal">
-                      Based on your profile
-                    </Text>
-                  </View>
-                  <ProgressRing progress={75} size={60} strokeWidth={6} />
-                </View>
-              </Card>
-              <LabelField label="Blood Type" value={bloodType} />
-              <LabelField label="Allergies" value={allergies} />
-              <LabelField label="Medical Notes" value={medicalNotes} />
-              <LabelField label="Height" value={`${height} cm`} />
-              <LabelField label="Weight" value={`${weight} kg`} />
-            </Animated.View>
-          )}
-
-          {activeTab === 'Productivity' && (
-            <Animated.View entering={FadeInRight.duration(600)}>
-              <SectionHeader title="Productivity Metrics" />
-              <LabelField
-                label="Focus Time"
-                value={`${productivityMetrics.focusTime.daily.current} / ${productivityMetrics.focusTime.daily.goal} minutes`}
+              <Switch
+                value={darkMode}
+                onValueChange={() => colorScheme.toggleColorScheme()}
+                trackColor={{ false: '#cbd5e1', true: '#93c5fd' }}
+                thumbColor={darkMode ? '#3b82f6' : '#f4f4f5'}
               />
-              <LabelField label="Tasks Completed" value={productivityMetrics.tasksCompleted} />
-              <SectionHeader title="Habits" />
-              {productivityMetrics.habits.map((habit, index) => (
-                <LabelField
-                  key={index}
-                  label={habit.name}
-                  value={habit.completed ? 'Completed' : 'Not Completed'}
+            </View>
+            <Text className="text-gray-600 font-aregular text-sm mb-4">Color Theme</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {themes.map((theme) => (
+                <ColorThemeButton
+                  key={theme.id}
+                  theme={theme}
+                  selected={selectedTheme === theme.id}
+                  onSelect={() => setSelectedTheme(theme.id)}
                 />
               ))}
-            </Animated.View>
-          )}
-        </View>
-      </ScrollView>
+            </ScrollView>
+          </View>
+        </SettingSection>
 
-      <Animated.View
-        style={[
-          animatedSaveButtonStyle,
-          {
-            position: 'absolute',
-            bottom: 20,
-            right: 20,
-            shadowColor: '#000',
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.25,
-            shadowRadius: 3.84,
-            elevation: 5,
-          },
-        ]}
-      >
-        <TouchableOpacity onPress={handleEdit} className="bg-blue-500 p-4 rounded-full">
-          <Edit color="white" size={24} />
+        {/* Notifications */}
+        <SettingSection title="Notifications" icon={<Bell size={24} color="#3b82f6" />}>
+          {notifications.map((notification) => (
+            <View
+              key={notification.id}
+              className="bg-white dark:bg-gray-900 p-4 rounded-xl mb-3 border border-gray-100  dark:border-gray-500 "
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <Text className="text-gray-800  dark:text-gray-200  font-amedium">
+                    {notification.title}
+                  </Text>
+                  <Text className="text-gray-600  dark:text-gray-10  text-xs font-aregular mt-1">
+                    {notification.description}
+                  </Text>
+                </View>
+                <Switch
+                  value={notification.enabled}
+                  onValueChange={(value) => {
+                    setNotifications(
+                      notifications.map((n) =>
+                        n.id === notification.id ? { ...n, enabled: value } : n
+                      )
+                    );
+                  }}
+                  trackColor={{ false: '#cbd5e1', true: '#93c5fd' }}
+                  thumbColor={notification.enabled ? '#3b82f6' : '#f4f4f5'}
+                />
+              </View>
+            </View>
+          ))}
+        </SettingSection>
+
+        <TouchableOpacity onPress={()=>router.navigate('/auth')}>
+          <Text>Auth</Text>
         </TouchableOpacity>
-      </Animated.View>
 
-      <View className="absolute top-12 right-4 flex-row items-center bg-gray-200 dark:bg-gray-800 rounded-full p-1">
-        <Sun size={20} color={isDarkMode ? '#9CA3AF' : '#4B5563'} />
-        <Switch
-          value={isDarkMode}
-          onValueChange={toggleDarkMode}
-          trackColor={{ false: '#767577', true: '#81b0ff' }}
-          thumbColor={isDarkMode ? '#f5dd4b' : '#f4f3f4'}
-          ios_backgroundColor="#3e3e3e"
-          style={{ marginHorizontal: 8 }}
-        />
-        <Moon size={20} color={isDarkMode ? '#F3F4F6' : '#6B7280'} />
+        {/* Security */}
+        <SettingSection title="Security" icon={<Lock size={24} color="#3b82f6" />}>
+          <SettingCard
+            title="Biometric Authentication"
+            description="Use Face ID or Touch ID to secure your app"
+            icon={<Fingerprint size={24} color="#3b82f6" />}
+            onPress={() => setBiometricEnabled(!biometricEnabled)}
+          />
+          <SettingCard
+            title="Password & PIN"
+            description="Change your security credentials"
+            icon={<Shield size={24} color="#3b82f6" />}
+            onPress={() => Alert.alert('Change Password', 'Coming soon!')}
+          />
+        </SettingSection>
+
+        {/* Preferences */}
+        <SettingSection title="Preferences" icon={<Settings size={24} color="#3b82f6" />}>
+          <SettingCard
+            title="Language"
+            description="Choose your preferred language"
+            icon={<Globe size={24} color="#3b82f6" />}
+            onPress={() => Alert.alert('Language Settings', 'Coming soon!')}
+          />
+          <SettingCard
+            title="Currency"
+            description="Set your default currency"
+            icon={<DollarSign size={24} color="#3b82f6" />}
+            onPress={() => Alert.alert('Currency Settings', 'Coming soon!')}
+          />
+          <SettingCard
+            title="Time Zone"
+            description="Configure your local time zone"
+            icon={<Clock size={24} color="#3b82f6" />}
+            onPress={() => Alert.alert('Time Zone Settings', 'Coming soon!')}
+          />
+        </SettingSection>
+
+        {/* App Settings */}
+        <SettingSection title="App Settings" icon={<Smartphone size={24} color="#3b82f6" />}>
+          <SettingCard
+            title="App Permissions"
+            description="Manage app access and permissions"
+            icon={<Eye size={24} color="#3b82f6" />}
+            onPress={() => Alert.alert('App Permissions', 'Coming soon!')}
+          />
+          <SettingCard
+            title="Haptic Feedback"
+            description="Configure vibration and haptics"
+            icon={<Vibrate size={24} color="#3b82f6" />}
+            onPress={() => Alert.alert('Haptic Settings', 'Coming soon!')}
+          />
+        </SettingSection>
       </View>
-    </View>
+    </ScrollView>
   );
-});
+};
 
-export default ProfileScreen;
+export default SettingsScreen;

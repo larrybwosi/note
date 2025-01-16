@@ -1,4 +1,4 @@
-import { Transaction, TransactionType, TransactionStatus, RecurrenceFrequency, ExpenseGroup, IncomeCategory } from 'src/store/finance/types';
+import { Transaction, TransactionType, TransactionStatus, RecurrenceFrequency, ExpenseGroup, IncomeCategory } from 'src/store/types';
 
 export const mockTransactions: Transaction[] = [
   {

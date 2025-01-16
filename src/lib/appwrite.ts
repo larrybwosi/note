@@ -2,8 +2,8 @@ import { Client, Account, ID, Avatars, Databases } from 'react-native-appwrite';
 
 export const config = {
   platform: 'com.note',
-  endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!,
-  projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!,
+  endpoint: 'https://appwrite.io/v1',
+  projectId: '677905330029530f17c9',
   databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!,
 };
 
@@ -30,14 +30,14 @@ export async function getCurrentUser() {
   try {
     const response = await account.get();
 
-    if (response.$id) {
+    if (!response.$id) return
       const userAvatar = avatar.getInitials(response.name);
 
       return {
         ...response,
         avatar: userAvatar.toString(),
       };
-    }
+
   } catch (error) {
     console.error(error);
     return null;

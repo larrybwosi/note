@@ -1,6 +1,5 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { TransactionType, Category, ExpenseGroup, IncomeCategory } from 'src/store/finance/types';
+import { TransactionType, Category, ExpenseGroup, IncomeCategory } from 'src/store/types';
 import { ShoppingCart, Home, Utensils, Briefcase, DollarSign } from 'lucide-react-native';
 
 interface CategorySelectorProps {

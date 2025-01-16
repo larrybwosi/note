@@ -1,241 +1,300 @@
-import { Calendar1, ChevronRight, Settings2 } from 'lucide-react-native';
-import { observer, useComputed } from '@legendapp/state/react';
-import { currentTime } from '@legendapp/state/helpers/time';
+import { useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
-  interpolate,
-  Extrapolation,
+  useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
-  SharedValue,
-  FadeIn,
+  Extrapolation,
   SlideInRight,
-  SlideOutRight,
+  interpolate,
+  withSpring,
+  withTiming,
+  FadeIn,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Text, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { useEffect, useCallback } from 'react';
-import { colorScheme } from 'nativewind';
+import { observer } from '@legendapp/state/react';
+import { PlusCircle, TrendingUp, TrendingDown, DollarSign, CreditCard, PieChart } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
+import { router } from 'expo-router';
 
-import { useProfile } from 'src/store/profile/actions';
-import TodayCard from 'src/components/home/today.card';
-import Progress from 'src/components/home/progress';
+import FinanceSummary from 'src/components/fin/summary';
+import useFinanceStore from 'src/store/actions';
+import { useModal } from 'src/components/modals/provider';
+ 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-import {
-  MOTIVATIONAL_QUOTES,
-  homeState,
-} from 'src/components/home/data';
-import { WaterReminderSection } from 'src/components/home/water.reminder';
-import { FocusInsightsSection } from 'src/components/home/focus';
-import { View } from 'react-native';
-
-
-interface HeaderSectionProps {
-  timeOfDay: string;
-  name: string;
-  greeting: string;
-  quote: { quote: string; author: string };
-  scrollY: SharedValue<number>;
-}
-
-const gradientConfigs = {
-  dark: {
-    morning: ['#3B82F6', '#2563EB', '#1E40AF'],
-    afternoon: ['#10B981', '#059669', '#047857'],
-    evening: ['#8B5CF6', '#7C3AED', '#6D28D9'],
-  },
-  light: {
-    morning: ['#60A5FA', '#3B82F6', '#2563EB'],
-    afternoon: ['#34D399', '#10B981', '#059669'],
-    evening: ['#A78BFA', '#8B5CF6', '#7C3AED'],
-  }
-};
-
-const HeaderSection = ({ 
-  timeOfDay, 
-  name, 
-  greeting, 
-  quote, 
-  scrollY 
-}:HeaderSectionProps) => {
-  const welcomeScale = useAnimatedStyle(() => ({
-    transform: [
-      { 
-        scale: interpolate(
-          scrollY.value, 
-          [0, 100], 
-          [1, 0.9], 
-          Extrapolation.CLAMP
-        ) 
-      },
-      { 
-        translateY: interpolate(
-          scrollY.value, 
-          [0, 100], 
-          [0, -15], 
-          Extrapolation.CLAMP
-        ) 
-      },
-    ],
-    opacity: interpolate(
-      scrollY.value, 
-      [0, 100], 
-      [1, 0.9], 
-      Extrapolation.CLAMP
-    ),
-  }));
-
-  return (
-    <Animated.View 
-      style={[
-        welcomeScale, 
-        { 
-          shadowColor: '#000', 
-          shadowOpacity: 0.1, 
-          shadowRadius: 6 
-        }
-      ]} 
-      className="space-y-5"
-    >
-      <Animated.View 
-        entering={FadeIn.duration(800)} 
-        className="flex-row items-center gap-3"
-      >
-        <Text className="text-white text-3xl font-rbold">
-          Good {timeOfDay}, {name}!
-        </Text>
-        <Text className="text-3xl">✨</Text>
-      </Animated.View>
-      
-      <Animated.Text
-        entering={FadeIn.duration(1000).delay(300)}
-        className="text-gray-100 text-base font-aregular"
-      >
-        {greeting}
-      </Animated.Text>
-      
-      <Animated.View
-        entering={SlideInRight.duration(600).delay(400)}
-        exiting={SlideOutRight}
-        className="bg-white/20 p-5 rounded-3xl border border-white/10"
-      >
-        <Text className="text-white text-lg font-rmedium leading-7">
-          "{quote.quote}"
-        </Text>
-        <Text className="text-white/80 text-sm font-aregular text-right mt-2">
-          - {quote.author}
-        </Text>
-      </Animated.View>
-    </Animated.View>
-  );
-};
-
-
-const HomeScreen = observer(() => {
-  const isDark = colorScheme.get() === 'dark';
-  const { personalInfo: { name } } = useProfile();
-  
+const FinancePage: React.FC = observer(() => {
+  const { show } = useModal();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const { getTransactions } = useFinanceStore();
   const scrollY = useSharedValue(0);
 
-  const timeOfDay = useComputed(() => {
-    const hour = currentTime.get().getHours();
-    if (hour < 12) return 'morning';
-    if (hour < 17) return 'afternoon';
-    return 'evening';
+  const gradientStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, SCREEN_HEIGHT * 0.2],
+      [1, 0],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      opacity: withTiming(opacity, { duration: 300 }),
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: SCREEN_HEIGHT * 0.4,
+    };
   });
 
-  const headerGradient = isDark
-    ? gradientConfigs.dark[timeOfDay.get() as keyof typeof gradientConfigs.dark]
-    : gradientConfigs.light[timeOfDay.get() as keyof typeof gradientConfigs.light];
+  const buttonScale = useSharedValue(1);
 
-  const getGreeting = useComputed(() => {
-    const greetings = [
-      `Ready to crush another day? You're on fire! 🔥`,
-      `${homeState.achievements.tasksCompleted.get()} tasks done yesterday. Let's keep the momentum! ⚡`,
-      `You're building great habits! ${homeState.achievements.waterStreak.get()} day water streak 💧`,
-      `Your focus time is up by 20% this week! 🎯`,
-    ];
-    return greetings[Math.floor(Math.random() * greetings.length)];
-  });
+  const transactions = getTransactions();
+  const totalBalance = 30;
+  const monthlyIncome = 73;
+  const monthlyExpenses = 80;
+  // const totalBalance = getTotalBalance();
+  // const monthlyIncome = getMonthlyIncome();
+  // const monthlyExpenses = getMonthlyExpenses();
 
-  const dailyQuote = useComputed(() => {
-    const quotes = MOTIVATIONAL_QUOTES;
-    return quotes[Math.floor(Math.random() * quotes.length)];
-  });
-
-  const generatedSchedule = [
-    { time: '09:00', activity: 'Deep Work', duration: 120 },
-    { time: '11:00', activity: 'Break', duration: 30 },
-    { time: '11:30', activity: 'Meeting', duration: 60 },
-    { time: '12:30', activity: 'Exercise', duration: 45 },
-  ];
-
-  useEffect(() => {
-    const timeInterval = setInterval(() => {
-      currentTime.set(new Date());
-    }, 60000);
-    return () => clearInterval(timeInterval);
+  const onPressIn = useCallback(() => {
+    buttonScale.value = withSpring(0.95, { damping: 20, stiffness: 300 });
   }, []);
 
-  const onScroll = useCallback(
-    (event: any) => {
-      scrollY.value = event.nativeEvent.contentOffset.y;
+  const onPressOut = useCallback(() => {
+    buttonScale.value = withSpring(1, { damping: 20, stiffness: 300 });
+  }, []);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
     },
-    [scrollY]
-  );
+  });
+
+
+  const MainFinanceCard = useMemo(() => observer(() => {
+    return (
+      <Animated.View
+        entering={FadeIn.duration(800).delay(400)}
+        className="mx-4 p-6 bg-white dark:bg-gray-800 rounded-3xl shadow-lg mt-4"
+      >
+        <View className="flex-row justify-between items-center mb-6">
+          <View>
+            <Text className="text-2xl font-rbold text-gray-900 dark:text-gray-100">
+              Financial Overview
+            </Text>
+            <Text className="text-sm font-aregular text-gray-500 dark:text-gray-400 mt-1">
+              Track your money flow
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity onPress={() => show('SetUp',{})}>
+          <Text>Some test</Text>
+        </TouchableOpacity>
+
+        <View className="space-y-5">
+          <View className="bg-blue-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-4">
+            <View className="flex-row justify-between items-center">
+              <View className="flex-row items-center">
+                <View className="bg-blue-500/10 p-2 rounded-xl mr-3">
+                  <DollarSign size={24} className="text-blue-500" />
+                </View>
+                <View>
+                  <Text className="text-sm font-amedium text-gray-600 dark:text-gray-400">
+                    Total Balance
+                  </Text>
+                  <Text className="font-rregular text-2xl text-gray-900 dark:text-gray-100">
+                    ${totalBalance.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View className="flex-row justify-between gap-2 space-x-4">
+            <View className="flex-1 bg-green-50 dark:bg-gray-700/50 p-4 rounded-2xl">
+              <View className="flex-row items-center mb-2">
+                <View className="bg-green-500/10 p-2 rounded-xl mr-2">
+                  <TrendingUp size={20} className="text-green-500" />
+                </View>
+                <Text className="font-amedium text-gray-600 dark:text-gray-400">Income</Text>
+              </View>
+              <Text className="font-rregular text-xl text-green-500">
+                +${monthlyIncome.toFixed(2)}
+              </Text>
+              <Text className="font-rregular text-xs text-gray-500 dark:text-gray-400 mt-1">
+                This month
+              </Text>
+            </View>
+
+            <View className="flex-1 bg-red-50 dark:bg-gray-700/50 p-4 rounded-2xl">
+              <View className="flex-row items-center mb-2">
+                <View className="bg-red-500/10 p-2 rounded-xl mr-2">
+                  <TrendingDown size={20} className="text-red-500" />
+                </View>
+                <Text className="font-amedium text-gray-600 dark:text-gray-400">Expenses</Text>
+              </View>
+              <Text className="font-rregular text-xl text-red-500">
+                -${monthlyExpenses.toFixed(2)}
+              </Text>
+              <Text className="font-rregular text-xs text-gray-500 dark:text-gray-400 mt-1">
+                This month
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => router.push('/transactions')}
+            className="bg-blue-500 p-4 rounded-2xl mt-2"
+          >
+            <Text className="text-white text-center font-rregular">
+              View Detailed Transaction History
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    );
+  }), [totalBalance, monthlyIncome, monthlyExpenses]);
+
+  const RecentTransactions = useMemo(() => observer(() => {
+    return (
+      <Animated.View
+        entering={FadeIn.duration(800).delay(600)}
+        className="mx-4 mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5"
+      >
+        <Text className="text-xl font-amedium text-gray-900 dark:text-gray-100 mb-4">
+          Recent Transactions
+        </Text>
+        {transactions.slice(0, 3).map((transaction, index) => (
+          <Animated.View
+            key={transaction.id}
+            entering={SlideInRight.delay(index * 100)}
+            className="flex-row justify-between items-center py-3 border-b border-gray-200 dark:border-gray-700"
+          >
+            <View className="flex-row items-center">
+              <View className={`w-10 h-10 rounded-full ${transaction.type === 'INCOME' ? 'bg-green-100' : 'bg-red-100'} items-center justify-center mr-3`}>
+                {transaction.type === 'INCOME' ? (
+                  <TrendingUp size={20} className="text-green-500" />
+                ) : (
+                  <TrendingDown size={20} className="text-red-500" />
+                )}
+              </View>
+              <View>
+                <Text className="font-medium text-gray-900 dark:text-gray-100">{transaction.description}</Text>
+                <Text className="text-sm text-gray-500 dark:text-gray-400">{new Date(transaction.createdAt).toLocaleDateString()}</Text>
+              </View>
+            </View>
+            <Text className={`font-bold ${transaction.type === 'INCOME' ? 'text-green-500' : 'text-red-500'}`}>
+              {transaction.type === 'INCOME' ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
+            </Text>
+          </Animated.View>
+        ))}
+        <TouchableOpacity
+          onPress={() => router.push('/transactions')}
+          className="mt-4"
+        >
+          <Text className="text-blue-500 font-bold text-center">See All Transactions</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  }), [transactions]);
+
+  const QuickActions = useMemo(() => observer(() => {
+    return (
+      <Animated.View
+        entering={FadeIn.duration(800).delay(800)}
+        className="mx-4 mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5"
+      >
+        <Text className="text-xl font-amedium text-gray-900 dark:text-gray-100 mb-4">
+          Quick Actions
+        </Text>
+        <View className="flex-row justify-between">
+          <TouchableOpacity
+            onPress={() => router.navigate('/create.transactions?type=expense')}
+            className="bg-red-100 dark:bg-red-200 p-4 rounded-xl items-center justify-center w-[48%]"
+          >
+            <CreditCard size={24} className="text-red-500 mb-2" />
+            <Text className="text-red-500 font-amedium">Add Expense</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.navigate('/create.transactions?type=income')}
+            className="bg-green-100 p-4 rounded-xl items-center justify-center w-[48%]"
+          >
+            <DollarSign size={24} className="text-green-500 dark:bg-cyan-600 mb-2" />
+            <Text className="text-green-500 font-amedium">Add Income</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          onPress={() => router.push('/budget.planner')}
+          className="bg-blue-100 dark:bg-blue-300 p-4 rounded-xl items-center justify-center mt-4"
+        >
+          <PieChart size={24} className="text-blue-500 mb-2" />
+          <Text className="text-blue-500 font-amedium">Budget Planner</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  }), []);
 
   return (
-    <ScrollView
-      className="flex-1 mb-6 dark:bg-gray-900 bg-gray-50 h-full"
-      onScroll={onScroll}
-      scrollEventThrottle={16}
-    >
-      <LinearGradient
-        colors={headerGradient}
-        className="px-2 pt-16 pb-12"
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ 
-          ...Platform.select({
-            ios: {
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.2,
-              shadowRadius: 6,
-            },
-            android: {
-              elevation: 8,
-            }
-          })
-        }}
-      >
-        <HeaderSection
-          timeOfDay={timeOfDay.get()}
-          name={name}
-          greeting={getGreeting.get()}
-          quote={dailyQuote.get()}
-          scrollY={scrollY}
+    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900 pt-4 mb-8">
+      <Animated.View style={gradientStyle}>
+        <LinearGradient
+          colors={isDark ? ['#1a237e', '#1F2937'] : ['#3b82f6', '#60a5fa']}
+          style={{ height: '100%' }}
         />
-      </LinearGradient>
-      <View className="px-1 space-y-8 mt-8 gap-1">
-        <Animated.View entering={FadeIn.duration(800).delay(300)}>
-          <WaterReminderSection />
-        </Animated.View>
-        
-        <Animated.View entering={FadeIn.duration(800).delay(400)}>
-          <TodayCard />
-        </Animated.View>
+      </Animated.View>
+      
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+          <View className="flex-row justify-between items-center mb-4  px-2">
+            <View>
+              <Animated.Text 
+                entering={FadeIn.duration(800)}
+                className="text-3xl font-abold text-white"
+              >
+                Finance Dashboard
+              </Animated.Text>
+              <Animated.Text 
+                entering={FadeIn.duration(800).delay(200)}
+                className="text-base font-amedium text-gray-100 opacity-90"
+              >
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </Animated.Text>
+            </View>
+            
+            <Animated.View style={useAnimatedStyle(() => ({
+              transform: [{ scale: buttonScale.value }],
+            }))}>
+              <TouchableOpacity
+                onPressIn={onPressIn}
+                onPressOut={onPressOut}
+                onPress={() => router.push('/create.transactions')}
+                className="bg-white dark:bg-gray-800 px-4 py-3 rounded-xl flex-row items-center shadow-sm"
+              >
+                <PlusCircle size={20} className="text-blue-500" />
+                <Text className="text-blue-500 font-amedium ml-2">New Transaction</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
 
-        
-        <Animated.View entering={FadeIn.duration(800).delay(700)}>
-          <Progress />
-        </Animated.View>
-        
-        <Animated.View entering={FadeIn.duration(800).delay(800)}>
-          <FocusInsightsSection />
-        </Animated.View>
-      </View>
-    </ScrollView>
+          <FinanceSummary />
+
+        <MainFinanceCard />
+        <RecentTransactions />
+        <QuickActions />
+      </Animated.ScrollView>
+    </SafeAreaView>
   );
 });
 
-export default HomeScreen;
+export default FinancePage;
+

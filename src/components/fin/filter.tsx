@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
-import { TransactionType, TransactionStatus, ExpenseGroup, IncomeCategory } from 'src/store/finance/types';
+import { TransactionType, TransactionStatus, ExpenseGroup, IncomeCategory } from 'src/store/types';
 
 interface FilterModalProps {
   visible: boolean;

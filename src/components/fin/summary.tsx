@@ -4,7 +4,7 @@ import { TrendingUp } from "lucide-react-native";
 import { colorScheme } from "nativewind";
 import { View, Text } from 'react-native';
 import Animated, { BounceIn, FadeIn, LinearTransition } from "react-native-reanimated";
-import useFinanceStore from "src/store/finance/actions";
+import useFinanceStore from "src/store/actions";
 
 const InsightCard = observer(({ title, value, trend, color }: { 
   title: string;

@@ -12,9 +12,10 @@ import {
   RecurrenceFrequency,
   CategoryType,
   Category,
-} from 'src/store/finance/types';
-import useFinancialStore from 'src/store/finance/store';
+} from 'src/store/types';
 import { Plus, XCircle } from 'lucide-react-native';
+import { Use } from 'react-native-svg';
+import useFinanceStore from 'src/store/actions';
 
 interface TransactionFormProps {
   showForm: ObservableBoolean;
@@ -22,7 +23,7 @@ interface TransactionFormProps {
 }
 
 const TransactionForm = observer(({ showForm, initialType = TransactionType.EXPENSE }: TransactionFormProps) => {
-  const { getCategoriesByType, addTransaction } = useFinancialStore();
+  const { getCategoriesByType, addTransaction } = useFinanceStore();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 

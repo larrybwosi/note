@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Transaction } from 'src/store/finance/types';
+import { Transaction } from 'src/store/types';
 import { ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react-native';
 
 interface TransactionListProps {
