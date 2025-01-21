@@ -15,26 +15,28 @@ import {
   PiggyBank,
   Target
 } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
 const FeatureCard = ({ icon: Icon, title, description }:any) => (
   <Animated.View 
     entering={FadeInDown.delay(300).springify()}
-    className="flex-row items-start p-4 bg-blue-50 rounded-xl mb-3"
+    className="flex-row items-start p-4 bg-blue-50 dark:bg-gray-700 rounded-xl mb-3"
   >
     <View className="bg-blue-100 p-2 rounded-lg">
       <Icon size={24} color="#3b82f6" />
     </View>
     <View className="ml-3 flex-1">
-      <Text className="font-semibold text-gray-800 text-lg">{title}</Text>
-      <Text className="text-gray-600 mt-1">{description}</Text>
+      <Text className="font-semibold text-gray-800 dark:text-gray-100 text-lg">{title}</Text>
+      <Text className="text-gray-600 dark:text-gray-400 mt-1">{description}</Text>
     </View>
   </Animated.View>
 );
 
 const FinanceRedirectModal = ({ isVisible, onClose, onRedirect, username = "there" }:any) => {
   const scale = useSharedValue(1);
+  const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity)
   
   const buttonStyle = useAnimatedStyle(() => {
     return {
@@ -56,14 +58,14 @@ const FinanceRedirectModal = ({ isVisible, onClose, onRedirect, username = "ther
     <View className="justify-center items-center">
       <Animated.View 
         entering={BounceIn}
-        className="bg-white m-2 p-2 rounded-2xl w-full max-w-md"
+        className="bg-white dark:bg-gray-800 m-2 p-2 rounded-2xl w-full max-w-md"
       >
         {/* Header */}
         <Animated.View entering={FadeIn.delay(200)}>
-          <Text className="text-2xl font-bold text-gray-800 mb-2">
+          <Text className="text-2xl font-amedium text-gray-800 dark:text-gray-100 mb-2">
             Hey {username}! 👋
           </Text>
-          <Text className="text-gray-600 text-lg mb-6">
+          <Text className="text-gray-600 dark:text-gray-400 text-base font-aregular mb-6">
             Complete your financial profile to unlock all features
           </Text>
         </Animated.View>
@@ -100,15 +102,21 @@ const FinanceRedirectModal = ({ isVisible, onClose, onRedirect, username = "ther
             onPressOut={handlePressOut}
             onPress={onRedirect}
           >
-            <Animated.View 
+            <AnimatedTouchable 
               style={buttonStyle}
               className="bg-blue-500 p-4 rounded-xl flex-row items-center justify-center mb-3"
+              onPress={
+                ()=>{
+                  onClose();
+                  router.push('/finance_setup')
+                }
+              }
             >
               <Text className="text-white font-semibold text-lg mr-2">
                 Complete Setup
               </Text>
               <ChevronRight color="white" size={20} />
-            </Animated.View>
+            </AnimatedTouchable>
           </TouchableOpacity>
 
           <TouchableOpacity 

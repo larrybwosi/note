@@ -2,31 +2,35 @@ import { useState, useMemo } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Transaction, TransactionType, TransactionStatus } from 'src/store/types';
-import { Search, Filter, ArrowUpDown } from 'lucide-react-native';
+import { Search, Filter, ArrowUpDown, PlusCircle, Receipt } from 'lucide-react-native';
 import { TransactionItem } from 'src/components/fin/item';
 import { FilterModal } from 'src/components/fin/filter';
 import { SortModal } from 'src/components/fin/sort';
 import useFinanceStore from 'src/store/actions';
-import { mockTransactions } from 'src/components/fin/mock';
+import EmptyTransactions from 'src/components/fin/empty-transactions';
+
 
 const FinanceScreen: React.FC = () => {
   const { getTransactions } = useFinanceStore();
+  const trans = getTransactions();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
+
   const [activeFilters, setActiveFilters] = useState<{
     type?: TransactionType; 
     status?: TransactionStatus;
     category?: string;
   }>({});
+
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Transaction;
     direction: 'asc' | 'desc';
   }>({ key: 'createdAt', direction: 'desc' });
-  const transactions = getTransactions();
 
   const filteredAndSortedTransactions = useMemo(() => {
-    return mockTransactions
+    return trans
       .filter((transaction) => {
         const matchesSearch = transaction.description
           .toLowerCase()
@@ -44,7 +48,7 @@ const FinanceScreen: React.FC = () => {
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
-  }, [transactions, searchQuery, activeFilters, sortConfig]);
+  }, [trans, searchQuery, activeFilters, sortConfig]);
 
   const handleSearch = (text: string) => {
     setSearchQuery(text);
@@ -64,7 +68,9 @@ const FinanceScreen: React.FC = () => {
   return (
     <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
       <View className="p-4">
-        <Text className="text-2xl font-rbold text-gray-900 dark:text-white mb-4">Finance Overview</Text>
+        <Text className="text-2xl font-rbold text-gray-900 dark:text-white mb-4">
+          Transactions{' '}
+        </Text>
         <View className="flex-row items-center bg-white dark:bg-gray-800 rounded-lg p-2 mb-4">
           <Search color="#9CA3AF" size={20} className="mr-2" />
           <TextInput
@@ -91,11 +97,15 @@ const FinanceScreen: React.FC = () => {
             <Text className="text-white font-rmedium">Sort</Text>
           </TouchableOpacity>
         </View>
-        <FlatList
-          data={filteredAndSortedTransactions}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <TransactionItem transaction={item} />}
-        />
+        {filteredAndSortedTransactions.length === 0 ? (
+          <EmptyTransactions />
+        ) : (
+          <FlatList
+            data={filteredAndSortedTransactions}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <TransactionItem transaction={item} />}
+          />
+        )}
       </View>
       <FilterModal
         visible={filterModalVisible}

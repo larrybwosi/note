@@ -1,196 +1,326 @@
 import { LucideIcon } from 'lucide-react-native';
 import { z } from 'zod';
 
-// Base Enums
-export enum IncomeCategory {
-  SALARY = 'SALARY',
-  BUSINESS = 'BUSINESS',
-  INVESTMENTS = 'INVESTMENTS',
-  SIDE_HUSTLE = 'SIDE_HUSTLE',
-  GIFTS = 'GIFTS',
+// ============================================================================
+// Base Schemas & Primitive Types
+// ============================================================================
+
+export const CurrencySchema = z.number().nonnegative();
+
+export const PercentageSchema = z.number().min(0).max(100);
+
+export const CategoryIdSchema = z.string();
+
+export const TransactionIdSchema = z.string();
+
+// ============================================================================
+// Transaction System
+// ============================================================================
+
+export const TransactionType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE',
+} as const;
+
+export enum TransactionStatus {
+  COMPLETED = 'COMPLETED',
+  PENDING = 'PENDING',
+  UPCOMING = 'UPCOMING',
 }
 
-export enum ExpenseGroup {
-  HOUSING = 'HOUSING',
-  UTILITIES = 'UTILITIES',
-  FOOD = 'FOOD',
-  HEALTHCARE = 'HEALTHCARE',
-  INSURANCE = 'INSURANCE',
-  TRANSPORTATION = 'TRANSPORTATION',
-  DEBT = 'DEBT',
-  ENTERTAINMENT = 'ENTERTAINMENT',
-  SHOPPING = 'SHOPPING',
-}
-
-// Basic Schemas
-export const CategoryTypeSchema = z.enum(['income', 'expense']);
-export const TransactionTypeSchema = z.enum(['INCOME', 'EXPENSE']);
-export const BudgetRuleTypeSchema = z.enum(['50/30/20', '70/20/10', '15/65/20', 'CUSTOM']);
-
-// Color Scheme
-export const ColorSchemeSchema = z.object({
-  gradient: z.tuple([z.string(), z.string()]),
-  accent: z.string(),
-});
-
-// Category Definition
-export const CategorySchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(1, 'Category name is required'),
-  type: CategoryTypeSchema,
-  group: z.union([z.nativeEnum(IncomeCategory), z.nativeEnum(ExpenseGroup)]),
-  icon: z.custom<LucideIcon>(),
-  color: z.string(),
-  colorScheme: ColorSchemeSchema.optional(),
+const BaseTransactionSchema = z.object({
+  id: TransactionIdSchema,
+  amount: CurrencySchema,
+  categoryId: CategoryIdSchema,
   description: z.string(),
-  budget: z.number().nonnegative(),
-  isCustom: z.boolean().default(false),
+  date: z.date(),
+  tags: z.array(z.string()),
+  notes: z.string().optional(),
+  isRecurring: z.boolean(),
+  recurringFrequency: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'none']).optional(),
+  location: z.string().optional(),
+  isEssential: z.boolean().optional(),
+  status: z.nativeEnum(TransactionStatus).optional(),
 });
 
-// Transaction Schema with Category Reference
-export const TransactionSchema = z.object({
-  id: z.string().uuid(),
-  amount: z.number().nonnegative(),
-  category: z.string().uuid(), // References Category.id
-  createdAt: z.string().datetime(),
-  type: TransactionTypeSchema,
-  description: z.string(),
+export const IncomeTransactionSchema = BaseTransactionSchema.extend({
+  type: z.literal(TransactionType.INCOME),
+  taxable: z.boolean().optional(),
+  taxRate: PercentageSchema.optional(),
 });
 
-// Savings Goal Schema
-export const SavingsGoalSchema = z.object({
-  id: z.string().uuid(),
+export const ExpenseTransactionSchema = BaseTransactionSchema.extend({
+  type: z.literal(TransactionType.EXPENSE),
+  paymentMethod: z.enum(['cash', 'credit', 'debit', 'transfer']).optional(),
+  receipt: z.string().optional(),
+});
+
+export const TransactionSchema = z.discriminatedUnion('type', [
+  IncomeTransactionSchema,
+  ExpenseTransactionSchema,
+]);
+
+// ============================================================================
+// Category System
+// ============================================================================
+
+export const CategoryGroup = {
+  // Income Categories
+  ACTIVE_INCOME: {
+    id: 'ACTIVE_INCOME',
+    type: TransactionType.INCOME,
+    description: 'Income from direct work or services',
+  },
+  SIDE_HUSTLE: {
+    id: 'PASSIVE_INCOME',
+    type: TransactionType.INCOME,
+    description: 'Income from investments and assets',
+  },
+  // Expense Categories
+  ESSENTIALS: {
+    id: 'ESSENTIALS',
+    type: TransactionType.EXPENSE,
+    description: 'Basic living expenses',
+  },
+  LIFESTYLE: {
+    id: 'LIFESTYLE',
+    type: TransactionType.EXPENSE,
+    description: 'Quality of life and discretionary spending',
+  },
+  FINANCIAL: {
+    id: 'FINANCIAL',
+    type: TransactionType.EXPENSE,
+    description: 'Savings, investments, and debt management',
+  },
+  HEALTHCARE: {
+    id: 'HEALTHCARE',
+    type: TransactionType.EXPENSE,
+    description: 'Medical and wellness expenses',
+  },
+} as const;
+
+const BaseCategorySchema = z.object({
+  id: CategoryIdSchema,
   name: z.string().min(1),
-  target: z.number().positive(),
-  currentAmount: z.number().nonnegative(),
-  deadline: z.string().datetime().optional(),
+  group: z.enum(Object.keys(CategoryGroup) as [CategoryGroupId, ...CategoryGroupId[]]),
+  icon: z.custom<LucideIcon>(),
+  description: z.string(),
+  tags: z.array(z.string()),
+  isCustom: z.boolean(),
 });
 
-// Finance Profile Schema
-export const FinanceProfileSchema = z.object({
-  monthlyIncome: z.number().positive(),
-  savingsGoal: z.number().nonnegative(),
-  currency: z.string(),
-  budgetRule: BudgetRuleTypeSchema,
+export const IncomeCategorySchema = BaseCategorySchema.extend({
+  type: z.literal(TransactionType.INCOME),
+  defaultTaxRate: PercentageSchema.optional(),
 });
 
-// Budget Configuration Schema
-export const BudgetConfigSchema = z.object({
-  monthlyIncome: z.number().nonnegative(),
-  rule: BudgetRuleTypeSchema,
-  savingsGoals: z.record(z.string(), SavingsGoalSchema),
+export const ExpenseCategorySchema = BaseCategorySchema.extend({
+  type: z.literal(TransactionType.EXPENSE),
+  isEssential: z.boolean(),
+  budgetAllocation: PercentageSchema.optional(),
 });
 
-// Category Store Schema
-export const CategoryStoreSchema = z.object({
-  categories: z.record(z.string().uuid(), CategorySchema),
-  customCategories: z.array(z.string().uuid()),
-});
+export const CategorySchema = z.discriminatedUnion('type', [
+  IncomeCategorySchema,
+  ExpenseCategorySchema,
+]);
 
-// Finance Store Schema with Category References
-export const FinanceStoreSchema = z.object({
-  isSetUp: z.boolean(),
-  profile: FinanceProfileSchema.optional(),
-  transactions: z.record(z.string().uuid(), TransactionSchema),
-  budgetConfig: BudgetConfigSchema,
-  insights: z.object({
-    guiltFreeBalance: z.number().nonnegative(),
-    monthlySpendingByCategory: z.record(z.string().uuid(), z.number().nonnegative()),
-    savingsProgress: z.record(z.string().uuid(), z.number().nonnegative()),
-    projectedSavings: z.number().nonnegative(),
-    unusualSpending: z.array(z.unknown()),
-    trends: z.object({
-      monthly: z.record(z.string(), z.number()),
-      categoryTrends: z.record(
-        z.string().uuid(),
-        z.object({
-          trend: z.number(),
-          average: z.number().nonnegative(),
-        })
-      ),
-    }),
+// ============================================================================
+// Budget System
+// ============================================================================
+
+export const BudgetRuleType = {
+  FIFTY_THIRTY_TWENTY: '50/30/20',
+  SEVENTY_TWENTY_TEN: '70/20/10',
+  CUSTOM: 'CUSTOM',
+} as const;
+export type BudgetRuleType = (typeof BudgetRuleType)[keyof typeof BudgetRuleType];
+
+export const BudgetRuleSchema = z.object({
+  name: z.string(),
+  allocations: z.object({
+    needs: z.number(),
+    wants: z.number(),
+    savings: z.number(),
   }),
+});
+
+export const CategoryBudgetSchema = z.object({
+  categoryId: CategoryIdSchema,
+  amount: CurrencySchema,
+  spent: CurrencySchema,
+  remaining: CurrencySchema,
+  rollover: z.boolean().optional(),
+  alerts: z
+    .object({
+      warningThreshold: z.number(),
+      criticalThreshold: z.number(),
+    })
+    .optional(),
+});
+
+export const BudgetAlertSchema = z.object({
+  categoryId: CategoryIdSchema,
+  type: z.enum(['warning', 'critical']),
+  message: z.string(),
+  timestamp: z.date(),
+  percentage: z.number(),
+});
+
+// ============================================================================
+// Financial Insights System
+// ============================================================================
+
+export const CategoryHealthSchema = z.object({
+  categoryId: CategoryIdSchema,
+  status: z.enum(['good', 'warning', 'critical']),
+  trend: z.enum(['improving', 'stable', 'worsening']),
+  averageSpending: CurrencySchema,
+  recommendation: z.string().optional(),
+});
+
+export const FinancialInsightsSchema = z.object({
+  income: z.object({
+    total: CurrencySchema,
+    byCategory: z.record(z.string(), CurrencySchema),
+    trend: z.array(CurrencySchema),
+  }),
+  expenses: z.object({
+    total: CurrencySchema,
+    byCategory: z.record(z.string(), CurrencySchema),
+    trend: z.array(CurrencySchema),
+  }),
+  savings: z.object({
+    total: CurrencySchema,
+    rate: PercentageSchema,
+    trend: z.array(CurrencySchema),
+  }),
+});
+
+// ============================================================================
+// Store Schema
+// ============================================================================
+
+export const FinanceStoreSchema = z.object({
   categories: z.record(z.string(), CategorySchema),
-  metadata: z.object({
-    lastUpdated: z.string().datetime(),
-    version: z.string(),
+  transactions: z.record(z.string(), TransactionSchema),
+  budgets: z.record(z.string(), CategoryBudgetSchema),
+  insights: FinancialInsightsSchema,
+  settings: z.object({
     currency: z.string(),
     timezone: z.string(),
+    budgetRule: z.enum(Object.values(BudgetRuleType) as [string, ...string[]]),
+    notifications: z.object({
+      enabled: z.boolean(),
+      email: z.string().email().optional(),
+      pushToken: z.string().optional(),
+    }),
   }),
+  metadata: z.object({
+    lastUpdated: z.date(),
+    version: z.string(),
+  }),
+  budgetRules: z.object({
+    active: z.string(),
+    rules: z.record(z.string(), BudgetRuleSchema),
+  }),
+  alerts: z.array(BudgetAlertSchema),
+  guiltFreeBalance: CurrencySchema,
+  categoryHealth: z.record(z.string(), CategoryHealthSchema),
 });
 
-// Category Definitions with Icons
-export const INCOME_CATEGORIES: Record<IncomeCategory, { icon: string; description: string }> = {
-  [IncomeCategory.SALARY]: {
-    icon: '💰',
-    description: 'Regular employment income, wages, and bonuses',
+export const PREDEFINED_BUDGET_RULES = {
+  '50/30/20': {
+    name: '50/30/20 Rule',
+    allocations: { needs: 50, wants: 30, savings: 20 },
   },
-  [IncomeCategory.INVESTMENTS]: {
-    icon: '📈',
-    description: 'Returns from stocks, bonds, real estate, and other investments',
+  '70/20/10': {
+    name: '70/20/10 Rule',
+    allocations: { needs: 70, wants: 20, savings: 10 },
   },
-  [IncomeCategory.BUSINESS]: {
-    icon: '🏢',
-    description: 'Income from business operations and side hustles',
+  'debt-focus': {
+    name: 'Debt Focus',
+    allocations: { needs: 60, wants: 10, savings: 30 },
   },
-  [IncomeCategory.SIDE_HUSTLE]: {
-    icon: '💻',
-    description: 'Income from freelance work and consulting',
+  'aggressive-savings': {
+    name: 'Aggressive Savings',
+    allocations: { needs: 40, wants: 20, savings: 40 },
   },
-  [IncomeCategory.GIFTS]: {
-    icon: '🎁',
-    description: 'Monetary gifts and inheritance',
-  },
-};
+} as const;
 
-export const EXPENSE_CATEGORIES: Record<ExpenseGroup, { icon: string; description: string }> = {
-  [ExpenseGroup.HOUSING]: {
-    icon: '🏠',
-    description: 'Rent, mortgage, utilities, and home maintenance',
+export const PREDEFINED_CATEGORY_GROUPS = {
+  // Income Groups
+  ACTIVE_INCOME: {
+    id: 'ACTIVE_INCOME',
+    name: 'Active Income',
+    type: TransactionType.INCOME,
+    description: 'Income from direct work or services',
   },
-  [ExpenseGroup.TRANSPORTATION]: {
-    icon: '🚗',
-    description: 'Car payments, fuel, public transit, and maintenance',
+  SIDE_HUSTLE: {
+    id: 'PASSIVE_INCOME',
+    name: 'Passive Income',
+    type: TransactionType.INCOME,
+    description: 'Income from investments and assets',
   },
-  [ExpenseGroup.FOOD]: {
-    icon: '🍔',
-    description: 'Groceries, dining out, and food delivery',
+  GIFT: {
+    id: 'GIFT',
+    name: 'Gift',
+    type: TransactionType.INCOME,
+    description: 'Gifts and donations',
   },
-  [ExpenseGroup.UTILITIES]: {
-    icon: '⚡',
-    description: 'Electricity, water, internet, and phone bills',
+  // Expense Groups
+  ESSENTIAL_NEEDS: {
+    id: 'ESSENTIAL_NEEDS',
+    name: 'Essential Needs',
+    type: TransactionType.EXPENSE,
+    description: 'Basic living expenses',
+    isEssential: true,
+    defaultBudgetAllocation: 50,
   },
-  [ExpenseGroup.ENTERTAINMENT]: {
-    icon: '🎮',
-    description: 'Movies, games, streaming services, and hobbies',
+  LIFESTYLE: {
+    id: 'LIFESTYLE',
+    name: 'Lifestyle',
+    type: TransactionType.EXPENSE,
+    description: 'Quality of life and discretionary spending',
+    isEssential: false,
+    defaultBudgetAllocation: 30,
   },
-  [ExpenseGroup.HEALTHCARE]: {
-    icon: '💊',
-    description: 'Medical bills, insurance, and medications',
+  FINANCIAL_GOALS: {
+    id: 'FINANCIAL_GOALS',
+    name: 'Financial Goals',
+    type: TransactionType.EXPENSE,
+    description: 'Savings, investments, and debt management',
+    isEssential: true,
+    defaultBudgetAllocation: 20,
   },
-  [ExpenseGroup.DEBT]: {
-    icon: '💳',
-    description: 'Credit card payments, loans, and other debt',
-  },
-  [ExpenseGroup.INSURANCE]: {
-    icon: '🛡️',
-    description: 'Health, life, home, and vehicle insurance',
-  },
-  [ExpenseGroup.SHOPPING]: {
-    icon: '🛍️',
-    description: 'Clothing, electronics, and general shopping',
-  },
-};
+} as const;
 
-// Type Exports
-export type CategoryType = z.infer<typeof CategoryTypeSchema>;
-export type TransactionType = z.infer<typeof TransactionTypeSchema>;
-export type BudgetRuleType = z.infer<typeof BudgetRuleTypeSchema>;
-export type ColorScheme = z.infer<typeof ColorSchemeSchema>;
-export type Category = z.infer<typeof CategorySchema>;
-export type Transaction = z.infer<typeof TransactionSchema>;
-export type SavingsGoal = z.infer<typeof SavingsGoalSchema>;
-export type BudgetConfig = z.infer<typeof BudgetConfigSchema>;
-export type CategoryStore = z.infer<typeof CategoryStoreSchema>;
-export type FinanceProfile = z.infer<typeof FinanceProfileSchema>;
+export const IdSchema = z.string().uuid();
+export type Id = z.infer<typeof IdSchema>;
 export type FinanceStore = z.infer<typeof FinanceStoreSchema>;
+export type PredefinedBudgetRuleId = keyof typeof PREDEFINED_BUDGET_RULES;
+
+export type BudgetRule = z.infer<typeof BudgetRuleSchema>;
+export type CategoryBudget = z.infer<typeof CategoryBudgetSchema>;
+export type BudgetAlert = z.infer<typeof BudgetAlertSchema>;
+
+export type Category = z.infer<typeof CategorySchema>;
+export type IncomeCategory = z.infer<typeof IncomeCategorySchema>;
+export type ExpenseCategory = z.infer<typeof ExpenseCategorySchema>;
+
+export type CategoryGroup = typeof CategoryGroup;
+export type CategoryGroupId = keyof typeof CategoryGroup;
+
+export type Transaction = z.infer<typeof TransactionSchema>;
+export type IncomeTransaction = z.infer<typeof IncomeTransactionSchema>;
+export type ExpenseTransaction = z.infer<typeof ExpenseTransactionSchema>;
+
+export type RecurrenceFrequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'none';
+export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType];
+export type Percentage = z.infer<typeof PercentageSchema>;
+export type CurrencyAmount = z.infer<typeof CurrencySchema>;
+export type CategoryId = z.infer<typeof CategoryIdSchema>;
+export type TransactionId = z.infer<typeof TransactionIdSchema>;
+
+export type CategoryHealth = z.infer<typeof CategoryHealthSchema>;
+export type FinancialInsights = z.infer<typeof FinancialInsightsSchema>;

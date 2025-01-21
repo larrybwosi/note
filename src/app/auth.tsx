@@ -8,7 +8,6 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ChevronRight, UserCircle, Al
 import { observer, Memo, useObservable } from '@legendapp/state/react';
 import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
-import { handleGoogleSignIn } from 'src/utils/auth';
 import { FormData, THEME } from 'types';
 import { account } from 'src/lib/appwrite';
 import { useGlobalContext } from 'src/lib/global.context';
@@ -381,7 +380,7 @@ const AuthScreen = observer(() => {
                   <GoogleSigninButton
                     size={GoogleSigninButton.Size.Wide}
                     color={colorScheme === 'dark' ? GoogleSigninButton.Color.Light : GoogleSigninButton.Color.Dark}
-                    onPress={handleGoogleSignIn}
+                    onPress={()=>{}}
                     disabled={state$.isLoading.get()}
                     style={{ width: '100%', height: 48 }}
                   />

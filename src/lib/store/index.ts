@@ -1,54 +1,59 @@
-import { observable } from '@legendapp/state';
+import { Observable, observable } from '@legendapp/state';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 import { synced } from '@legendapp/state/sync';
-import { FinanceStore, FinanceStoreSchema, BudgetRuleTypeSchema } from '../types';
+import { CurrencyAmount, FinanceStore, BudgetRuleType, Percentage } from '../types';
 
-const initial: FinanceStore = {
-  isSetUp: false,
-  profile: undefined,
-  transactions: {},
-  budgetConfig: {
-    rule: BudgetRuleTypeSchema.enum['50/30/20'],
-    monthlyIncome: 0,
-    savingsGoals: {},
-  },
-  insights: {
-    guiltFreeBalance: 0,
-    monthlySpendingByCategory: {},
-    savingsProgress: {},
-    projectedSavings: 0,
-    unusualSpending: [],
-    trends: {
-      monthly: {},
-      categoryTrends: {},
+export const createStore = (): Observable<FinanceStore> => {
+  const defaultStore: FinanceStore = {
+    categories: {},
+    transactions: {},
+    budgets: {},
+    insights: {
+      income: {
+        total: 0 as CurrencyAmount,
+        byCategory: {},
+        trend: [],
+      },
+      expenses: {
+        total: 0 as CurrencyAmount,
+        byCategory: {},
+        trend: [],
+      },
+      savings: {
+        total: 0 as CurrencyAmount,
+        rate: 0 as Percentage,  
+        trend: [],
+      },
     },
-  },
-  categories: {},
-  metadata: {
-    lastUpdated: new Date().toISOString(),
-    version: '1.0.0',
-    currency: 'USD',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  },
-};
-
-export const store = observable(
-  synced<FinanceStore>({
-    initial,
-    persist: {
-      name: 'finance',
-      plugin: ObservablePersistMMKV,
+    settings: {
+      currency: 'USD',
+      timezone: 'UTC',
+      budgetRule: BudgetRuleType.FIFTY_THIRTY_TWENTY,
+      notifications: {
+        enabled: true,
+      },
     },
-  })
-);
+    metadata: {
+      lastUpdated: new Date(),
+      version: '1.0.0',
+    },
+    budgetRules: {
+      active: BudgetRuleType.FIFTY_THIRTY_TWENTY,
+      rules: {},
+    },
+    alerts: [],
+    guiltFreeBalance: 0 as CurrencyAmount,
+    categoryHealth: {},
+  };
 
-export const validateFinanceStore = () => {
-  try {
-    FinanceStoreSchema.parse(store.get());
-    return true;
-  } catch (error) {
-    console.error('Finance store validation failed:', error);
-    return false;
-  }
+  const store = observable(
+    synced<FinanceStore>({
+      initial: defaultStore,
+      persist: {
+        name: 'finance',
+        plugin: ObservablePersistMMKV,
+      },
+    })
+  );
+  return store;
 };
-

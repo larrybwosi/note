@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -25,11 +25,15 @@ import { useModal } from 'src/components/modals/provider';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const FinancePage: React.FC = observer(() => {
-  const { show } = useModal();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { getTransactions } = useFinanceStore();
+  const { getTransactions, isSetUP } = useFinanceStore();
   const scrollY = useSharedValue(0);
+  const { show } = useModal();
+
+  useEffect(() => {
+    if (!isSetUP) show('SetUp', {});
+  }, []);
 
   const gradientStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
@@ -82,7 +86,7 @@ const FinancePage: React.FC = observer(() => {
       >
         <View className="flex-row justify-between items-center mb-6">
           <View>
-            <Text className="text-2xl font-rbold text-gray-900 dark:text-gray-100">
+            <Text className="text-xl font-rbold text-gray-900 dark:text-gray-100">
               Financial Overview
             </Text>
             <Text className="text-sm font-aregular text-gray-500 dark:text-gray-400 mt-1">
@@ -90,9 +94,6 @@ const FinancePage: React.FC = observer(() => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => show('SetUp',{})}>
-          <Text>Some test</Text>
-        </TouchableOpacity>
 
         <View className="space-y-5">
           <View className="bg-blue-50 dark:bg-gray-700/50 p-4 rounded-2xl mb-4">

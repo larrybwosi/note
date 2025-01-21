@@ -9,7 +9,7 @@ import { router, SplashScreen, Stack } from 'expo-router';
 import { StatusBar, ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
 import * as Sentry from '@sentry/react-native';
-
+import 'react-native-url-polyfill/auto';
 import ModalProvider from 'src/components/modals/provider';
 import './global.css';
 

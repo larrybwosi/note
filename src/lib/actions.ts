@@ -1,434 +1,341 @@
-import { FinanceStore, FinanceProfile, Transaction, SavingsGoal, BudgetRuleType, TransactionSchema, FinanceProfileSchema, SavingsGoalSchema, IncomeCategory, ExpenseGroup, Category, CategorySchema } from './types';
-import { store } from './store';
-import { LucideIcon } from 'lucide-react-native';
+import { Observable, observable } from '@legendapp/state';
+import {
+  CategoryId,
+  TransactionId,
+  CurrencyAmount,
+  Percentage,
+  Category,
+  Transaction,
+  FinanceStore,
+  TransactionType,
+  CategorySchema,
+  TransactionSchema,
+  FinanceStoreSchema,
+  CategoryBudgetState,
+  IncomeCategory,
+  ExpenseCategory,
+  CategoryGroup,
+  BudgetRuleType
+} from './types';
+import { synced } from '@legendapp/state/sync';
+import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 
-interface SetupFinanceParams {
-  monthlyIncome: number;
-  currency: string;
-  budgetRule: BudgetRuleType;
-  savingsGoal: number;
-}
+// Type Guards and Validation
+export const isCurrencyAmount = (amount: number): amount is CurrencyAmount => 
+  amount >= 0;
 
-interface CreateTransactionParams {
-  amount: number;
-  categoryId: string;
-  type: 'INCOME' | 'EXPENSE';
-  description: string;
-}
+export const isPercentage = (value: number): value is Percentage => 
+  value >= 0 && value <= 100;
 
-interface UpdateTransactionParams extends Partial<Omit<CreateTransactionParams, 'type'>> {
-  id: string;
-}
+// Safe Type Conversions
+export const toCurrencyAmount = (amount: number): CurrencyAmount => {
+  if (!isCurrencyAmount(amount)) {
+    throw new Error('Invalid currency amount: must be non-negative');
+  }
+  return amount as CurrencyAmount;
+};
 
-interface CreateSavingsGoalParams {
-  name: string;
-  target: number;
-  deadline?: string;
-}
+const randomId =()=> Math.random()
+export const toPercentage = (value: number): Percentage => {
+  if (!isPercentage(value)) {
+    throw new Error('Invalid percentage: must be between 0 and 100');
+  }
+  return value as Percentage;
+};
 
+// Store Operations
 
-interface CreateCustomCategoryParams {
-  name: string;
-  type: 'income' | 'expense';
-  group: IncomeCategory | ExpenseGroup;
-  icon: LucideIcon;
-  color: string;
-  description: string;
-  budget?: number;
-}
+// Category Operations
+export const createCategory = (
+  store: FinanceStore,
+  categoryData: Omit<Category, 'id' | 'isCustom'>
+): [FinanceStore, Category] => {
+  const id = `cat_${randomId()}` as CategoryId;
+  const category = CategorySchema.parse({
+    ...categoryData,
+    id,
+    isCustom: true
+  });
 
-interface UpdateBudgetParams {
-  categoryId: string;
-  amount: number;
-}
-
-interface DateRange {
-  startDate: Date;
-  endDate: Date;
-}
-
-const randomId =() => Math.random().toString()
-export const useFinance = () => {
-  // Setup Functions
-  const setupFinance = (params: SetupFinanceParams): boolean => {
-    try {
-      const profile: FinanceProfile = {
-        monthlyIncome: params.monthlyIncome,
-        currency: params.currency,
-        budgetRule: params.budgetRule,
-        savingsGoal: params.savingsGoal,
-      };
-
-      // Validate profile data
-      FinanceProfileSchema.parse(profile);
-
-      // Update store
-      store.set((prev: FinanceStore) => ({
-        ...prev,
-        isSetUp: true,
-        profile,
-        budgetConfig: {
-          ...prev.budgetConfig,
-          monthlyIncome: params.monthlyIncome,
-          rule: params.budgetRule,
-        },
-        metadata: {
-          ...prev.metadata,
-          currency: params.currency,
-          lastUpdated: new Date().toISOString(),
-        },
-      }));
-
-      return true;
-    } catch (error) {
-      console.error('Setup failed:', error);
-      return false;
+  return [{
+    ...store,
+    categories: {
+      ...store.categories,
+      [id]: category
     }
-  };
+  }, category];
+};
 
-  // Transaction Functions
-  const createTransaction = (params: CreateTransactionParams): string | null => {
-    try {
-      const transaction: Transaction = {
-        id: randomId(),
-        amount: params.amount,
-        category: params.categoryId,
-        type: params.type,
-        description: params.description,
-        createdAt: new Date().toISOString(),
-      };
+export const updateCategory = (
+  store: FinanceStore,
+  categoryId: CategoryId,
+  updates: Partial<Omit<Category, 'id' | 'type'>>
+): [FinanceStore, Category] => {
+  const existingCategory = store.categories[categoryId];
+  if (!existingCategory) {
+    throw new Error(`Category not found: ${categoryId}`);
+  }
 
-      // Validate transaction data
-      TransactionSchema.parse(transaction);
+  const updatedCategory = CategorySchema.parse({
+    ...existingCategory,
+    ...updates
+  });
 
-      // Update store
-      store.transactions[transaction.id].set(transaction);
-      updateInsights();
-
-      return transaction.id;
-    } catch (error) {
-      console.error('Transaction creation failed:', error);
-      return null;
+  return [{
+    ...store,
+    categories: {
+      ...store.categories,
+      [categoryId]: updatedCategory
     }
-  };
+  }, updatedCategory];
+};
 
-  const updateTransaction = (params: UpdateTransactionParams): boolean => {
-    try {
-      const currentTransaction = store.transactions[params.id].get();
-      if (!currentTransaction) return false;
+export const deleteCategory = (
+  store: FinanceStore,
+  categoryId: CategoryId
+): FinanceStore => {
+  const hasTransactions = Object.values(store.transactions)
+    .some(t => t.categoryId === categoryId);
 
-      const updatedTransaction: Transaction = {
-        ...currentTransaction,
-        ...params,
-      };
+  if (hasTransactions) {
+    throw new Error('Cannot delete category with existing transactions');
+  }
 
-      // Validate updated transaction
-      TransactionSchema.parse(updatedTransaction);
-
-      // Update store
-      store.transactions[params.id].set(updatedTransaction);
-      updateInsights();
-
-      return true;
-    } catch (error) {
-      console.error('Transaction update failed:', error);
-      return false;
-    }
-  };
-
-  const deleteTransaction = (id: string): boolean => {
-    try {
-      if (!store.transactions[id].get()) return false;
-
-      // Remove from store
-      store.transactions[id].delete();
-      updateInsights();
-
-      return true;
-    } catch (error) {
-      console.error('Transaction deletion failed:', error);
-      return false;
-    }
-  };
-
-  // Savings Goals Functions
-  const createSavingsGoal = (params: CreateSavingsGoalParams): string | null => {
-    try {
-      const goal: SavingsGoal = {
-        id: randomId(),
-        name: params.name,
-        target: params.target,
-        currentAmount: 0,
-        deadline: params.deadline,
-      };
-
-      // Validate savings goal
-      SavingsGoalSchema.parse(goal);
-
-      // Update store
-      store.budgetConfig.savingsGoals[goal.id].set(goal);
-      updateInsights();
-
-      return goal.id;
-    } catch (error) {
-      console.error('Savings goal creation failed:', error);
-      return null;
-    }
-  };
-
-  // Private helper functions
-  const updateInsights = () => {
-    const transactions = store.transactions.get();
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-
-    // Calculate monthly spending by category
-    const monthlySpending: Record<string, number> = {};
-    Object.values(transactions).forEach((transaction) => {
-      const transactionDate = new Date(transaction.createdAt);
-      if (
-        transactionDate.getMonth() === currentMonth &&
-        transactionDate.getFullYear() === currentYear &&
-        transaction.type === 'EXPENSE'
-      ) {
-        monthlySpending[transaction.category] =
-          (monthlySpending[transaction.category] || 0) + transaction.amount;
-      }
-    });
-
-    // Update insights in store
-    store.insights.monthlySpendingByCategory.set(monthlySpending);
-    store.metadata.lastUpdated.set(new Date().toISOString());
-
-    // Calculate other insights (simplified for example)
-    const totalExpenses = Object.values(monthlySpending).reduce((sum, amount) => sum + amount, 0);
-    const monthlyIncome = store.profile.get()?.monthlyIncome || 0;
-    store.insights.guiltFreeBalance.set(Math.max(0, monthlyIncome - totalExpenses));
-  };
-
-
-  // Category Management Functions
-  const createCustomCategory = (params: CreateCustomCategoryParams): string | null => {
-    try {
-      const category: Category = {
-        id: randomId(),
-        name: params.name,
-        type: params.type,
-        group: params.group,
-        icon: params.icon,
-        color: params.color,
-        description: params.description,
-        budget: params.budget || 0,
-        isCustom: true,
-      };
-
-      // Validate category
-      CategorySchema.parse(category);
-
-      // Update store
-      store.categories[category.id].set(category);
-      // store.categories.push(category.id);
-
-      return category.id;
-    } catch (error) {
-      console.error('Custom category creation failed:', error);
-      return null;
-    }
-  };
-
-  const deleteCustomCategory = (categoryId: string): boolean => {
-    try {
-      const category = store.categories[categoryId].get();
-      if (!category || !category.isCustom) return false;
-
-      // Check if category is in use
-      const transactions = Object.values(store.transactions.get());
-      const isInUse = transactions.some(t => t.category === categoryId);
-      if (isInUse) {
-        throw new Error('Category is in use by existing transactions');
-      }
-
-      // Remove from store
-      store.categories[categoryId].delete();
-
-      return true;
-    } catch (error) {
-      console.error('Custom category deletion failed:', error);
-      return false;
-    }
-  };
-
-  // Budget Management Functions
-  const updateCategoryBudget = (params: UpdateBudgetParams): boolean => {
-    try {
-      const category = store.categories[params.categoryId].get();
-      if (!category) return false;
-
-      store.categories[params.categoryId].set({
-        ...category,
-        budget: params.amount
-      });
-      updateBudgetInsights();
-      return true;
-    } catch (error) {
-      console.error('Budget update failed:', error);
-      return false;
-    }
-  };
-
-  const updateBudgetRule = (rule: BudgetRuleType): boolean => {
-    try {
-      store.budgetConfig.rule.set(rule);
-      updateBudgetInsights();
-      return true;
-    } catch (error) {
-      console.error('Budget rule update failed:', error);
-      return false;
-    }
-  };
-
-  // Analysis Functions
-  const getTransactionsByDate = (range: DateRange) => {
-    const transactions = store.transactions.get();
-    return Object.values(transactions).filter(transaction => {
-      const date = new Date(transaction.createdAt);
-      return date >= range.startDate && date <= range.endDate;
-    });
-  };
-
-  const getMonthlyTransactions = (month: number = new Date().getMonth(), year: number = new Date().getFullYear()) => {
-    const startDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 0);
-    return getTransactionsByDate({ startDate, endDate });
-  };
-
-  const getMonthlyStats = () => {
-    const transactions = getMonthlyTransactions();
-    const incomes = transactions.filter(t => t.type === 'INCOME');
-    const expenses = transactions.filter(t => t.type === 'EXPENSE');
-
-    return {
-      totalIncome: incomes.reduce((sum, t) => sum + t.amount, 0),
-      totalExpenses: expenses.reduce((sum, t) => sum + t.amount, 0),
-      netIncome: incomes.reduce((sum, t) => sum + t.amount, 0) - expenses.reduce((sum, t) => sum + t.amount, 0),
-      transactionCount: transactions.length,
-      averageTransaction: transactions.reduce((sum, t) => sum + t.amount, 0) / transactions.length || 0,
-    };
-  };
-
-  const getCategorySpending = (categoryId: string, months: number = 1) => {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - months);
-
-    const transactions = getTransactionsByDate({ startDate, endDate });
-    return transactions
-      .filter(t => t.category === categoryId)
-      .reduce((sum, t) => sum + t.amount, 0);
-  };
-
-  const calculateTrends = () => {
-    const currentMonth = new Date().getMonth();
-    const monthlyTrends: Record<string, number> = {};
-    const categoryTrends: Record<string, { trend: number; average: number }> = {};
-
-    // Calculate last 6 months of trends
-    for (let i = 0; i < 6; i++) {
-      const month = (currentMonth - i + 12) % 12;
-      const year = new Date().getFullYear() - (currentMonth - i < 0 ? 1 : 0);
-      const transactions = getMonthlyTransactions(month, year);
-      const total = transactions.reduce((sum, t) => sum + t.amount, 0);
-      monthlyTrends[`${year}-${month + 1}`] = total;
-    }
-
-    // Calculate category trends
-    const categories = store.categories.get();
-    Object.keys(categories).forEach(categoryId => {
-      const sixMonthSpending = getCategorySpending(categoryId, 6);
-      const threeMonthSpending = getCategorySpending(categoryId, 3);
-      const trend = (threeMonthSpending / 3) - (sixMonthSpending / 6);
-      const average = sixMonthSpending / 6;
-
-      categoryTrends[categoryId] = { trend, average };
-    });
-
-    // Update store
-    store.insights.trends.monthly.set(monthlyTrends);
-    store.insights.trends.categoryTrends.set(categoryTrends);
-  };
-
-  const getBudgetStatus = () => {
-    const monthlyStats = getMonthlyStats();
-    const categories = store.categories.get();
-    const budgetStatus: Record<string, { 
-      spent: number; 
-      budget: number; 
-      remaining: number; 
-      percentUsed: number 
-    }> = {};
-
-    Object.values(categories).forEach(category => {
-      const spent = getCategorySpending(category.id);
-      const remaining = Math.max(0, category.budget - spent);
-      budgetStatus[category.id] = {
-        spent,
-        budget: category.budget,
-        remaining,
-        percentUsed: (spent / category.budget) * 100,
-      };
-    });
-
-    return {
-      categoryStatus: budgetStatus,
-      totalBudget: Object.values(categories).reduce((sum, c) => sum + c.budget, 0),
-      totalSpent: monthlyStats.totalExpenses,
-      overallRemaining: Object.values(budgetStatus).reduce((sum, s) => sum + s.remaining, 0),
-    };
-  };
-
-  const predictNextMonthExpenses = () => {
-    const categoryTrends = store.insights.trends.categoryTrends.get();
-    const predictions: Record<string, number> = {};
-
-    Object.entries(categoryTrends).forEach(([categoryId, data]) => {
-      predictions[categoryId] = data.average + data.trend;
-    });
-
-    return {
-      predictions,
-      totalPredicted: Object.values(predictions).reduce((sum, amount) => sum + amount, 0),
-    };
-  };
-
-  // Private helper functions
-  const updateBudgetInsights = () => {
-    const budgetStatus = getBudgetStatus();
-    calculateTrends();
-    
-    store.insights.projectedSavings.set(
-      store.profile.get()?.monthlyIncome || 0 - budgetStatus.totalSpent
-    );
-    
-    // Update last modified timestamp
-    store.metadata.lastUpdated.set(new Date().toISOString());
-  };
+  const { [categoryId]: _, ...remainingCategories } = store.categories;
   return {
-    setupFinance,
-    createTransaction,
-    updateTransaction,
-    deleteTransaction,
-    createSavingsGoal,
-    isSetUp: store.isSetUp.get(),
-    createCustomCategory,
-    deleteCustomCategory,
-    updateCategoryBudget,
-    updateBudgetRule,
-    getMonthlyStats,
-    getTransactionsByDate,
-    getCategorySpending,
-    getBudgetStatus,
-    predictNextMonthExpenses,
-    calculateTrends,
+    ...store,
+    categories: remainingCategories
   };
+};
+
+// Transaction Operations
+export const createTransaction = (
+  store: FinanceStore,
+  transactionData: Omit<Transaction, 'id'>
+): [FinanceStore, Transaction] => {
+  const id = `txn_${randomId()}` as TransactionId;
+  const transaction = TransactionSchema.parse({
+    ...transactionData,
+    id
+  });
+
+  const updatedStore = updateBudgetForTransaction(store, transaction);
+
+  return [{
+    ...updatedStore,
+    transactions: {
+      ...updatedStore.transactions,
+      [id]: transaction
+    }
+  }, transaction];
+};
+
+export const updateTransaction = (
+  store: FinanceStore,
+  transactionId: TransactionId,
+  updates: Partial<Omit<Transaction, 'id' | 'type'>>
+): [FinanceStore, Transaction] => {
+  const existingTransaction = store.transactions[transactionId];
+  if (!existingTransaction) {
+    throw new Error(`Transaction not found: ${transactionId}`);
+  }
+
+  // First, reverse the effect of the old transaction
+  let updatedStore = reverseBudgetForTransaction(store, existingTransaction);
+
+  const updatedTransaction = TransactionSchema.parse({
+    ...existingTransaction,
+    ...updates
+  });
+
+  // Then apply the new transaction
+  updatedStore = updateBudgetForTransaction(updatedStore, updatedTransaction);
+
+  return [{
+    ...updatedStore,
+    transactions: {
+      ...updatedStore.transactions,
+      [transactionId]: updatedTransaction
+    }
+  }, updatedTransaction];
+};
+
+export const deleteTransaction = (
+  store: FinanceStore,
+  transactionId: TransactionId
+): FinanceStore => {
+  const transaction = store.transactions[transactionId];
+  if (!transaction) {
+    throw new Error(`Transaction not found: ${transactionId}`);
+  }
+
+  const updatedStore = reverseBudgetForTransaction(store, transaction);
+  const { [transactionId]: _, ...remainingTransactions } = updatedStore.transactions;
+
+  return {
+    ...updatedStore,
+    transactions: remainingTransactions
+  };
+};
+
+// Budget Operations
+export const setBudget = (
+  store: FinanceStore,
+  categoryId: CategoryId,
+  amount: CurrencyAmount
+): [FinanceStore, CategoryBudgetState] => {
+  const category = store.categories[categoryId];
+  if (!category) {
+    throw new Error(`Category not found: ${categoryId}`);
+  }
+
+  if (category.type === TransactionType.INCOME) {
+    throw new Error('Cannot set budget for income categories');
+  }
+
+  const spent = calculateCategorySpent(store, categoryId);
+  const budget: CategoryBudgetState = {
+    categoryId,
+    amount,
+    spent,
+    remaining: toCurrencyAmount(Number(amount) - Number(spent))
+  };
+
+  return [{
+    ...store,
+    budgets: {
+      ...store.budgets,
+      [categoryId]: budget
+    }
+  }, budget];
+};
+
+// Analytics Operations
+export const calculateCategoryTotals = (
+  store: FinanceStore,
+  type: TransactionType
+): Record<CategoryId, CurrencyAmount> => {
+  const totals: Record<string, number> = {};
+
+  Object.values(store.transactions)
+    .filter(t => t.type === type)
+    .forEach(transaction => {
+      const current = totals[transaction.categoryId] || 0;
+      totals[transaction.categoryId] = current + Number(transaction.amount);
+    });
+
+  return Object.entries(totals).reduce((acc, [categoryId, amount]) => ({
+    ...acc,
+    [categoryId]: toCurrencyAmount(amount)
+  }), {});
+};
+
+export const calculateSavingsRate = (store: FinanceStore): Percentage => {
+  const totalIncome = Object.values(store.transactions)
+    .filter(t => t.type === TransactionType.INCOME)
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const totalExpenses = Object.values(store.transactions)
+    .filter(t => t.type === TransactionType.EXPENSE)
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  if (totalIncome === 0) return toPercentage(0);
+
+  const savingsRate = ((totalIncome - totalExpenses) / totalIncome) * 100;
+  return toPercentage(Math.max(0, Math.min(100, savingsRate)));
+};
+
+export const calculateMonthlyTrend = (
+  store: FinanceStore,
+  type: TransactionType,
+  months: number = 12
+): CurrencyAmount[] => {
+  const now = new Date();
+  const trend: CurrencyAmount[] = [];
+
+  for (let i = 0; i < months; i++) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+
+    const monthTotal = Object.values(store.transactions)
+      .filter(t => 
+        t.type === type &&
+        t.date >= monthStart &&
+        t.date <= monthEnd
+      )
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    trend.unshift(toCurrencyAmount(monthTotal));
+  }
+
+  return trend;
+};
+
+// Helper Functions
+const calculateCategorySpent = (
+  store: FinanceStore,
+  categoryId: CategoryId
+): CurrencyAmount => {
+  const spent = Object.values(store.transactions)
+    .filter(t => 
+      t.type === TransactionType.EXPENSE && 
+      t.categoryId === categoryId
+    )
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  return toCurrencyAmount(spent);
+};
+
+const updateBudgetForTransaction = (
+  store: FinanceStore,
+  transaction: Transaction
+): FinanceStore => {
+  if (transaction.type !== TransactionType.EXPENSE) return store;
+
+  const budget = store.budgets[transaction.categoryId];
+  if (!budget) return store;
+
+  return {
+    ...store,
+    budgets: {
+      ...store.budgets,
+      [transaction.categoryId]: {
+        ...budget,
+        spent: toCurrencyAmount(Number(budget.spent) + Number(transaction.amount)),
+        remaining: toCurrencyAmount(Number(budget.amount) - (Number(budget.spent) + Number(transaction.amount)))
+      }
+    }
+  };
+};
+
+const reverseBudgetForTransaction = (
+  store: FinanceStore,
+  transaction: Transaction
+): FinanceStore => {
+  if (transaction.type !== TransactionType.EXPENSE) return store;
+
+  const budget = store.budgets[transaction.categoryId];
+  if (!budget) return store;
+
+  return {
+    ...store,
+    budgets: {
+      ...store.budgets,
+      [transaction.categoryId]: {
+        ...budget,
+        spent: toCurrencyAmount(Number(budget.spent) - Number(transaction.amount)),
+        remaining: toCurrencyAmount(Number(budget.amount) - (Number(budget.spent) - Number(transaction.amount)))
+      }
+    }
+  };
+};
+
+// Export/Import Operations
+export const exportStore = (store: FinanceStore): string => {
+  return JSON.stringify(store, null, 2);
+};
+
+export const importStore = (data: string): FinanceStore => {
+  const parsed = JSON.parse(data);
+  return FinanceStoreSchema.parse(parsed);
 };

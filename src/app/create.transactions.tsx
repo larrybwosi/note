@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, TextInputProps } from 'react-native';
-import { DollarSign, Calendar, Tag, FileText, MapPin, Check, Sparkles, ChevronRight } from 'lucide-react-native';
+import { DollarSign, Tag, FileText, Sparkles, ChevronRight } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer, useObservable } from '@legendapp/state/react';
@@ -13,7 +13,7 @@ import {
 import { CategorySelector } from 'src/components/fin/category.selector';
 import { RecurrenceSelector } from 'src/components/fin/recurence';
 import { Button } from 'src/components/ui/button';
-import { useFinance } from 'src/lib/actions';
+import { useFinanceStore } from 'src/lib';
 
 // Extracted components for better organization
 const FormSection: React.FC<{
@@ -80,12 +80,12 @@ const TypeSelector: React.FC<{
 
 const CreateTransaction: React.FC = observer(() => {
   const { type } = useLocalSearchParams();
-  const { createTransaction } = useFinance();
+  const { createTransaction } = useFinanceStore();
   const state$ = useObservable({
     type: type === 'expense' ? TransactionType.EXPENSE : TransactionType.INCOME,
     amount: '',
     description: '',
-    category: null as Category | null,
+    category: {} as Category | null,
     date: new Date(),
     showDatePicker: false,
     tags: [] as string[],
@@ -94,15 +94,25 @@ const CreateTransaction: React.FC = observer(() => {
     isEssential: false,
     status: TransactionStatus.COMPLETED,
     recurrence: RecurrenceFrequency.NONE,
+    method: 'cash',
   });
 
   const handleCreateTransaction = () => {
     const data = state$.get();
-    // createTransaction({
-    //   ...data,
-    //   categoryId: data.category?.id!,
-    //   amount: parseInt(data.amount)
-    // });
+    createTransaction({
+      description: data.description,
+      categoryId: data.category?.id as string,
+      date: data.date,
+      tags: data.tags,
+      notes: data.notes,
+      location: data.location,
+      isEssential: data.isEssential,
+      status: data.status,
+      isRecurring: data.recurrence !== RecurrenceFrequency.NONE,
+      amount: Number(data.amount),
+      type: data.type === TransactionType.EXPENSE ? 'EXPENSE' : 'INCOME',
+      paymentMethod: data.method,
+    });
   };
 
   return (

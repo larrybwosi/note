@@ -1,9 +1,9 @@
 import { ExpoConfig } from 'expo/config';
 
 const config: ExpoConfig = {
-  name: 'Note',
-  slug: 'Note',
-  scheme: 'note',
+  name: 'Dealio',
+  slug: 'Dealio',
+  scheme: 'dealio',
   version: '1.0.0',
   orientation: 'portrait',
   userInterfaceStyle: 'dark',
@@ -44,7 +44,6 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-font',
-    'expo-location',
     [
       'expo-notifications',
       {
@@ -56,7 +55,7 @@ const config: ExpoConfig = {
           './assets/sounds/not2.wav',
           './assets/sounds/not3.wav'
         ],
-        enableBackgroundRemoteNotifications: false,
+        enableBackgroundRemoteNotifications: true,
       },
     ],
     [
