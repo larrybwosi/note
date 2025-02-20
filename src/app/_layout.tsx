@@ -61,9 +61,11 @@ function Root() {
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                   <Stack.Screen name="plans" options={{ headerShown: false }} />
                   <Stack.Screen name="create.transactions" options={{ headerShown: false, presentation: 'modal' }} />
-                  <Stack.Screen name="finance_setup" options={{ headerShown: false, presentation: 'modal' }} />
-                  <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
+                  <Stack.Screen name="setup" options={{ headerShown: false, presentation: 'modal' }} />
                   <Stack.Screen name="budget.planner" options={{ headerShown: false, presentation: 'modal' }} />
+                  <Stack.Screen name="splash" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
+                  <Stack.Screen name="signup" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
+                  <Stack.Screen name="login" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
                   <Stack.Screen name="ai.create.transaction" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
                 </Stack>
               </KeyboardProvider>

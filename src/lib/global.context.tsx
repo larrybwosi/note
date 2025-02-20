@@ -19,23 +19,23 @@ interface GlobalContextType {
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export const GlobalProvider = ({ children }: { children: ReactNode }) => {
-  const {
-    data: user,
-    loading,
-    refetch,
-  } = useAppwrite({
-    fn: getCurrentUser,
-  });
+  // const {
+  //   data: user,
+  //   loading,
+  //   refetch,
+  // } = useAppwrite({
+  //   fn: getCurrentUser,
+  // });
 
-  const isLoggedIn = !!user;
+  // const isLoggedIn = !!user;
 
   return (
     <GlobalContext.Provider
       value={{
-        isLoggedIn,
-        user,
-        loading,
-        refetch,
+        // isLoggedIn,
+        // user,
+        // loading,
+        // refetch,
       }}
     >
       {children}

@@ -4,17 +4,16 @@ import {
   ArrowDown,
   RefreshCw,
   DollarSign,
-  TrendingUp,
-  CreditCard,
   Briefcase,
   Gem,
   Gift,
-  ShieldCheck,
   Wallet,
+  ShoppingCart,
+  Video,
+  BusFront,
 } from 'lucide-react-native';
 import { useFinanceStore } from 'src/lib';
 import {
-  CategoryGroup,
   PREDEFINED_CATEGORY_GROUPS,
   Transaction,
   TransactionType,
@@ -35,13 +34,17 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction })
       case 'PASSIVE_INCOME':
         return <Gem color="#8b5cf6" size={24} />;
       case 'GIFT':
-        return <Gift color="#f59e0b" size={24} />;
-      case 'ESSENTIAL_NEEDS':
-        return <ShieldCheck color="#ef4444" size={24} />;
+        return <Gift color="#ef4444" size={24} />;
+      case 'GROCERIES':
+        return <ShoppingCart color="#ef4444" size={24} />;
+        case 'SUBSCRIPTIONS':
+        return <Video color="#6366f1" size={24} />;
       case 'LIFESTYLE':
         return <Wallet color="#3b82f6" size={24} />;
       case 'FINANCIAL_GOALS':
         return <DollarSign color="#6366f1" size={24} />;
+      case 'TRANSPORT':
+        return <BusFront color="#6366f1" size={24} />;
       default:
         return <DollarSign color="#6366f1" size={24} />;
     }
@@ -59,14 +62,6 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction })
         return <ArrowUp color="#10b981" size={24} />;
       case TransactionType.EXPENSE:
         return <ArrowDown color="#ef4444" size={24} />;
-      case TransactionType.TRANSFER:
-        return <RefreshCw color="#3b82f6" size={24} />;
-      case TransactionType.SAVINGS:
-        return <DollarSign color="#8b5cf6" size={24} />;
-      case TransactionType.INVESTMENT:
-        return <TrendingUp color="#f59e0b" size={24} />;
-      case TransactionType.DEBT_PAYMENT:
-        return <CreditCard color="#6366f1" size={24} />;
       default:
         return <RefreshCw color="#3b82f6" size={24} />;
     }
@@ -75,12 +70,8 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction })
   const getAmountColor = () => {
     switch (transaction.type) {
       case TransactionType.INCOME:
-      case TransactionType.SAVINGS:
-      case TransactionType.INVESTMENT:
         return 'text-green-500';
       case TransactionType.EXPENSE:
-      case TransactionType.DEBT_PAYMENT:
-        return 'text-red-500';
       default:
         return 'text-blue-500';
     }
@@ -114,9 +105,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction })
       </View>
       <View className="items-end">
         <Text className={`font-rbold text-base ${getAmountColor()}`}>
-          {transaction.type === TransactionType.INCOME ||
-          transaction.type === TransactionType.SAVINGS ||
-          transaction.type === TransactionType.INVESTMENT
+          {transaction.type === TransactionType.INCOME
             ? '+'
             : '-'}
           ${Math.abs(transaction.amount).toFixed(2)}

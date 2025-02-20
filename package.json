@@ -13,7 +13,6 @@
     "test:watch": "jest --watch",
     "test:maestro": "maestro test .maestro/FavoritePodcast.yaml",
     "adb": "adb reverse tcp:9090 tcp:9090 && adb reverse tcp:3000 tcp:3000 && adb reverse tcp:9001 tcp:9001 && adb reverse tcp:8081 tcp:8081",
-    "postinstall": "patch-package",
     "bundle:visualize": "npx react-native-bundle-visualizer",
     "bundle:visualize:dev": "npx react-native-bundle-visualizer --dev",
     "build:ios:sim": "eas build --profile development --platform ios --local",
@@ -31,7 +30,8 @@
     "prebuild:clean": "npx expo prebuild --clean"
   },
   "dependencies": {
-    "@legendapp/state": "^3.0.0-beta.23",
+    "@hookform/resolvers": "^4.1.0",
+    "@legendapp/state": "^3.0.0-beta.26",
     "@notifee/react-native": "^9.1.8",
     "@react-native-community/datetimepicker": "8.0.1",
     "@react-native-community/slider": "4.5.2",
@@ -51,13 +51,13 @@
     "expo-router": "~3.5.17",
     "expo-secure-store": "^13.0.2",
     "expo-web-browser": "~13.0.3",
-    "lucide-react-native": "^0.469.0",
+    "lucide-react-native": "^0.475.0",
     "nativewind": "^4.1.23",
-    "patch-package": "^8.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.54.2",
     "react-native": "0.74.5",
-    "react-native-appwrite": "^0.6.0",
+    "react-native-appwrite": "^0.7.0",
     "react-native-chart-kit": "^6.12.0",
     "react-native-gesture-handler": "^2.20.2",
     "react-native-keyboard-controller": "^1.15.2",
@@ -69,7 +69,7 @@
     "react-native-url-polyfill": "^2.0.0",
     "tailwind-merge": "^2.6.0",
     "usehooks-ts": "^3.1.0",
-    "zod": "^3.24.1"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
