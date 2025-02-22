@@ -52,8 +52,6 @@ const config: ExpoConfig = {
         defaultChannel: 'default',
         sounds: [
           './assets/sounds/not1.wav',
-          './assets/sounds/not2.wav',
-          './assets/sounds/not3.wav'
         ],
         enableBackgroundRemoteNotifications: true,
       },

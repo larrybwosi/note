@@ -12,7 +12,6 @@ import {
   Video,
   BusFront,
 } from 'lucide-react-native';
-import { useFinanceStore } from 'src/lib';
 import {
   PREDEFINED_CATEGORY_GROUPS,
   Transaction,
@@ -25,7 +24,6 @@ interface TransactionItemProps {
 }
 
 export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction }) => {
-  const { createTransaction, getCategory } = useFinanceStore();
 
   const getCategoryIcon = (categoryId: string) => {
     switch (categoryId) {

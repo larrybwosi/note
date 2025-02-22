@@ -66,6 +66,8 @@ function Root() {
                   <Stack.Screen name="splash" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
                   <Stack.Screen name="signup" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
                   <Stack.Screen name="login" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
+                  <Stack.Screen name="transactions" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
+                  <Stack.Screen name="categories" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
                   <Stack.Screen name="ai.create.transaction" options={{ headerShown: false, presentation: 'modal', statusBarHidden:true }} />
                 </Stack>
               </KeyboardProvider>

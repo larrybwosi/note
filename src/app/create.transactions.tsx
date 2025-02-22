@@ -1,227 +1,494 @@
-import { View, Text, ScrollView, TouchableOpacity, Switch, TextInput, TextInputProps } from 'react-native';
-import { DollarSign, Tag, FileText, Sparkles, ChevronRight } from 'lucide-react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { observer, useObservable } from '@legendapp/state/react';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useState, useEffect } from 'react';
 import {
-  Category,
-  RecurrenceFrequency,
-  TransactionStatus,
-  TransactionType,
-} from 'src/store/types';
-import { CategorySelector } from 'src/components/fin/category.selector';
-import { RecurrenceSelector } from 'src/components/fin/recurence';
-import { Button } from 'src/components/ui/button';
-import { useFinanceStore } from 'src/lib';
+	View,
+	Text,
+	TextInput,
+	ScrollView,
+	TouchableOpacity,
+	Platform,
+	KeyboardAvoidingView,
+} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+	useSharedValue,
+	useAnimatedStyle,
+	withTiming,
+	interpolateColor,
+	Easing,
+	FadeIn,
+	SlideInUp,
+} from 'react-native-reanimated';
+import {
+	DollarSign,
+	ArrowRight,
+	ArrowUp,
+	ArrowDown,
+	RepeatIcon,
+	Briefcase,
+	Gift,
+	Coffee,
+	Book,
+	ShoppingCart,
+	Bus,
+	Utensils,
+	Music,
+	Award,
+	Zap,
+	Check,
+	Plus,
+	CalendarDays,
+	CheckCircle,
+} from 'lucide-react-native';
 
-// Extracted components for better organization
-const FormSection: React.FC<{
-  title: string;
-  icon: React.FC<any>;
-  description?: string;
-  children: React.ReactNode;
-}> = ({ title, icon: Icon, description, children }) => (
-  <View className="mb-6 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm">
-    <View className="flex-row items-center mb-2">
-      <Icon className="text-blue-500" size={20} />
-      <Text className="text-lg font-rbold ml-2 text-gray-900 dark:text-white">{title}</Text>
-    </View>
-    {description && (
-      <Text className="text-sm text-gray-500 dark:text-gray-400 mb-3">{description}</Text>
-    )}
-    {children}
-  </View>
-);
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-const InputField: React.FC<TextInputProps & { label?: string }> = ({ label, ...props }) => (
-  <View>
-    {label && (
-      <Text className="text-sm font-rmedium text-gray-600 dark:text-gray-300 mb-1">{label}</Text>
-    )}
-    <TextInput
-      className="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-4 py-3.5 font-rmedium"
-      placeholderTextColor="#9CA3AF"
-      {...props}
-    />
-  </View>
-);
+// Enums
+const TransactionType = {
+	INCOME: 'income',
+	EXPENSE: 'expense',
+};
 
-const TypeSelector: React.FC<{
-  type: TransactionType;
-  onTypeChange: (type: TransactionType) => void;
-}> = ({ type, onTypeChange }) => (
-  <View className="flex-row justify-around bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-    {[TransactionType.EXPENSE, TransactionType.INCOME].map((t) => (
-      <TouchableOpacity
-        key={t}
-        className={`flex-1 py-3.5 rounded-xl ${
-          type === t
-            ? t === TransactionType.EXPENSE
-              ? 'bg-red-500'
-              : 'bg-green-500'
-            : 'bg-transparent'
-        }`}
-        onPress={() => onTypeChange(t)}
-      >
-        <Text
-          className={`text-center font-rbold ${
-            type === t
-              ? 'text-white'
-              : 'text-gray-600 dark:text-gray-300'
-          }`}
-        >
-          {t.charAt(0) + t.slice(1).toLowerCase()}
-        </Text>
-      </TouchableOpacity>
-    ))}
-  </View>
-);
+const TransactionStatus = {
+	PENDING: 'pending',
+	COMPLETED: 'completed',
+};
 
-const CreateTransaction: React.FC = observer(() => {
-  const { type } = useLocalSearchParams();
-  const { createTransaction } = useFinanceStore();
-  const state$ = useObservable({
-    type: type === 'expense' ? TransactionType.EXPENSE : TransactionType.INCOME,
-    amount: '',
-    description: '',
-    category: {} as Category | null,
-    date: new Date(),
-    showDatePicker: false,
-    tags: [] as string[],
-    notes: '',
-    location: '',
-    isEssential: false,
-    status: TransactionStatus.COMPLETED,
-    recurrence: RecurrenceFrequency.NONE,
-    method: 'cash',
-  });
+export const CreateTransactionScreen = () => {
+	// Form state
+	const [description, setDescription] = useState('');
+	const [amount, setAmount] = useState('');
+	const [selectedType, setSelectedType] = useState(TransactionType.EXPENSE);
+	const [selectedCategory, setSelectedCategory] = useState(null);
+	const [date, setDate] = useState(new Date());
+	const [showDatePicker, setShowDatePicker] = useState(false);
+	const [isRecurring, setIsRecurring] = useState(false);
+	const [recurringPeriod, setRecurringPeriod] = useState('monthly');
 
-  const handleCreateTransaction = () => {
-    const data = state$.get();
-    createTransaction({
-      description: data.description,
-      categoryId: data.category?.id as string,
-      date: data.date,
-      tags: data.tags,
-      notes: data.notes,
-      location: data.location,
-      isEssential: data.isEssential,
-      status: data.status,
-      isRecurring: data.recurrence !== RecurrenceFrequency.NONE,
-      amount: Number(data.amount),
-      type: data.type === TransactionType.EXPENSE ? 'EXPENSE' : 'INCOME',
-      paymentMethod: data.method,
-    });
-  };
+	// College student specific categories
+	const INCOME_CATEGORIES = [
+		{
+			id: 'part_time_job',
+			name: 'Part-time Job',
+			icon: <Briefcase color="white" size={20} />,
+			colors: ['#10b981', '#059669'],
+		},
+		{
+			id: 'allowance',
+			name: 'Allowance',
+			icon: <Gift color="white" size={20} />,
+			colors: ['#8b5cf6', '#7c3aed'],
+		},
+		{
+			id: 'scholarship',
+			name: 'Scholarship',
+			icon: <Award color="white" size={20} />,
+			colors: ['#ec4899', '#db2777'],
+		},
+		{
+			id: 'side_hustle',
+			name: 'Side Hustle',
+			icon: <Zap color="white" size={20} />,
+			colors: ['#f59e0b', '#d97706'],
+		},
+		{
+			id: 'refund',
+			name: 'Refund',
+			icon: <DollarSign color="white" size={20} />,
+			colors: ['#3b82f6', '#2563eb'],
+		},
+	];
 
-  return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <ScrollView className="flex-1 p-4">
-        <View className="flex-row justify-between items-center mb-6">
-          <Text className="text-3xl font-rbold text-gray-900 dark:text-white">
-            New Transaction
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.push("/ai.create.transaction")}
-            className="bg-blue-500/90 backdrop-blur-lg px-4 py-2 rounded-xl flex-row items-center"
-          >
-            <Sparkles size={18} color="white" />
-            <Text className="text-white font-rbold ml-2">Try AI</Text>
-          </TouchableOpacity>
-        </View>
+	const EXPENSE_CATEGORIES = [
+		{
+			id: 'food',
+			name: 'Food',
+			icon: <Utensils color="white" size={20} />,
+			colors: ['#ef4444', '#dc2626'],
+		},
+		{
+			id: 'transport',
+			name: 'Transport',
+			icon: <Bus color="white" size={20} />,
+			colors: ['#f97316', '#ea580c'],
+		},
+		{
+			id: 'education',
+			name: 'Education',
+			icon: <Book color="white" size={20} />,
+			colors: ['#3b82f6', '#2563eb'],
+		},
+		{
+			id: 'entertainment',
+			name: 'Entertainment',
+			icon: <Music color="white" size={20} />,
+			colors: ['#8b5cf6', '#7c3aed'],
+		},
+		{
+			id: 'shopping',
+			name: 'Shopping',
+			icon: <ShoppingCart color="white" size={20} />,
+			colors: ['#ec4899', '#db2777'],
+		},
+	];
 
-        <FormSection title="Type" icon={ChevronRight}>
-          <TypeSelector
-            type={state$.type.get()}
-            onTypeChange={(t) => state$.type.set(t)}
-          />
-        </FormSection>
+	// Animation values
+	const formProgress = useSharedValue(0);
+	const submitEnabled = useSharedValue(0);
+	const recurringAnim = useSharedValue(0);
 
-        <FormSection title="Amount" icon={DollarSign} description="How much?">
-          <InputField
-            placeholder="0.00"
-            keyboardType="decimal-pad"
-            value={state$.amount.get()}
-            onChangeText={(text) => state$.amount.set(text)}
-            className="text-2xl"
-          />
-        </FormSection>
+	// Reset category when transaction type changes
+	useEffect(() => {
+		setSelectedCategory(null);
+	}, [selectedType]);
 
-        <FormSection title="Details" icon={FileText}>
-          <View className="space-y-4">
-            <InputField
-              label="Description"
-              placeholder="What's this for?"
-              value={state$.description.get()}
-              onChangeText={(text) => state$.description.set(text)}
-            />
-            
-            <CategorySelector
-              transactionType={state$.type.get()}
-              selectedCategory={state$.category.get()}
-              onSelectCategory={(category) => state$.category.set(category)}
-            />
+	// Update form progress based on filled fields
+	useEffect(() => {
+		const isFormValid =
+			description.trim().length > 0 && amount.trim().length > 0 && selectedCategory !== null;
 
-            <TouchableOpacity
-              className="bg-gray-50 dark:bg-gray-700 rounded-xl px-4 py-3.5"
-              onPress={() => state$.showDatePicker.set(true)}
-            >
-              <Text className="text-gray-900 dark:text-white font-rmedium">
-                {state$.date.get().toLocaleDateString()}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </FormSection>
+		submitEnabled.value = withTiming(isFormValid ? 1 : 0, {
+			duration: 300,
+			easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+		});
 
-        <FormSection title="Additional Info" icon={Tag}>
-          <View className="gap-3">
-            <InputField
-              placeholder="Add tags (comma-separated)"
-              value={state$.tags.get().join(', ')}
-              onChangeText={(text) => state$.tags.set(text.split(',').map(tag => tag.trim()))}
-            />
+		let progress = 0;
+		if (description) progress += 0.2;
+		if (amount) progress += 0.2;
+		if (selectedType) progress += 0.2;
+		if (selectedCategory) progress += 0.2;
+		if (isRecurring ? recurringPeriod : true) progress += 0.2;
 
-            <InputField
-              placeholder="Add notes"
-              multiline
-              numberOfLines={4}
-              value={state$.notes.get()}
-              onChangeText={(text) => state$.notes.set(text)}
-            />
+		formProgress.value = withTiming(progress, {
+			duration: 600,
+			easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+		});
+	}, [description, amount, selectedType, selectedCategory, isRecurring, recurringPeriod]);
 
-            <InputField
-              placeholder="Location"
-              value={state$.location.get()}
-              onChangeText={(text) => state$.location.set(text)}
-            />
+	useEffect(() => {
+		recurringAnim.value = withTiming(isRecurring ? 1 : 0, {
+			duration: 300,
+			easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+		});
+	}, [isRecurring]);
 
-            <View className="flex-row items-center justify-between bg-gray-50 dark:bg-gray-700 rounded-xl px-4 py-3">
-              <Text className="font-rmedium text-gray-900 dark:text-white">Essential</Text>
-              <Switch
-                value={state$.isEssential.get()}
-                onValueChange={(value) => state$.isEssential.set(value)}
-                trackColor={{ false: "#767577", true: "#81b0ff" }}
-                thumbColor={state$.isEssential.get() ? "#f5dd4b" : "#f4f3f4"}
-              />
-            </View>
+	// Animated styles
+	const progressBarStyle = useAnimatedStyle(() => {
+		return {
+			width: `${formProgress.value * 100}%`,
+			backgroundColor: interpolateColor(
+				formProgress.value,
+				[0, 0.5, 1],
+				['#f97316', '#f59e0b', '#10b981']
+			),
+		};
+	});
 
-            <RecurrenceSelector
-              selectedRecurrence={state$.recurrence.get()}
-              onSelectRecurrence={(recurrence) => state$.recurrence.set(recurrence)}
-            />
-          </View>
-        </FormSection>
+	const submitButtonStyle = useAnimatedStyle(() => {
+		return {
+			opacity: submitEnabled.value,
+		};
+	});
 
-        <Button
-          title="Create Transaction"
-          onPress={handleCreateTransaction}
-          variant="primary"
-          className="mt-6 rounded-xl py-4"
-        />
-      </ScrollView>
-    </SafeAreaView>
-  );
-});
+	const recurringContainerStyle = useAnimatedStyle(() => {
+		return {
+			height: recurringAnim.value * 100,
+			opacity: recurringAnim.value,
+			marginBottom: recurringAnim.value * 24,
+		};
+	});
 
-export default CreateTransaction;
+	// Transaction type options scale
+	const transactionTypes = [
+		{
+			type: TransactionType.INCOME,
+			icon: <ArrowUp color="white" size={20} />,
+			label: 'Income',
+			colors: ['#0ea5e9', '#10b981'],
+		},
+		{
+			type: TransactionType.EXPENSE,
+			icon: <ArrowDown color="white" size={20} />,
+			label: 'Expense',
+			colors: ['#f97316', '#ef4444'],
+		},
+	];
+
+	// Date picker handling
+	const onDateChange = (event: Event, selectedDate: Date) => {
+		const currentDate = selectedDate || date;
+		setShowDatePicker(Platform.OS === 'ios');
+		setDate(currentDate);
+	};
+
+	// Handle form submission
+	const handleSubmit = () => {
+		if (!description || !amount || !selectedCategory) return;
+
+		const newTransaction = {
+			id: Date.now().toString(),
+			description,
+			amount: parseFloat(amount) * (selectedType === TransactionType.EXPENSE ? -1 : 1),
+			type: selectedType,
+			categoryId: selectedCategory,
+			date,
+			status: TransactionStatus.PENDING,
+			isRecurring,
+			recurringPeriod: isRecurring ? recurringPeriod : null,
+		};
+
+		console.log('New transaction:', newTransaction);
+		// Here you would submit to your state management or API scale
+
+		// Reset form with animation
+		setDescription('');
+		setAmount('');
+		setSelectedCategory(null);
+		setDate(new Date());
+		setIsRecurring(false);
+		setRecurringPeriod('monthly');
+	};
+
+	const recurringOptions = [
+		{ value: 'daily', label: 'Daily' },
+		{ value: 'weekly', label: 'Weekly' },
+		{ value: 'monthly', label: 'Monthly' },
+		{ value: 'quarterly', label: 'Quarterly' },
+		{ value: 'yearly', label: 'Yearly' },
+	];
+
+	return (
+		<KeyboardAvoidingView
+			behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+			className="flex-1"
+		>
+			<ScrollView className="flex-1 bg-white" contentContainerClassName="pb-24">
+				{/* Progress Indicator */}
+				<View className="h-1 w-full bg-gray-100 mb-6">
+					<Animated.View className="h-1 rounded-r" style={progressBarStyle} />
+				</View>
+
+				<View className="px-5">
+					<Animated.Text
+						entering={FadeIn.duration(600)}
+						className="text-3xl font-rbold text-gray-900 mb-6"
+					>
+						Add Transaction
+					</Animated.Text>
+
+					{/* Description Input */}
+					<Animated.View entering={SlideInUp.delay(100).springify()} className="mb-6">
+						<Text className="text-base font-rmedium text-gray-600 mb-2">What was it for?</Text>
+						<View className="flex-row items-center bg-gray-50 rounded-xl p-4 border border-gray-200">
+							<TextInput
+								className="flex-1 text-sm font-rregular text-gray-900 ml-2"
+								placeholder="Coffee, groceries, gas money..."
+								placeholderTextColor="#9ca3af"
+								value={description}
+								onChangeText={setDescription}
+							/>
+						</View>
+					</Animated.View>
+
+					{/* Amount Input */}
+					<Animated.View entering={SlideInUp.delay(200).springify()} className="mb-6">
+						<Text className="text-base font-rmedium text-gray-600 mb-2">How much?</Text>
+						<View className="flex-row items-center bg-gray-50 rounded-xl p-4 border border-gray-200">
+							<DollarSign size={20} color="#6b7280" />
+							<TextInput
+								className="flex-1 text-sm font-rregular text-gray-900 ml-2"
+								placeholder="0.00"
+								placeholderTextColor="#9ca3af"
+								keyboardType="decimal-pad"
+								value={amount}
+								onChangeText={setAmount}
+							/>
+						</View>
+					</Animated.View>
+
+					{/* Transaction Type Selector */}
+					<Animated.View entering={SlideInUp.delay(300).springify()} className="mb-6">
+						<Text className="text-base font-rmedium text-gray-600 mb-2">Transaction Type</Text>
+						<ScrollView horizontal showsHorizontalScrollIndicator={false} className="pb-2">
+							{transactionTypes.map((item) => {
+								const isSelected = selectedType === item.type;
+								return (
+									<AnimatedTouchable
+										key={item.type}
+										onPress={() => setSelectedType(item.type)}
+										className={`mr-3 rounded-xl overflow-hidden`}
+										style={{ opacity: !isSelected ? 85 : 100 }}
+									>
+										<LinearGradient
+											colors={item.colors}
+											start={{ x: 0, y: 0 }}
+											end={{ x: 1, y: 1 }}
+											className="px-4 py-3 flex-row items-center"
+										>
+											<View className="mr-2">{item.icon}</View>
+											<Text className="font-rmedium text-white text-sm">{item.label}</Text>
+											{isSelected && (
+												<View className="ml-2 bg-white bg-opacity-30 rounded-xl p-1">
+													<CheckCircle size={12} color="gray" />
+												</View>
+											)}
+										</LinearGradient>
+									</AnimatedTouchable>
+								);
+							})}
+						</ScrollView>
+					</Animated.View>
+
+					{/* Category Selector - Conditionally render based on type */}
+					<Animated.View entering={SlideInUp.delay(400).springify()} className="mb-6">
+						<Text className="text-base font-rmedium text-gray-600 mb-2">
+							{selectedType === TransactionType.INCOME ? 'Income Source' : 'Expense Category'}
+						</Text>
+						<View className="flex-row flex-wrap">
+							{(selectedType === TransactionType.INCOME
+								? INCOME_CATEGORIES
+								: EXPENSE_CATEGORIES
+							).map((category) => {
+								const isSelected = selectedCategory === category.id;
+								return (
+									<AnimatedTouchable
+										key={category.id}
+										onPress={() => setSelectedCategory(category.id)}
+										className={`mr-3 mb-3 rounded-xl overflow-hidden`}
+										style={{ opacity: !isSelected ? 85 : 100 }}
+									>
+										<LinearGradient
+											colors={category.colors}
+											start={{ x: 0, y: 0 }}
+											end={{ x: 1, y: 1 }}
+											className="px-4 py-3 flex-row items-center rounded-xl"
+										>
+											<View className="mr-2">{category.icon}</View>
+											<Text className="font-rmedium text-white text-sm">{category.name}</Text>
+											{isSelected && (
+												<View className="ml-2 bg-white bg-opacity-30 rounded-xl p-1">
+													<Check size={12} color="gray" />
+												</View>
+											)}
+										</LinearGradient>
+									</AnimatedTouchable>
+								);
+							})}
+						</View>
+					</Animated.View>
+
+					{/* Date Picker */}
+					<Animated.View entering={SlideInUp.delay(500).springify()} className="mb-6">
+						<Text className="text-base font-rmedium text-gray-600 mb-2">When?</Text>
+						<TouchableOpacity
+							onPress={() => setShowDatePicker(true)}
+							className="flex-row items-center justify-between bg-gray-50 rounded-xl p-4 border border-gray-200"
+						>
+							<View className="flex-row items-center">
+								<CalendarDays size={20} color="#6b7280" />
+								<Text className="ml-3 text-sm font-rregular text-gray-900">
+									{date.toLocaleDateString(undefined, {
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric',
+									})}
+								</Text>
+							</View>
+							<ArrowRight size={18} color="#6b7280" />
+						</TouchableOpacity>
+
+						{showDatePicker && (
+							<DateTimePicker
+								value={date}
+								mode="date"
+								display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+								onChange={onDateChange}
+							/>
+						)}
+					</Animated.View>
+
+					{/* Recurring Toggle */}
+					<Animated.View entering={SlideInUp.delay(600).springify()} className="mb-6">
+						<TouchableOpacity
+							onPress={() => setIsRecurring(!isRecurring)}
+							className="flex-row items-center justify-between mb-3"
+						>
+							<View className="flex-row items-center">
+								<RepeatIcon size={20} color={isRecurring ? '#6366f1' : '#6b7280'} />
+								<Text
+									className={`ml-3 text-base font-rmedium ${isRecurring ? 'text-indigo-500' : 'text-gray-600'}`}
+								>
+									Repeating Transaction
+								</Text>
+							</View>
+							<View
+								className={`w-12 h-6 rounded-full px-0.5 flex justify-center ${isRecurring ? 'bg-indigo-100' : 'bg-gray-200'}`}
+							>
+								<Animated.View
+									className={`w-5 h-5 rounded-full ${isRecurring ? 'bg-indigo-500 self-end' : 'bg-gray-400 self-start'}`}
+								/>
+							</View>
+						</TouchableOpacity>
+
+						{/* Recurring Options */}
+						<Animated.View style={recurringContainerStyle} className="overflow-hidden">
+							<Text className="text-base font-rmedium text-gray-600 mb-2">How often?</Text>
+							<View className="flex-row flex-wrap">
+								{recurringOptions.map((option) => {
+									const isSelected = recurringPeriod === option.value;
+									return (
+										<TouchableOpacity
+											key={option.value}
+											onPress={() => setRecurringPeriod(option.value)}
+											className={`mr-3 mb-2 px-4 py-2 rounded-xl border ${
+												isSelected
+													? 'bg-indigo-100 border-indigo-300'
+													: 'bg-gray-50 border-gray-200'
+											}`}
+										>
+											<Text
+												className={`font-aregular text-sm ${
+													isSelected ? 'text-indigo-500' : 'text-gray-600'
+												}`}
+											>
+												{option.label}
+											</Text>
+										</TouchableOpacity>
+									);
+								})}
+							</View>
+						</Animated.View>
+					</Animated.View>
+				</View>
+			</ScrollView>
+
+			{/* Submit Button - Fixed to bottom */}
+			<Animated.View style={submitButtonStyle} className="absolute bottom-8 left-0 right-0 px-5">
+				<TouchableOpacity
+					onPress={handleSubmit}
+					disabled={!description || !amount || !selectedCategory}
+					className="w-full"
+				>
+					<LinearGradient
+						colors={
+							selectedType === TransactionType.INCOME
+								? ['#0ea5e9', '#10b981']
+								: ['#f97316', '#ef4444']
+						}
+						start={{ x: 0, y: 0 }}
+						end={{ x: 1, y: 0 }}
+						className="w-full rounded-xl py-4 flex-row items-center justify-center shadow-lg"
+					>
+						<Plus size={20} color="white" />
+						<Text className="ml-2 text-white dark:text-black-100 font-rbold text-lg">
+							Save {selectedType === TransactionType.INCOME ? 'Income' : 'Expense'}
+						</Text>
+					</LinearGradient>
+				</TouchableOpacity>
+			</Animated.View>
+		</KeyboardAvoidingView>
+	);
+};
+
+export default CreateTransactionScreen;
+// Compare this snippet from note/src/app/transactions.tsx:

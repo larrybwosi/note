@@ -1,298 +1,214 @@
 import { useState } from 'react';
+import { View, Text, TouchableOpacity, Switch, ScrollView, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  View,
-  Text,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import Animated, {
-  FadeInDown,
-  FadeIn,
-  withSpring,
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
-import {
-  Settings,
-  Bell,
-  Moon,
-  Sun,
-  Palette,
-  Lock,
-  DollarSign,
-  Fingerprint,
-  Globe,
-  ChevronRight,
-  Shield,
-  Clock,
-  Smartphone,
-  Eye,
-  Vibrate,
+	User,
+	Bell,
+	Moon,
+	Shield,
+	CreditCard,
+	HelpCircle,
+	ChevronRight,
+	LogOut,
+	Camera,
+	Globe,
+	Wallet,
+	Lock,
+	Gift,
+  Group,
 } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { router } from 'expo-router';
+import { colorScheme } from 'nativewind';
 
-// Types
-interface ThemeOption {
-  id: string;
-  name: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    background: string;
-  };
+interface SettingItemProps {
+	icon: React.ReactNode;
+	title: string;
+	subtitle?: string;
+	onPress: () => void;
+	rightElement?: React.ReactNode;
+	destructive?: boolean;
 }
 
-interface NotificationSetting {
-  id: string;
-  title: string;
-  description: string;
-  enabled: boolean;
-}
-
-// Custom Components
-const SettingSection: React.FC<{
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}> = ({ title, icon, children }) => (
-  <Animated.View entering={FadeInDown.duration(400)} className="mb-8">
-    <View className="flex-row items-center mb-4">
-      {icon}
-      <Text className="text-xl font-amedium  dark:text-gray-50  text-gray-800 ml-2">{title}</Text>
-    </View>
-    {children}
-  </Animated.View>
+const SettingItem: React.FC<SettingItemProps> = ({
+	icon,
+	title,
+	subtitle,
+	onPress,
+	rightElement,
+	destructive = false,
+}) => (
+	<TouchableOpacity
+		onPress={onPress}
+		className="flex-row items-center p-4 bg-white dark:bg-gray-800 rounded-2xl mb-2"
+	>
+		<View
+			className={`w-10 h-10 rounded-xl items-center justify-center ${
+				destructive ? 'bg-red-100 dark:bg-red-900/30' : 'bg-gray-100 dark:bg-gray-700'
+			}`}
+		>
+			{icon}
+		</View>
+		<View className="flex-1 ml-3">
+			<Text
+				className={`font-rmedium ${destructive ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}
+			>
+				{title}
+			</Text>
+			{subtitle && <Text className="text-gray-500 dark:text-gray-400 text-sm">{subtitle}</Text>}
+		</View>
+		{rightElement || <ChevronRight size={20} className="text-gray-400" />}
+	</TouchableOpacity>
 );
 
-const SettingCard: React.FC<{
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  onPress: () => void;
-}> = ({ title, description, icon, onPress }) => {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <Animated.View style={animatedStyle}>
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={() => (scale.value = withSpring(0.98))}
-        onPressOut={() => (scale.value = withSpring(1))}
-        className="bg-white  dark:bg-gray-900 p-4 rounded-xl mb-3 flex-row items-center border  dark:border-gray-500 border-gray-100"
-      >
-        <View className="bg-blue-50 dark:bg-gray-900 p-3 rounded-xl">{icon}</View>
-        <View className="flex-1 ml-3">
-          <Text className="text-gray-800 dark:text-gray-100 font-amedium">{title}</Text>
-          <Text className="text-gray-600 mt-1 font-aregular text-sm">
-            {description}
-          </Text>
-        </View>
-        <ChevronRight size={20} color="#6b7280" />
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-
-const ColorThemeButton: React.FC<{
-  theme: ThemeOption;
-  selected: boolean;
-  onSelect: () => void;
-}> = ({ theme, selected, onSelect }) => (
-  <TouchableOpacity
-    onPress={onSelect}
-    className={`p-3 rounded-xl mr-3 border-2 ${
-      selected ? 'border-blue-500' : 'border-transparent'
-    }`}
-    style={{ backgroundColor: theme.colors.primary }}
-  >
-    <Text className="text-white font-medium">{theme.name}</Text>
-  </TouchableOpacity>
+const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
+	<Text className="text-gray-500 dark:text-gray-400 font-rmedium text-sm mb-2 ml-1">{title}</Text>
 );
 
-const SettingsScreen: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(false);
-  const [biometricEnabled, setBiometricEnabled] = useState(true);
-  const [selectedTheme, setSelectedTheme] = useState('default');
-  const [notifications, setNotifications] = useState<NotificationSetting[]>([
-    {
-      id: '1',
-      title: 'Transaction Alerts',
-      description: 'Get notified about new transactions',
-      enabled: true,
-    },
-    {
-      id: '2',
-      title: 'Budget Updates',
-      description: 'Receive updates about your budget status',
-      enabled: true,
-    },
-    {
-      id: '3',
-      title: 'Investment Alerts',
-      description: 'Stay informed about investment opportunities',
-      enabled: false,
-    },
-  ]);
-  const colorScheme = useColorScheme()
+const ProfileSettings = () => {
+	const darkMode = colorScheme.get() === 'dark';
+	const [notifications, setNotifications] = useState(true);
 
-  const themes: ThemeOption[] = [
-    {
-      id: 'default',
-      name: 'Ocean',
-      colors: { primary: '#3b82f6', secondary: '#93c5fd', background: '#eff6ff' },
-    },
-    {
-      id: 'emerald',
-      name: 'Forest',
-      colors: { primary: '#059669', secondary: '#6ee7b7', background: '#ecfdf5' },
-    },
-    {
-      id: 'purple',
-      name: 'Twilight',
-      colors: { primary: '#7c3aed', secondary: '#c4b5fd', background: '#f5f3ff' },
-    },
-  ];
+	const userProfile = {
+		name: 'Alex Johnson',
+		email: 'alex.johnson@example.com',
+		plan: 'Premium',
+		imageUrl:
+			'https://images.pexels.com/photos/3307616/pexels-photo-3307616.jpeg?auto=compress&cs=tinysrgb&w=200', // Using placeholder as per instructions
+	};
 
-  return (
-    <ScrollView className="flex-1 bg-gray-50  dark:bg-gray-900">
-      <View className="p-3">
-        {/* Header */}
-        <Animated.View entering={FadeIn.delay(200)} className="mb-8">
-          <Text className="text-3xl font-rbold text-gray-800 dark:text-gray-100">Settings</Text>
-          <Text className="text-gray-600 font-aregular text-lg mt-2">
-            Customize your app experience
-          </Text>
-        </Animated.View>
+	return (
+		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
+			<ScrollView className="flex-1 p-4">
+				{/* Profile Header */}
+				<Animated.View entering={FadeInDown.duration(400)} className="items-center mb-6">
+					<View className="relative">
+						<Image source={{ uri: userProfile.imageUrl }} className="w-24 h-24 rounded-full" />
+						<TouchableOpacity
+							className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full"
+							onPress={() => {
+								/* Handle photo change */
+							}}
+						>
+							<Camera size={20} color="white" />
+						</TouchableOpacity>
+					</View>
+					<Text className="text-xl font-rbold text-gray-900 dark:text-white mt-4">
+						{userProfile.name}
+					</Text>
+					<Text className="text-gray-500 dark:text-gray-400">{userProfile.email}</Text>
+					<View className="bg-purple-100 dark:bg-purple-900/30 px-4 py-1 rounded-full mt-2">
+						<Text className="text-purple-600 dark:text-purple-300 font-rmedium">
+							{userProfile.plan}
+						</Text>
+					</View>
+				</Animated.View>
 
-        {/* Appearance */}
-        <SettingSection title="Appearance" icon={<Palette size={24} color="#3b82f6" />}>
-          <View className="bg-white dark:bg-black-200 p-4 rounded-xl mb-4">
-            <View className="flex-row items-center justify-between mb-4">
-              <View className="flex-row items-center">
-                {darkMode ? <Moon size={20} color="#6b7280" /> : <Sun size={20} color="#6b7280" />}
-                <Text className="text-gray-800 dark:text-gray-50 font-amedium ml-2">Dark Mode</Text>
-              </View>
-              <Switch
-                value={darkMode}
-                onValueChange={() => colorScheme.toggleColorScheme()}
-                trackColor={{ false: '#cbd5e1', true: '#93c5fd' }}
-                thumbColor={darkMode ? '#3b82f6' : '#f4f4f5'}
-              />
-            </View>
-            <Text className="text-gray-600 font-aregular text-sm mb-4">Color Theme</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {themes.map((theme) => (
-                <ColorThemeButton
-                  key={theme.id}
-                  theme={theme}
-                  selected={selectedTheme === theme.id}
-                  onSelect={() => setSelectedTheme(theme.id)}
-                />
-              ))}
-            </ScrollView>
-          </View>
-        </SettingSection>
+				{/* Account Settings */}
+				<Animated.View entering={FadeInDown.delay(100).duration(400)} className="mb-6">
+					<SectionHeader title="Account" />
+					<SettingItem
+						icon={<User size={20} className="text-blue-500" />}
+						title="Personal Information"
+						subtitle="Update your profile details"
+						onPress={() => {}}
+					/>
+					<SettingItem
+						icon={<Wallet size={20} className="text-green-500" />}
+						title="Payment Methods"
+						subtitle="Manage your payment options"
+						onPress={() => {}}
+					/>
+					<SettingItem
+						icon={<Gift size={20} className="text-purple-500" />}
+						title="Subscription Plan"
+						subtitle="Manage your subscription"
+						onPress={() => {}}
+					/>
+				</Animated.View>
 
-        {/* Notifications */}
-        <SettingSection title="Notifications" icon={<Bell size={24} color="#3b82f6" />}>
-          {notifications.map((notification) => (
-            <View
-              key={notification.id}
-              className="bg-white dark:bg-gray-900 p-4 rounded-xl mb-3 border border-gray-100  dark:border-gray-500 "
-            >
-              <View className="flex-row items-center justify-between">
-                <View className="flex-1">
-                  <Text className="text-gray-800  dark:text-gray-200  font-amedium">
-                    {notification.title}
-                  </Text>
-                  <Text className="text-gray-600  dark:text-gray-10  text-xs font-aregular mt-1">
-                    {notification.description}
-                  </Text>
-                </View>
-                <Switch
-                  value={notification.enabled}
-                  onValueChange={(value) => {
-                    setNotifications(
-                      notifications.map((n) =>
-                        n.id === notification.id ? { ...n, enabled: value } : n
-                      )
-                    );
-                  }}
-                  trackColor={{ false: '#cbd5e1', true: '#93c5fd' }}
-                  thumbColor={notification.enabled ? '#3b82f6' : '#f4f4f5'}
-                />
-              </View>
-            </View>
-          ))}
-        </SettingSection>
+				{/* Preferences */}
+				<Animated.View entering={FadeInDown.delay(200).duration(400)} className="mb-6">
+					<SectionHeader title="Preferences" />
+					<SettingItem
+						icon={<Moon size={20} className="text-indigo-500" />}
+						title="Dark Mode"
+						onPress={() => colorScheme.set(darkMode ? 'light' : 'dark')}
+						rightElement={
+							<Switch
+								value={darkMode}
+								onValueChange={() => colorScheme.set(darkMode ? 'light' : 'dark')}
+								trackColor={{ false: '#CBD5E1', true: '#818CF8' }}
+								thumbColor={darkMode ? '#4F46E5' : '#F1F5F9'}
+							/>
+						}
+					/>
+					<SettingItem
+						icon={<Bell size={20} className="text-yellow-500" />}
+						title="Notifications"
+						onPress={() => setNotifications(!notifications)}
+						rightElement={
+							<Switch
+								value={notifications}
+								onValueChange={setNotifications}
+								trackColor={{ false: '#CBD5E1', true: '#818CF8' }}
+								thumbColor={notifications ? '#4F46E5' : '#F1F5F9'}
+							/>
+						}
+					/>
+					<SettingItem
+						icon={<Globe size={20} className="text-cyan-500" />}
+						title="Language"
+						subtitle="English (US)"
+						onPress={() => {}}
+					/>
+					<SettingItem
+						icon={<Group size={20} className="text-cyan-500" />}
+						title="Categories"
+						subtitle="Manage your spending and income categories"
+						onPress={() => router.push('/categories')}
+					/>
+				</Animated.View>
 
-        <TouchableOpacity onPress={()=>router.navigate('/auth')}>
-          <Text>Auth</Text>
-        </TouchableOpacity>
+				{/* Security */}
+				<Animated.View entering={FadeInDown.delay(300).duration(400)} className="mb-6">
+					<SectionHeader title="Security" />
+					<SettingItem
+						icon={<Lock size={20} className="text-orange-500" />}
+						title="Change Password"
+						onPress={() => {}}
+					/>
+					<SettingItem
+						icon={<Shield size={20} className="text-teal-500" />}
+						title="Two-Factor Authentication"
+						subtitle="Add extra security to your account"
+						onPress={() => {}}
+					/>
+				</Animated.View>
 
-        {/* Security */}
-        <SettingSection title="Security" icon={<Lock size={24} color="#3b82f6" />}>
-          <SettingCard
-            title="Biometric Authentication"
-            description="Use Face ID or Touch ID to secure your app"
-            icon={<Fingerprint size={24} color="#3b82f6" />}
-            onPress={() => setBiometricEnabled(!biometricEnabled)}
-          />
-          <SettingCard
-            title="Password & PIN"
-            description="Change your security credentials"
-            icon={<Shield size={24} color="#3b82f6" />}
-            onPress={() => Alert.alert('Change Password', 'Coming soon!')}
-          />
-        </SettingSection>
+				{/* Support */}
+				<Animated.View entering={FadeInDown.delay(400).duration(400)} className="mb-6">
+					<SectionHeader title="Support" />
+					<SettingItem
+						icon={<HelpCircle size={20} className="text-blue-500" />}
+						title="Help & Support"
+						subtitle="Get help with your account"
+						onPress={() => {}}
+					/>
+				</Animated.View>
 
-        {/* Preferences */}
-        <SettingSection title="Preferences" icon={<Settings size={24} color="#3b82f6" />}>
-          <SettingCard
-            title="Language"
-            description="Choose your preferred language"
-            icon={<Globe size={24} color="#3b82f6" />}
-            onPress={() => Alert.alert('Language Settings', 'Coming soon!')}
-          />
-          <SettingCard
-            title="Currency"
-            description="Set your default currency"
-            icon={<DollarSign size={24} color="#3b82f6" />}
-            onPress={() => Alert.alert('Currency Settings', 'Coming soon!')}
-          />
-          <SettingCard
-            title="Time Zone"
-            description="Configure your local time zone"
-            icon={<Clock size={24} color="#3b82f6" />}
-            onPress={() => Alert.alert('Time Zone Settings', 'Coming soon!')}
-          />
-        </SettingSection>
-
-        {/* App Settings */}
-        <SettingSection title="App Settings" icon={<Smartphone size={24} color="#3b82f6" />}>
-          <SettingCard
-            title="App Permissions"
-            description="Manage app access and permissions"
-            icon={<Eye size={24} color="#3b82f6" />}
-            onPress={() => Alert.alert('App Permissions', 'Coming soon!')}
-          />
-          <SettingCard
-            title="Haptic Feedback"
-            description="Configure vibration and haptics"
-            icon={<Vibrate size={24} color="#3b82f6" />}
-            onPress={() => Alert.alert('Haptic Settings', 'Coming soon!')}
-          />
-        </SettingSection>
-      </View>
-    </ScrollView>
-  );
+				{/* Logout */}
+				<Animated.View entering={FadeInDown.delay(500).duration(400)}>
+					<SettingItem
+						icon={<LogOut size={20} className="text-red-500" />}
+						title="Log Out"
+						onPress={() => {}}
+						destructive
+					/>
+				</Animated.View>
+			</ScrollView>
+		</SafeAreaView>
+	);
 };
 
-export default SettingsScreen;
+export default ProfileSettings;

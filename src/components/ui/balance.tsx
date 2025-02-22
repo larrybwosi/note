@@ -60,7 +60,7 @@ export default function BalanceCard () {
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           activeOpacity={0.8}
-          onPress={()=>router.navigate('auth')}
+          onPress={()=>router.navigate('create.transaction')}
         >
           <Text className="text-white font-amedium mr-1">Pay</Text>
           <DollarSign size={16} color="white" />
