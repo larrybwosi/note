@@ -104,10 +104,11 @@ const FinanceScreen: React.FC = () => {
             Transactions
           </Text>
           <TouchableOpacity
-            className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-full p-2"
+            className="rounded-xl flex-row items-center gap-1 p-2 dark:bg-blue-500"
             onPress={() => router.navigate('create.transactions')}
           >
-            <PlusCircle size={24} color="white" />
+            <Text className='dark:text-gray-200'>Create</Text>
+            <PlusCircle size={18} color="white" />
           </TouchableOpacity>
         </View>
 

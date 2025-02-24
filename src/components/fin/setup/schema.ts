@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BudgetRuleTypeSchema } from 'src/store/src/types';
 
+const BudgetRuleTypeSchema = z.enum(['50/30/20', '70/20/10', '15/65/20', 'CUSTOM']);
 export const financeSetupSchema = z.object({
   currentBalance: z.string().min(1, 'Current balance is required').regex(/^\d+(\.\d{1,2})?$/, 'Invalid currency format'),
   monthlyIncome: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Invalid currency format'),

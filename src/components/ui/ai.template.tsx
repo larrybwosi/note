@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
-import { useObservable, useComputed, observer, Reactive } from '@legendapp/state/react';
+import { useObservable, useComputed, observer, Reactive, use$ } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Observable, observable } from '@legendapp/state';
@@ -183,7 +183,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
         $className="bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-4 rounded-xl mb-4 min-h-[100px] font-aregular"
         placeholder={inputPlaceholder}
         placeholderTextColor="#6B7280"
-        value={prompt.get()}
+        value={use$(prompt)}
         onChangeText={(text) => prompt.set(text)}
         multiline
         maxLength={500}
@@ -191,14 +191,14 @@ const PromptInput: React.FC<PromptInputProps> = ({
       />
       
       <TouchableOpacity
-        onPress={() => submit(prompt.get())}
-        disabled={isLoading.get()}
+        onPress={() => submit(use$(prompt))}
+        disabled={use$(isLoading)}
         className={`${
-          isLoading.get() ? 'bg-indigo-400' : 'bg-indigo-600'
+          use$(isLoading) ? 'bg-indigo-400' : 'bg-indigo-600'
         } p-4 rounded-xl flex-row justify-center items-center`}
         style={{ elevation: 3 }}
       >
-        {isLoading.get() ? (
+        {use$(isLoading) ? (
           <ActivityIndicator color="white" size="small" />
         ) : (
           <>
@@ -211,7 +211,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
       </TouchableOpacity>
       
       <Text className="text-right mt-2 text-gray-500 dark:text-gray-400">
-        {prompt.get().length}/500
+        {use$(prompt).length}/500
       </Text>
     </Animated.View>
   );
@@ -219,9 +219,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
 
 const ExamplePrompts: React.FC<{ store: any; prompts: string[]; promptStyle:any; theme:Theme }> = observer(({ store,  theme, prompts, promptStyle }) => {
   const scrollX = useSharedValue(0);
-  const responses = useComputed(() => store.responses.get());
+  const responses = useComputed(() => store.use$(responses));
 
-  if (responses.get()) return null;
+  if (use$(responses)) return null;
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
     scrollX.value = event.contentOffset.x;
@@ -300,7 +300,7 @@ const ExamplePrompts: React.FC<{ store: any; prompts: string[]; promptStyle:any;
 const MessageBanner: React.FC<{ type: 'error' | 'success'; store: any }> = observer(({ type, store }) => {
   const message = useObservable(type === 'error' ? store.error : store.successMessage);
   
-  if (!message.get()) return null;
+  if (!use$(message)) return null;
   
   const backgroundColor = type === 'error' 
     ? 'bg-red-100 dark:bg-red-900/50'
@@ -322,7 +322,7 @@ const MessageBanner: React.FC<{ type: 'error' | 'success'; store: any }> = obser
       
         color={type === 'error' ? '#991B1B' : '#166534'}
       />
-      <Text className={`${textColor} font-amedium ml-2`}>{message.get()}</Text>
+      <Text className={`${textColor} font-amedium ml-2`}>{use$(message)}</Text>
     </Animated.View>
   );
 });
@@ -332,7 +332,7 @@ const ResponsesList: React.FC<{
   ItemComponent: React.ComponentType<any>
   itemComponentProps?: Record<string, any>;
  }> = observer(({ store, ItemComponent, itemComponentProps }) => {
-  const responses = useComputed(() => store.responses.get());
+  const responses = useComputed(() => store.use$(responses));
   if (responses?.length === 0) return null;
   
   return (

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
-import { observer, useObservable } from '@legendapp/state/react';
+import { observer, use$, useObservable } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue, interpolateColor } from 'react-native-reanimated';
 import { z } from 'zod';
@@ -14,9 +14,8 @@ import Step2BudgetRule from 'src/components/fin/setup/step2';
 import Step3Categories from 'src/components/fin/setup/step3';
 import Step4Review from 'src/components/fin/setup/step4';
 import { useModal } from 'src/components/modals/provider';
-import { BudgetRuleTypeSchema } from 'src/store/src/types';
-import useFinanceStore from 'src/store/actions';
 
+const BudgetRuleTypeSchema = z.enum(['50/30/20', '70/20/10', '15/65/20', 'CUSTOM']);
 const rules = [
   {
     type: BudgetRuleTypeSchema.enum['50/30/20'],
@@ -47,7 +46,6 @@ const rules = [
 const FinanceSetup: React.FC = () => {
   const progressValue = useSharedValue(0);
   const { show } = useModal();
-  const { store} =useFinanceStore();
 
   const state$ = useObservable<FinanceSetupFormData & { step: number; activeTab: CategoryType }>({
     step: 1,
@@ -83,12 +81,12 @@ const FinanceSetup: React.FC = () => {
 
   const errors$ = useObservable<Partial<Record<keyof FinanceSetupFormData, string>>>({});
 
-  const { currentBalance, monthlyIncome, selectedRule, categories, activeTab, step } = state$.get();
-  const errors =errors$.get()
+  const { currentBalance, monthlyIncome, selectedRule, categories, activeTab, step } = use$(state$);
+  const errors =use$(errors$)
 
   useEffect(() => {
-    progressValue.value = withSpring((state$.step.get() - 1) / 3);
-  }, [state$.step.get()]);
+		progressValue.value = withSpring((use$(state$.step) - 1) / 3);
+	}, [use$(state$.step)]);
 
   const progressBarStyle = useAnimatedStyle(() => ({
     width: `${progressValue.value * 100}%`,
@@ -111,17 +109,19 @@ const FinanceSetup: React.FC = () => {
 
   const validateStep = (): boolean => {
     try {
-      switch (state$.step.get()) {
-        case 1:
-          financeSetupSchema.pick({ currentBalance: true, monthlyIncome: true }).parse(state$.get());
-          break;
-        case 2:
-          financeSetupSchema.pick({ selectedRule: true }).parse(state$.get());
-          break;
-        case 3:
-          financeSetupSchema.pick({ categories: true }).parse(state$.get());
-          break;
-      }
+      switch (use$(state$.step)) {
+				case 1:
+					financeSetupSchema
+						.pick({ currentBalance: true, monthlyIncome: true })
+						.parse(use$(state$));
+					break;
+				case 2:
+					financeSetupSchema.pick({ selectedRule: true }).parse(use$(state$));
+					break;
+				case 3:
+					financeSetupSchema.pick({ categories: true }).parse(use$(state$));
+					break;
+			}
       errors$.set({});
       return true;
     } catch (error) {
@@ -148,7 +148,7 @@ const FinanceSetup: React.FC = () => {
       // store.budgetConfig.monthlyIncome.set(parseFloat(monthlyIncome || '0'));
       // store.budgetConfig.rule.set(selectedRule);
       // store.budgetConfig.categories.set(categories.filter(cat => cat.isSelected));
-      console.log('Setup completed:', JSON.stringify(state$.get(), null, 2));
+      console.log('Setup completed:', JSON.stringify(use$(state$), null, 2));
       // formData.categories= formData.categories.map((cat)=>cat.id)
       // console.log(formData)
       // router.back();
@@ -164,7 +164,7 @@ const FinanceSetup: React.FC = () => {
             setCurrentBalance={state$.currentBalance.set}
             monthlyIncome={monthlyIncome}
             setMonthlyIncome={state$.monthlyIncome.set}
-            errors={errors$.get()}
+            errors={use$(errors$)}
           />
         );
       case 2:

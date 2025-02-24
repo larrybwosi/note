@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import Animated, { 
   FadeIn, 
@@ -16,8 +15,6 @@ import {
   Target
 } from 'lucide-react-native';
 import { router } from 'expo-router';
-
-const { width } = Dimensions.get('window');
 
 const FeatureCard = ({ icon: Icon, title, description }:any) => (
   <Animated.View 

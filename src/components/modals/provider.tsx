@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, ReactNode, memo } from 'react';
 import { Modal, View, TouchableWithoutFeedback } from 'react-native';
-import { observer, useObservable } from '@legendapp/state/react';
+import { observer, use$, useObservable } from '@legendapp/state/react';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -102,7 +102,7 @@ interface ModalProviderProps {
 
 const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
   const state$ = useObservable<ModalState>({ name: null });
-  const modalState = state$.get();
+  const modalState = use$(state$);
   const setModalState = state$.set;
 
   // Shared animation values

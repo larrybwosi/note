@@ -2,7 +2,7 @@ import { ExpoConfig } from 'expo/config';
 
 const config: ExpoConfig = {
   name: 'Dealio',
-  slug: 'Dealio',
+  slug: 'Note',
   scheme: 'dealio',
   version: '1.0.0',
   orientation: 'portrait',

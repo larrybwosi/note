@@ -8,7 +8,7 @@ import {
 	Platform,
 	KeyboardAvoidingView,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
 	useSharedValue,
@@ -40,14 +40,11 @@ import {
 	CalendarDays,
 	CheckCircle,
 } from 'lucide-react-native';
+import useStore from 'src/store/useStore';
+import { ICON_MAP, TransactionType } from 'src/types/transaction';
+import { router, useLocalSearchParams } from 'expo-router';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-
-// Enums
-const TransactionType = {
-	INCOME: 'income',
-	EXPENSE: 'expense',
-};
 
 const TransactionStatus = {
 	PENDING: 'pending',
@@ -55,97 +52,36 @@ const TransactionStatus = {
 };
 
 export const CreateTransactionScreen = () => {
-	// Form state
+	const { type } = useLocalSearchParams()
+	
 	const [description, setDescription] = useState('');
 	const [amount, setAmount] = useState('');
-	const [selectedType, setSelectedType] = useState(TransactionType.EXPENSE);
-	const [selectedCategory, setSelectedCategory] = useState(null);
+	const [selectedType, setSelectedType] = useState<TransactionType>(type as TransactionType || 'expense');
+	const [selectedCategory, setSelectedCategory] = useState<string>();
 	const [date, setDate] = useState(new Date());
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [isRecurring, setIsRecurring] = useState(false);
 	const [recurringPeriod, setRecurringPeriod] = useState('monthly');
 
-	// College student specific categories
-	const INCOME_CATEGORIES = [
-		{
-			id: 'part_time_job',
-			name: 'Part-time Job',
-			icon: <Briefcase color="white" size={20} />,
-			colors: ['#10b981', '#059669'],
-		},
-		{
-			id: 'allowance',
-			name: 'Allowance',
-			icon: <Gift color="white" size={20} />,
-			colors: ['#8b5cf6', '#7c3aed'],
-		},
-		{
-			id: 'scholarship',
-			name: 'Scholarship',
-			icon: <Award color="white" size={20} />,
-			colors: ['#ec4899', '#db2777'],
-		},
-		{
-			id: 'side_hustle',
-			name: 'Side Hustle',
-			icon: <Zap color="white" size={20} />,
-			colors: ['#f59e0b', '#d97706'],
-		},
-		{
-			id: 'refund',
-			name: 'Refund',
-			icon: <DollarSign color="white" size={20} />,
-			colors: ['#3b82f6', '#2563eb'],
-		},
-	];
+	const { addTransaction, categories } = useStore();
 
-	const EXPENSE_CATEGORIES = [
-		{
-			id: 'food',
-			name: 'Food',
-			icon: <Utensils color="white" size={20} />,
-			colors: ['#ef4444', '#dc2626'],
-		},
-		{
-			id: 'transport',
-			name: 'Transport',
-			icon: <Bus color="white" size={20} />,
-			colors: ['#f97316', '#ea580c'],
-		},
-		{
-			id: 'education',
-			name: 'Education',
-			icon: <Book color="white" size={20} />,
-			colors: ['#3b82f6', '#2563eb'],
-		},
-		{
-			id: 'entertainment',
-			name: 'Entertainment',
-			icon: <Music color="white" size={20} />,
-			colors: ['#8b5cf6', '#7c3aed'],
-		},
-		{
-			id: 'shopping',
-			name: 'Shopping',
-			icon: <ShoppingCart color="white" size={20} />,
-			colors: ['#ec4899', '#db2777'],
-		},
-	];
+	const INCOME_CATEGORIES = categories.filter((cat) => cat.type === 'income');
 
-	// Animation values
+	const EXPENSE_CATEGORIES = categories.filter((cat) => cat.type === 'expense');
+	
 	const formProgress = useSharedValue(0);
 	const submitEnabled = useSharedValue(0);
 	const recurringAnim = useSharedValue(0);
 
 	// Reset category when transaction type changes
 	useEffect(() => {
-		setSelectedCategory(null);
+		setSelectedCategory('');
 	}, [selectedType]);
 
 	// Update form progress based on filled fields
 	useEffect(() => {
 		const isFormValid =
-			description.trim().length > 0 && amount.trim().length > 0 && selectedCategory !== null;
+			description?.trim()?.length > 0 && amount?.trim()?.length > 0 && selectedCategory !== null;
 
 		submitEnabled.value = withTiming(isFormValid ? 1 : 0, {
 			duration: 300,
@@ -201,13 +137,13 @@ export const CreateTransactionScreen = () => {
 	// Transaction type options scale
 	const transactionTypes = [
 		{
-			type: TransactionType.INCOME,
+			type: 'income',
 			icon: <ArrowUp color="white" size={20} />,
 			label: 'Income',
 			colors: ['#0ea5e9', '#10b981'],
 		},
 		{
-			type: TransactionType.EXPENSE,
+			type: 'expense',
 			icon: <ArrowDown color="white" size={20} />,
 			label: 'Expense',
 			colors: ['#f97316', '#ef4444'],
@@ -215,7 +151,7 @@ export const CreateTransactionScreen = () => {
 	];
 
 	// Date picker handling
-	const onDateChange = (event: Event, selectedDate: Date) => {
+	const onDateChange = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
 		const currentDate = selectedDate || date;
 		setShowDatePicker(Platform.OS === 'ios');
 		setDate(currentDate);
@@ -228,25 +164,24 @@ export const CreateTransactionScreen = () => {
 		const newTransaction = {
 			id: Date.now().toString(),
 			description,
-			amount: parseFloat(amount) * (selectedType === TransactionType.EXPENSE ? -1 : 1),
+			amount: parseFloat(amount) * (selectedType === 'expense' ? -1 : 1),
 			type: selectedType,
 			categoryId: selectedCategory,
 			date,
-			status: TransactionStatus.PENDING,
+			status: TransactionStatus.COMPLETED,
 			isRecurring,
 			recurringPeriod: isRecurring ? recurringPeriod : null,
 		};
-
-		console.log('New transaction:', newTransaction);
-		// Here you would submit to your state management or API scale
-
+		 
+		addTransaction({...newTransaction,});
 		// Reset form with animation
 		setDescription('');
 		setAmount('');
-		setSelectedCategory(null);
-		setDate(new Date());
-		setIsRecurring(false);
-		setRecurringPeriod('monthly');
+		// setSelectedCategory('');
+		// setDate(new Date());
+		// setIsRecurring(false);
+		// setRecurringPeriod('monthly');
+		router.back();
 	};
 
 	const recurringOptions = [
@@ -315,7 +250,7 @@ export const CreateTransactionScreen = () => {
 								return (
 									<AnimatedTouchable
 										key={item.type}
-										onPress={() => setSelectedType(item.type)}
+										onPress={() => setSelectedType(item.type as TransactionType)}
 										className={`mr-3 rounded-xl overflow-hidden`}
 										style={{ opacity: !isSelected ? 85 : 100 }}
 									>
@@ -342,14 +277,16 @@ export const CreateTransactionScreen = () => {
 					{/* Category Selector - Conditionally render based on type */}
 					<Animated.View entering={SlideInUp.delay(400).springify()} className="mb-6">
 						<Text className="text-base font-rmedium text-gray-600 mb-2">
-							{selectedType === TransactionType.INCOME ? 'Income Source' : 'Expense Category'}
+							{selectedType === 'income' ? 'Income Source' : 'Expense Category'}
 						</Text>
 						<View className="flex-row flex-wrap">
-							{(selectedType === TransactionType.INCOME
+							{(selectedType === 'income'
 								? INCOME_CATEGORIES
 								: EXPENSE_CATEGORIES
 							).map((category) => {
 								const isSelected = selectedCategory === category.id;
+								const Icon = ICON_MAP[category.icon] || Briefcase;
+								
 								return (
 									<AnimatedTouchable
 										key={category.id}
@@ -358,12 +295,14 @@ export const CreateTransactionScreen = () => {
 										style={{ opacity: !isSelected ? 85 : 100 }}
 									>
 										<LinearGradient
-											colors={category.colors}
+											colors={category.colors || ['#f97316', '#ef4444']}
 											start={{ x: 0, y: 0 }}
 											end={{ x: 1, y: 1 }}
 											className="px-4 py-3 flex-row items-center rounded-xl"
 										>
-											<View className="mr-2">{category.icon}</View>
+											<View className="mr-2">
+												<Icon size={20} color="white" />
+											</View>
 											<Text className="font-rmedium text-white text-sm">{category.name}</Text>
 											{isSelected && (
 												<View className="ml-2 bg-white bg-opacity-30 rounded-xl p-1">
@@ -463,7 +402,7 @@ export const CreateTransactionScreen = () => {
 			</ScrollView>
 
 			{/* Submit Button - Fixed to bottom */}
-			<Animated.View style={submitButtonStyle} className="absolute bottom-8 left-0 right-0 px-5">
+			<Animated.View style={submitButtonStyle} className="absolute bottom-8 left-0 right-0 px-5 rounded-lg">
 				<TouchableOpacity
 					onPress={handleSubmit}
 					disabled={!description || !amount || !selectedCategory}
@@ -471,7 +410,7 @@ export const CreateTransactionScreen = () => {
 				>
 					<LinearGradient
 						colors={
-							selectedType === TransactionType.INCOME
+							selectedType === 'income'
 								? ['#0ea5e9', '#10b981']
 								: ['#f97316', '#ef4444']
 						}
@@ -481,7 +420,7 @@ export const CreateTransactionScreen = () => {
 					>
 						<Plus size={20} color="white" />
 						<Text className="ml-2 text-white dark:text-black-100 font-rbold text-lg">
-							Save {selectedType === TransactionType.INCOME ? 'Income' : 'Expense'}
+							Save {selectedType === 'income' ? 'Income' : 'Expense'}
 						</Text>
 					</LinearGradient>
 				</TouchableOpacity>
@@ -491,4 +430,3 @@ export const CreateTransactionScreen = () => {
 };
 
 export default CreateTransactionScreen;
-// Compare this snippet from note/src/app/transactions.tsx:

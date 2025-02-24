@@ -2,9 +2,8 @@ import { ScrollView, View, Text } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Check, AlertTriangle, DollarSign, PieChart } from 'lucide-react-native';
 import { BudgetRuleType, CategoryType } from 'src/store/types';
-import { Progress } from 'src/components/ui/progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'src/components/ui/card';
-import { BudgetRuleTypeSchema } from 'src/store/src/types';
+import { z } from 'zod';
 
 interface Category {
   id: string;
@@ -32,6 +31,7 @@ const Step4Review: React.FC<Step4ReviewProps> = ({
   const incomeCategories = selectedCategories.filter(cat => cat.type === 'income');
   const expenseCategories = selectedCategories.filter(cat => cat.type === 'expense');
 
+const BudgetRuleTypeSchema = z.enum(['50/30/20', '70/20/10', '15/65/20', 'CUSTOM']);
   const getBudgetRuleDescription = (rule: BudgetRuleType) => {
     switch (rule) {
       case BudgetRuleTypeSchema.enum['50/30/20']:
@@ -91,9 +91,9 @@ const Step4Review: React.FC<Step4ReviewProps> = ({
               <Text className="text-sm text-gray-600 dark:text-gray-400">{getBudgetRuleDescription(selectedRule)}</Text>
               {selectedRule === BudgetRuleTypeSchema.enum['50/30/20'] && (
                 <View className="space-y-2 mt-4">
-                  <Progress value={50} max={100} label="Needs" color="#3B82F6" showPercentage />
+                  {/* <Progress value={50} max={100} label="Needs" color="#3B82F6" showPercentage />
                   <Progress value={30} max={100} label="Wants" color="#10B981" showPercentage />
-                  <Progress value={20} max={100} label="Savings" color="#F59E0B" showPercentage />
+                  <Progress value={20} max={100} label="Savings" color="#F59E0B" showPercentage /> */}
                 </View>
               )}
             </View>

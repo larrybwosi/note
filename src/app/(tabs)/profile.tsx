@@ -16,10 +16,13 @@ import {
 	Lock,
 	Gift,
   Group,
+	DollarSign,
 } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { colorScheme } from 'nativewind';
+import { use$ } from '@legendapp/state/react';
+import { profileData$ } from 'src/store/useProfile';
 
 interface SettingItemProps {
 	icon: React.ReactNode;
@@ -69,13 +72,7 @@ const ProfileSettings = () => {
 	const darkMode = colorScheme.get() === 'dark';
 	const [notifications, setNotifications] = useState(true);
 
-	const userProfile = {
-		name: 'Alex Johnson',
-		email: 'alex.johnson@example.com',
-		plan: 'Premium',
-		imageUrl:
-			'https://images.pexels.com/photos/3307616/pexels-photo-3307616.jpeg?auto=compress&cs=tinysrgb&w=200', // Using placeholder as per instructions
-	};
+	const userProfile = use$(profileData$);
 
 	return (
 		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
@@ -111,7 +108,7 @@ const ProfileSettings = () => {
 						icon={<User size={20} className="text-blue-500" />}
 						title="Personal Information"
 						subtitle="Update your profile details"
-						onPress={() => {}}
+						onPress={() => router.push('/profile_update')}
 					/>
 					<SettingItem
 						icon={<Wallet size={20} className="text-green-500" />}
@@ -123,7 +120,7 @@ const ProfileSettings = () => {
 						icon={<Gift size={20} className="text-purple-500" />}
 						title="Subscription Plan"
 						subtitle="Manage your subscription"
-						onPress={() => {}}
+						onPress={() => router.push('plans')}
 					/>
 				</Animated.View>
 
@@ -161,6 +158,12 @@ const ProfileSettings = () => {
 						title="Language"
 						subtitle="English (US)"
 						onPress={() => {}}
+					/>
+					<SettingItem
+						icon={<DollarSign size={20} className="text-cyan-500" />}
+						title="Currency"
+						subtitle="USD"
+						onPress={() => router.push('/settings?type=currency')}
 					/>
 					<SettingItem
 						icon={<Group size={20} className="text-cyan-500" />}

@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
-import { useObservable } from '@legendapp/state/react';
+import { use$, useObservable } from '@legendapp/state/react';
 import { Tag, X } from 'lucide-react-native';
 
 const CustomRuleForm: React.FC<{ close: () => void }> = ({close }) => {
@@ -11,7 +11,7 @@ const CustomRuleForm: React.FC<{ close: () => void }> = ({close }) => {
     });
   
     const { name, description, breakdown } = newRule$;
-    const newRule = newRule$.get();
+    const newRule = use$(newRule$);
     const setNewRule = newRule$.set;
 
     const handleSubmit = () => {
@@ -71,7 +71,7 @@ const CustomRuleForm: React.FC<{ close: () => void }> = ({close }) => {
             <TextInput
               className="p-4 font-rregular text-gray-900 min-h-[100px] text-base"
               placeholder="Explain how this rule helps in budgeting..."
-              value={description.get()}
+              value={use$(description)}
               onChangeText={description.set}
               multiline={true}
               textAlignVertical="top"
@@ -87,7 +87,7 @@ const CustomRuleForm: React.FC<{ close: () => void }> = ({close }) => {
             <TextInput
               className="p-4 font-rregular text-gray-900 text-base"
               placeholder="e.g., 40% Needs, 30% Wants, 30% Savings"
-              value={breakdown.get()}
+              value={use$(breakdown)}
               onChangeText={breakdown.set}
               placeholderTextColor="#9CA3AF"
             />

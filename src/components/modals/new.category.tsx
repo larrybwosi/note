@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { PlusCircle, Tag } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useObservable } from '@legendapp/state/react';
+import { use$, useObservable } from '@legendapp/state/react';
 
 export interface NewCategoryProps {
   type: "INCOME" | "EXPENSES";
@@ -40,7 +40,7 @@ const NewCategory: React.FC<NewCategoryProps & { onClose: () => void }> = ({ typ
             <View className="flex-row items-center rounded-xl p-3 border border-gray-200 focus:border-blue-500">
               <Tag size={20} color="#6B7280" />
               <TextInput
-                value={name.get()}
+                value={use$(name)}
                 onChangeText={name.set}
                 className="flex-1 ml-3 font-rregular text-gray-900"
                 placeholder="Enter category name"
