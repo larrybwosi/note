@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { observer, use$ } from '@legendapp/state/react';
 import {
 	User,
 	Mail,
@@ -13,8 +14,7 @@ import {
 	CalendarDays,
 } from 'lucide-react-native';
 import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
-import { observer, use$ } from '@legendapp/state/react';
-import { profile, ProfileData, profileData$, updateProfile } from 'src/store/useProfile';
+import { ProfileData, profileData$, updateProfile } from 'src/store/useProfile';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
@@ -82,21 +82,12 @@ const ProfileSection = ({
 };
 
 const ProfilePage = () => {
-	const [profileData, setProfileData] = useState<ProfileData>({
-		name: 'John Doe',
-		email: 'john.doe@example.com',
-		phone: '+1 234 567 8900',
-		dob: '1990-01-01',
-		address: '123 Main St, City, Country',
-		bio: 'Software Developer & Tech Enthusiast',
-	});
+	const profile = use$(profileData$)
+	const [profileData, setProfileData] = useState<ProfileData>(profile);
 
 
 	const [editing, setEditing] = useState<keyof ProfileData | null>(null);
 	const [errors, setErrors] = useState<{ [key in keyof ProfileData]?: string }>({});
-	const renderCount = ++useRef(0).current;
-
-	console.log('Render count:', renderCount);
 
 	const validateField = (field: keyof ProfileData, value: string) => {
 		switch (field) {
@@ -149,7 +140,7 @@ const ProfilePage = () => {
 					key={section.field}
 					icon={section.icon}
 					label={section.label}
-					value={profileData[section.field]}
+					value={profileData[section.field]!}
 					onPress={() => handleEdit(section.field)}
 					isEditing={editing === section.field}
 					onChangeText={(value) => handleChange(section.field, value)}

@@ -12,12 +12,8 @@ import {
   Video,
   BusFront,
 } from 'lucide-react-native';
-import {
-  PREDEFINED_CATEGORY_GROUPS,
-  Transaction,
-  TransactionType,
-  TransactionStatus,
-} from 'src/lib/types';
+import { ICON_MAP, Transaction } from 'src/types/transaction';
+import { getTransactionCategory, getTransactionTitle } from 'src/utils/getCategory';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -48,78 +44,56 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({ transaction })
     }
   };
 
-  const getTransactionIcon = () => {
-    // First try to get the category-specific icon
-    if (transaction.categoryId) {
-      return getCategoryIcon(transaction.categoryId);
-    }
-
-    // Fallback to transaction type icon if no category or category not found
-    switch (transaction.type) {
-      case TransactionType.INCOME:
-        return <ArrowUp color="#10b981" size={24} />;
-      case TransactionType.EXPENSE:
-        return <ArrowDown color="#ef4444" size={24} />;
-      default:
-        return <RefreshCw color="#3b82f6" size={24} />;
-    }
-  };
 
   const getAmountColor = () => {
     switch (transaction.type) {
-      case TransactionType.INCOME:
+      case 'income':
         return 'text-green-500';
-      case TransactionType.EXPENSE:
+      case 'expense':
       default:
         return 'text-blue-500';
     }
   };
 
-  const getCategoryName = () => {
-    if (transaction.categoryId) {
-      const category = Object.values(PREDEFINED_CATEGORY_GROUPS).find(
-        (cat) => cat.id === transaction.categoryId
-      );
-      return category?.name || 'Uncategorized';
-    }
-    return 'Uncategorized';
-  };
+  function getTransactionIcon(categoryId:string){
+    const category = getTransactionCategory(categoryId)
+    const Icon = ICON_MAP[categoryId]
+    return <Icon color={category.color} size={20}/>
+  }
 
   return (
-    <TouchableOpacity className="flex-row items-center bg-white dark:bg-gray-800 rounded-lg p-4 mb-2 shadow-sm">
-      <View className="mr-4 bg-gray-100 dark:bg-gray-700 rounded-full p-2">
-        {getTransactionIcon()}
-      </View>
-      <View className="flex-1">
-        <Text className="text-gray-900 dark:text-white font-rmedium text-base">
-          {transaction.description}
-        </Text>
-        <Text className="text-gray-500 dark:text-gray-400 font-rregular text-sm">
-          {getCategoryName()}
-        </Text>
-        <Text className="text-gray-500 dark:text-gray-400 font-rregular text-xs">
-          {transaction.date.toLocaleDateString()}
-        </Text>
-      </View>
-      <View className="items-end">
-        <Text className={`font-rbold text-base ${getAmountColor()}`}>
-          {transaction.type === TransactionType.INCOME
-            ? '+'
-            : '-'}
-          ${Math.abs(transaction.amount).toFixed(2)}
-        </Text>
-        <Text
-          className={`text-xs font-rregular ${
-            transaction.status === TransactionStatus.COMPLETED
-              ? 'text-green-500'
-              : transaction.status === TransactionStatus.PENDING
-                ? 'text-yellow-500'
-                : 'text-blue-500'
-          }`}
-        >
-          {transaction.status}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+		<TouchableOpacity className="flex-row items-center bg-white dark:bg-gray-800 rounded-lg p-4 mb-2 shadow-sm">
+			<View className="mr-4 bg-gray-100 dark:bg-gray-700 rounded-full p-2">
+				{getTransactionIcon(transaction.categoryId)}
+			</View>
+			<View className="flex-1">
+				<Text className="text-gray-900 dark:text-white font-rmedium text-base">
+					{transaction.description}
+				</Text>
+				<Text className="text-gray-500 dark:text-gray-400 font-rregular text-sm">
+					{getTransactionTitle(transaction.categoryId)}
+				</Text>
+				<Text className="text-gray-500 dark:text-gray-400 font-rregular text-xs">
+					{transaction.date.toLocaleDateString()}
+				</Text>
+			</View>
+			<View className="items-end">
+				<Text className={`font-rbold text-base ${getAmountColor()}`}>
+					{transaction.type === 'income' ? '+' : '-'}$
+					{Math.abs(transaction.amount).toFixed(2)}
+				</Text>
+				<Text
+					className={`text-xs font-rregular ${
+						transaction?.status === 'completed'
+							? 'text-green-500'
+							: transaction.status === 'pending'
+								? 'text-yellow-500'
+								: 'text-blue-500'
+					}`}
+				>
+					{transaction.status}
+				</Text>
+			</View>
+		</TouchableOpacity>
+	);
 };

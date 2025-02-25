@@ -2,6 +2,7 @@ import { Banknote, BookAudio, Briefcase, Car, Clock, Coffee, CreditCard, Gift, H
 
 export type TransactionType = 'income' | 'expense';
 export type PriorityLevel = 'high' | 'medium' | 'low';
+export type TransactionStatus = 'completed' | 'due-to-pay' | 'pending'
 
 export interface Transaction {
 	id: string;
@@ -11,6 +12,7 @@ export interface Transaction {
 	categoryId: string;
 	subcategory?: string;
 	date: Date;
+	status?: TransactionStatus
 	recurring?: {
 		frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
 		endDate?: Date;

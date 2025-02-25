@@ -1,14 +1,16 @@
 import { useState, useMemo } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, Dimensions, Animated } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Transaction, TransactionType, TransactionStatus } from 'src/store/types';
+import { View, Text, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { Search, Filter, ArrowUpDown, PlusCircle, } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { observer } from '@legendapp/state/react';
+
 import { TransactionItem } from 'src/components/transaction/item';
 import { FilterModal } from 'src/components/transaction/filter';
 import { SortModal } from 'src/components/transaction/sort';
 import EmptyState from 'src/components/empty_transaction';
-import { observer } from '@legendapp/state/react';
 import { router } from 'expo-router';
+import useStore from 'src/store/useStore';
+import { Transaction, TransactionStatus, TransactionType } from 'src/types/transaction';
 
 interface SearchBarProps {
   value: string;
@@ -50,7 +52,6 @@ const ActionButton = ({ onPress, icon: Icon, label, color }:ActionButtonProps) =
 );
 
 const FinanceScreen: React.FC = () => {
-  const transactions = [] as Transaction[];
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
@@ -62,7 +63,9 @@ const FinanceScreen: React.FC = () => {
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Transaction;
     direction: 'asc' | 'desc';
-  }>({ key: 'createdAt', direction: 'desc' });
+  }>({ key: 'date', direction: 'desc' });
+
+  const { transactions } = useStore();
 
   const filteredAndSortedTransactions = useMemo(() => {
     return transactions
@@ -73,7 +76,7 @@ const FinanceScreen: React.FC = () => {
         const matchesType = !activeFilters.type || transaction.type === activeFilters.type;
         const matchesStatus = !activeFilters.status || transaction.status === activeFilters.status;
         const matchesCategory =
-          !activeFilters.category || transaction.category.name === activeFilters.category;
+          !activeFilters.category || transaction.categoryId === activeFilters.category;
         return matchesSearch && matchesType && matchesStatus && matchesCategory;
       })
       .sort((a, b) => {

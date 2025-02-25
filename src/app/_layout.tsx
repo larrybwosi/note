@@ -4,11 +4,11 @@ import { enableReactTracking } from '@legendapp/state/config/enableReactTracking
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller'
+import * as Sentry from '@sentry/react-native';
 import { colorScheme } from 'nativewind';
 import { router, SplashScreen, Stack } from 'expo-router';
 import { StatusBar, ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
-import * as Sentry from '@sentry/react-native';
 import 'react-native-url-polyfill/auto';
 import ModalProvider from 'src/components/modals/provider';
 import './global.css';
@@ -18,20 +18,21 @@ import GlobalProvider from 'src/lib/global.context';
 import ErrorBoundary from 'src/lib/error';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+Sentry.init({
+	dsn: 'https://057dd094b79aa98c59f138fbdfacc62d@o4508136465956864.ingest.de.sentry.io/4508878482636880',
+
+	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
+	// spotlight: __DEV__,
+});
+
 // bf94542d-923b-4506-8a8b-b8a2baac45ca
 
 SplashScreen.preventAutoHideAsync();
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  debug: false,
-  tracesSampleRate: 1.0,
-});
-
 enableReactNativeComponents();
-enableReactTracking({
-	warnMissingUse: true,
-});
+// enableReactTracking({
+// 	warnMissingUse: true,
+// });
 
 
 function Root() {
@@ -103,6 +104,10 @@ function Root() {
 										/>
 										<Stack.Screen
 											name="categoryId"
+											options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+										/>
+										<Stack.Screen
+											name="settings"
 											options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
 										/>
 									</Stack>

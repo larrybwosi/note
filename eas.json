@@ -7,22 +7,26 @@
       "extends": "production",
       "distribution": "internal",
       "android": {
-        "gradleCommand": ":app:assembleDebug",
+        "gradleCommand": ":app:assembleRelease",
         "buildType": "apk"
       },
       "ios": {
-        "buildConfiguration": "Debug",
+        "buildConfiguration": "Release",
         "simulator": true
       }
     },
     "development:device": {
-      "extends": "development",
-      "distribution": "internal",
-      "ios": {
-        "buildConfiguration": "Debug",
-        "simulator": false
-      }
-    },
+			"extends": "development",
+			"distribution": "internal",
+			"ios": {
+				"buildConfiguration": "Release",
+				"simulator": false
+			},
+			"android": {
+				"gradleCommand": ":app:assembleRelease",
+				"buildType": "apk"
+			}
+		},
     "preview": {
       "extends": "production",
       "distribution": "internal",

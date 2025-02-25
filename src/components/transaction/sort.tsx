@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity } from 'react-native';
-import { Transaction } from 'src/store/types';
 import { ArrowUp, ArrowDown } from 'lucide-react-native';
+import { Transaction } from 'src/types/transaction';
 
 interface SortModalProps {
   visible: boolean;
@@ -14,7 +14,7 @@ interface SortModalProps {
 }
 
 const sortOptions: { label: string; key: keyof Transaction }[] = [
-  { label: 'Date', key: 'createdAt' },
+  { label: 'Date', key: 'date' },
   { label: 'Amount', key: 'amount' },
   { label: 'Description', key: 'description' },
 ];

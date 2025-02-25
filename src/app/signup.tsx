@@ -4,6 +4,7 @@ import { ArrowLeft, Eye, EyeOff, CalendarDays, LucideIcon} from 'lucide-react-na
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { router } from 'expo-router';
 
 const signupSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -157,7 +158,7 @@ const SignupScreen = () => {
           {/* Existing Account Link */}
           <View className="flex-row justify-center mt-6">
             <Text className="text-gray-600 font-aregular">Already have an account? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={()=>router.navigate('login')}>
               <Text className="text-blue-600 font-aregular">Login</Text>
             </TouchableOpacity>
           </View>

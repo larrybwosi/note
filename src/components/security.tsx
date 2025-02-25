@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Switch, ScrollView } from 'react-native';
 import { Lock, Key, Shield, Eye, EyeOff, AlertCircle, Check } from 'lucide-react-native';
 import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
-import { observer } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PasswordFormData {
@@ -11,18 +10,17 @@ interface PasswordFormData {
 	confirmPassword: string;
 }
 
-interface SecuritySettingsProps {
-	onPasswordChange?: (oldPassword: string, newPassword: string) => Promise<boolean>;
-	onTwoFactorToggle?: (enabled: boolean, password: string) => Promise<boolean>;
-	initialTwoFactorState?: boolean;
-}
+const SecuritySettings = () => {
+	const onPasswordChange = async (oldPassword: string, newPassword: string) => {
+    // Mock API call for password change
+    return true;
+  };
+	const onTwoFactorToggle = async (enabled: boolean, password: string) => {
+    // Mock API call for two-factor toggle
+    return true;
+  }
+  const initialTwoFactorState = false
 
-const SecuritySettings = ({
-	onPasswordChange,
-	onTwoFactorToggle,
-	initialTwoFactorState = false,
-}: SecuritySettingsProps) => {
-	// State for password change
 	const [changingPassword, setChangingPassword] = useState(false);
 	const [passwordData, setPasswordData] = useState<PasswordFormData>({
 		currentPassword: '',
@@ -214,7 +212,7 @@ const SecuritySettings = ({
 	return (
 		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
 			<ScrollView className="flex-1">
-				<Text className="text-2xl font-rbold text-gray-800 dark:text-gray-200 px-4 mb-4 mt-6 pt-4">
+				<Text className="text-2xl font-rbold text-gray-800 dark:text-gray-100 px-4 mb-4 mt-6 pt-4">
 					Security Settings
 				</Text>
 
@@ -498,4 +496,4 @@ const SecuritySettings = ({
 };
 
 SecuritySettings.displayName = 'SecuritySettings';
-export default observer(SecuritySettings);
+export default SecuritySettings;

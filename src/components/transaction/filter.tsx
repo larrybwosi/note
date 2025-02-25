@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
-import { TransactionType, TransactionStatus, ExpenseGroup, IncomeCategory } from 'src/store/types';
+import { ExpenseGroup, IncomeCategory } from 'src/store/types';
+import { TransactionStatus, TransactionType } from 'src/types/transaction';
 
 interface FilterModalProps {
   visible: boolean;
@@ -46,7 +47,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             <View className="mb-4">
               <Text className="text-lg font-rmedium text-gray-900 dark:text-white mb-2">Transaction Type</Text>
               <View className="flex-row flex-wrap">
-                {Object.values(TransactionType).map((t) => (
+                {/* {Object.values(TransactionType).map((t) => (
                   <TouchableOpacity
                     key={t}
                     className={`mr-2 mb-2 px-3 py-2 rounded-full ${
@@ -60,13 +61,13 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                       {t}
                     </Text>
                   </TouchableOpacity>
-                ))}
+                ))} */}
               </View>
             </View>
             <View className="mb-4">
               <Text className="text-lg font-rmedium text-gray-900 dark:text-white mb-2">Transaction Status</Text>
               <View className="flex-row flex-wrap">
-                {Object.values(TransactionStatus).map((s) => (
+                {/* {Object.values(TransactionStatus).map((s) => (
                   <TouchableOpacity
                     key={s}
                     className={`mr-2 mb-2 px-3 py-2 rounded-full ${
@@ -80,7 +81,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                       {s}
                     </Text>
                   </TouchableOpacity>
-                ))}
+                ))} */}
               </View>
             </View>
             <View className="mb-4">

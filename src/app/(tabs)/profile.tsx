@@ -143,15 +143,7 @@ const ProfileSettings = () => {
 					<SettingItem
 						icon={<Bell size={20} className="text-yellow-500" />}
 						title="Notifications"
-						onPress={() => setNotifications(!notifications)}
-						rightElement={
-							<Switch
-								value={notifications}
-								onValueChange={setNotifications}
-								trackColor={{ false: '#CBD5E1', true: '#818CF8' }}
-								thumbColor={notifications ? '#4F46E5' : '#F1F5F9'}
-							/>
-						}
+						onPress={() => router.push('/settings?type=notifications')}
 					/>
 					<SettingItem
 						icon={<Globe size={20} className="text-cyan-500" />}
@@ -179,13 +171,13 @@ const ProfileSettings = () => {
 					<SettingItem
 						icon={<Lock size={20} className="text-orange-500" />}
 						title="Change Password"
-						onPress={() => {}}
+						onPress={() => router.push('/settings?type=security')}
 					/>
 					<SettingItem
 						icon={<Shield size={20} className="text-teal-500" />}
 						title="Two-Factor Authentication"
 						subtitle="Add extra security to your account"
-						onPress={() => {}}
+						onPress={() => router.push('/settings?type=security')}
 					/>
 				</Animated.View>
 

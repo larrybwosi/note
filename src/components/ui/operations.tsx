@@ -139,7 +139,7 @@ const OperationsCard = (): React.ReactElement => {
 
 	const groupedTransactions = groupTransactionsByTimeframe(transactions);
 	const hasRecentTransactions = Object.values(groupedTransactions).some(
-		(group) => group.length > 0
+		(group) => group?.length > 0
 	);
 
 	return (
@@ -177,7 +177,7 @@ const OperationsCard = (): React.ReactElement => {
 			{hasRecentTransactions ? (
 				Object.entries(groupedTransactions).map(
 					([timeframe, transactions]) =>
-						transactions.length > 0 && (
+						transactions?.length > 0 && (
 							<View key={timeframe}>
 								<DateHeader label={timeframe} />
 								{transactions.map((transaction, index) => (

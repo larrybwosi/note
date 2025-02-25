@@ -41,33 +41,29 @@ import {
 	CheckCircle,
 } from 'lucide-react-native';
 import useStore from 'src/store/useStore';
-import { ICON_MAP, TransactionType } from 'src/types/transaction';
+import { ICON_MAP, TransactionStatus, TransactionType } from 'src/types/transaction';
 import { router, useLocalSearchParams } from 'expo-router';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-const TransactionStatus = {
-	PENDING: 'pending',
-	COMPLETED: 'completed',
-};
 
-export const CreateTransactionScreen = () => {
+const CreateTransactionScreen = () => {
 	const { type } = useLocalSearchParams()
 	
-	const [description, setDescription] = useState('');
-	const [amount, setAmount] = useState('');
+	const [description, setDescription] = useState<string>('');
+	const [amount, setAmount] = useState<string>('');
 	const [selectedType, setSelectedType] = useState<TransactionType>(type as TransactionType || 'expense');
 	const [selectedCategory, setSelectedCategory] = useState<string>();
-	const [date, setDate] = useState(new Date());
+	const [date, setDate] = useState<Date>(new Date());
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [isRecurring, setIsRecurring] = useState(false);
 	const [recurringPeriod, setRecurringPeriod] = useState('monthly');
 
 	const { addTransaction, categories } = useStore();
 
-	const INCOME_CATEGORIES = categories.filter((cat) => cat.type === 'income');
+	const INCOME_CATEGORIES = categories?.filter((cat) => cat.type === 'income');
 
-	const EXPENSE_CATEGORIES = categories.filter((cat) => cat.type === 'expense');
+	const EXPENSE_CATEGORIES = categories?.filter((cat) => cat.type === 'expense');
 	
 	const formProgress = useSharedValue(0);
 	const submitEnabled = useSharedValue(0);
@@ -162,13 +158,13 @@ export const CreateTransactionScreen = () => {
 		if (!description || !amount || !selectedCategory) return;
 
 		const newTransaction = {
-			id: Date.now().toString(),
+			id: date.toDateString(),
 			description,
 			amount: parseFloat(amount) * (selectedType === 'expense' ? -1 : 1),
 			type: selectedType,
 			categoryId: selectedCategory,
 			date,
-			status: TransactionStatus.COMPLETED,
+			status: 'completed' as TransactionStatus,
 			isRecurring,
 			recurringPeriod: isRecurring ? recurringPeriod : null,
 		};
@@ -177,10 +173,10 @@ export const CreateTransactionScreen = () => {
 		// Reset form with animation
 		setDescription('');
 		setAmount('');
-		// setSelectedCategory('');
-		// setDate(new Date());
-		// setIsRecurring(false);
-		// setRecurringPeriod('monthly');
+		setSelectedCategory('');
+		setDate(new Date());
+		setIsRecurring(false);
+		setRecurringPeriod('monthly');
 		router.back();
 	};
 
@@ -428,5 +424,6 @@ export const CreateTransactionScreen = () => {
 		</KeyboardAvoidingView>
 	);
 };
+
 
 export default CreateTransactionScreen;

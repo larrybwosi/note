@@ -1,4 +1,5 @@
 import { ExpoConfig } from 'expo/config';
+import { withSentry } from '@sentry/react-native/expo';
 
 const config: ExpoConfig = {
   name: 'Dealio',
@@ -6,7 +7,7 @@ const config: ExpoConfig = {
   scheme: 'dealio',
   version: '1.0.0',
   orientation: 'portrait',
-  userInterfaceStyle: 'dark',
+  userInterfaceStyle: 'automatic',
   icon: './assets/images/app-icon-all.png',
   splash: {
     image: './assets/images/splash-logo-all.png',
@@ -75,4 +76,10 @@ const config: ExpoConfig = {
   },
 };
 
-export default config;
+export default withSentry(config, {
+	url: 'https://sentry.io/',
+	// Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.
+	project: 'finance',
+	organization: 'clevery',
+  authToken:process.env.SENTRY_AUTH_TOKEN
+});

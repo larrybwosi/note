@@ -2,36 +2,19 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { DollarSign, ChevronRight, Check } from 'lucide-react-native';
 import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
-import { observer } from '@legendapp/state/react';
+import { observer, use$ } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Currency data structure
-interface Currency {
-	code: string;
-	name: string;
-	symbol: string;
-}
-
-// Common currencies
-const currencies: Currency[] = [
-	{ code: 'USD', name: 'US Dollar', symbol: '$' },
-	{ code: 'EUR', name: 'Euro', symbol: '€' },
-	{ code: 'GBP', name: 'British Pound', symbol: '£' },
-	{ code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
-	{ code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
-	{ code: 'INR', name: 'Indian Rupee', symbol: '₹' },
-	{ code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
-	{ code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
-	{ code: 'CHF', name: 'Swiss Franc', symbol: 'Fr' },
-	{ code: 'SGD', name: 'Singapore Dollar', symbol: 'S$' },
-];
+import { currencies, Currency } from 'src/utils/currency';
+import { profileData$ } from 'src/store/useProfile';
 
 const CurrencySelector = () => {
-	const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies[0]);
+	const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies['USD']);
 	const [modalVisible, setModalVisible] = useState(false);
 
 	const handleCurrencySelect = (currency: Currency) => {
 		setSelectedCurrency(currency);
+		profileData$.currency.set(currency.code);
+		console.log(use$(profileData$.currency))
 		setModalVisible(false);
 		// Here you would typically save this to your app's state/preferences
 	};
@@ -111,7 +94,7 @@ const CurrencySelector = () => {
 						</View>
 
 						<FlatList
-							data={currencies}
+							data={Object.values(currencies)}
 							renderItem={renderCurrencyItem}
 							keyExtractor={(item) => item.code}
 						/>

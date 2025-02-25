@@ -68,7 +68,7 @@ export default function BalanceCard () {
 					onPressIn={handlePressIn}
 					onPressOut={handlePressOut}
 					activeOpacity={0.8}
-					onPress={() => router.navigate('create.transactions?default=expense')}
+					onPress={() => router.navigate('create.transactions?type=expense')}
 				>
 					<Text className="text-white font-amedium mr-1">Pay</Text>
 					<DollarSign size={16} color="white" />
@@ -79,7 +79,7 @@ export default function BalanceCard () {
 					onPressIn={handlePressIn}
 					onPressOut={handlePressOut}
 					activeOpacity={0.8}
-					onPress={() => router.navigate('create.transactions?default=income')}
+					onPress={() => router.navigate('create.transactions?type=income')}
 				>
 					<Text className="text-white font-amedium mr-1">Deposit</Text>
 					<Plus size={16} color="white" />
