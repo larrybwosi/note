@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, useColorScheme } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
-import { useStore } from 'src/store/useStore';
 import { Dimensions } from 'react-native';
 import {
 	Book,
@@ -28,6 +27,7 @@ import { Category } from 'src/types/transaction';
 import CategoryCharts from 'src/components/category-charts';
 import CategoryForm from 'src/components/category-form';
 import AnimatedCard from 'src/components/animated-card';
+import useStore from 'src/store/useStore';
 
 const COLOR_OPTIONS = [
 	'#FF6B6B',

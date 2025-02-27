@@ -16,12 +16,12 @@ import { customFontsToLoad } from 'src/utils/theme/fonts';
 import GlobalProvider from 'src/lib/global.context';
 import ErrorBoundary from 'src/lib/error';
 
-Sentry.init({
-	dsn: 'https://057dd094b79aa98c59f138fbdfacc62d@o4508136465956864.ingest.de.sentry.io/4508878482636880',
+// Sentry.init({
+// 	dsn: 'https://057dd094b79aa98c59f138fbdfacc62d@o4508136465956864.ingest.de.sentry.io/4508878482636880',
 
-	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
-	spotlight: __DEV__,
-});
+// 	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
+// 	spotlight: __DEV__,
+// });
 
 // bf94542d-923b-4506-8a8b-b8a2baac45ca
 

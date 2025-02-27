@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, Modal, TextInput } from 'react-native';
 import {
 	Calendar,
-	PieChart,
 	Plus,
-	Edit2,
 	Trash2,
 	Clock,
 	DollarSign,
@@ -12,8 +10,10 @@ import {
 	Check,
   Edit,
 } from 'lucide-react-native';
-import { Budget, BUDGET_RULE_ALLOCATIONS, BudgetPeriodType } from 'src/types/transaction';
+import { Budget, BUDGET_RULE_ALLOCATIONS, BudgetPeriodType, BudgetStatus } from 'src/types/transaction';
 import { format } from 'date-fns';
+import useStore from 'src/store/useStore';
+import { observer } from '@legendapp/state/react';
 
 // Sample data
 const sampleBudgets: Budget[] = [
@@ -53,25 +53,24 @@ const getRuleAllocations = (ruleType: keyof typeof BUDGET_RULE_ALLOCATIONS) => {
 	return BUDGET_RULE_ALLOCATIONS[ruleType] || [];
 };
 
-// Color palette for categories
+// Color palette for categories 
 const CATEGORY_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 const BudgetManagement = () => {
-	const [budgets, setBudgets] = useState<Budget[]>(sampleBudgets);
 	const [activeTab, setActiveTab] = useState('active');
-	const [modalVisible, setModalVisible] = useState(false);
-	const [currentBudget, setCurrentBudget] = useState<Budget | null>(null);
+	const [modalVisible, setModalVisible] = useState(false); 
+	const [currentBudget, setCurrentBudget] = useState<Budget>();
 	const [detailsVisible, setDetailsVisible] = useState(false);
-
-	// Filter budgets based on active tab
-	const filteredBudgets = budgets.filter((budget) => {
-		if (activeTab === 'all') return true;
-		return budget.status === activeTab;
-	});
-
+ 
+	const { budgets, activateBudget, deleteBudget, updateBudget, createBudget } = useStore();
+	// Filter budgets based on active tab  
+  const filteredBudgets = budgets.filter((budget) =>
+		activeTab === 'all' ? true : budget.status === activeTab
+	);
+	
 	const handleCreateBudget = () => {
+		//@ts-ignore
 		setCurrentBudget({
-			id: Date.now().toString(),
 			name: '',
 			amount: 0,
 			startDate: new Date(),
@@ -82,21 +81,27 @@ const BudgetManagement = () => {
 			status: 'draft',
 		});
 		setModalVisible(true);
-	};
+	}; 
 
 	const handleEditBudget = (budget: Budget) => {
 		setCurrentBudget({ ...budget });
 		setModalVisible(true);
 	};
 
-	const handleDeleteBudget = (id: string) => {
+	  const handleActivateBudget = (id: string) => {
+			try {
+				const result = activateBudget(id); 
+				if (!result) {
+					Alert.alert('Error', 'Failed to activate budget');
+				}
+			} catch (error:any) {
+				Alert.alert('Error ⚠️', `Failed to activate budget. Some unknown error occured, please check the input fields are correct then try again.`);
+			}
+		}; 
+  const handleDeleteBudget = (id: string) => {
 		Alert.alert('Delete Budget', 'Are you sure you want to delete this budget?', [
 			{ text: 'Cancel', style: 'cancel' },
-			{
-				text: 'Delete',
-				onPress: () => setBudgets(budgets.filter((budget) => budget.id !== id)),
-				style: 'destructive',
-			},
+			{ text: 'Delete', onPress: () => deleteBudget(id), style: 'destructive' },
 		]);
 	};
 
@@ -105,20 +110,32 @@ const BudgetManagement = () => {
 		setDetailsVisible(true);
 	};
 
-	const handleSaveBudget = () => {
+  const handleSaveBudget = () => {
 		if (!currentBudget?.name || currentBudget?.amount <= 0) {
 			Alert.alert('Error', 'Please provide a name and valid amount');
 			return;
 		}
 
-		const updatedBudgets = budgets.map((b) => (b.id === currentBudget.id ? currentBudget : b));
-
-		if (!updatedBudgets.find((b) => b.id === currentBudget.id)) {
-			updatedBudgets.push(currentBudget);
+		try {
+			if (currentBudget.id) {
+				// Update existing budget
+				updateBudget(currentBudget as Budget);
+			} else {
+				// Create new budget
+				createBudget({
+					name: currentBudget.name,
+					amount: currentBudget.amount,
+					periodType: currentBudget.periodType,
+					ruleType: currentBudget.ruleType,
+					startDate: currentBudget.startDate,
+					customAllocations:
+						currentBudget.ruleType === 'custom' ? currentBudget.categories : undefined,
+				});
+			}
+			setModalVisible(false);
+		} catch (error:any) {
+			Alert.alert('Error', error.message);
 		}
-
-		setBudgets(updatedBudgets);
-		setModalVisible(false);
 	};
 
 	// Format date to readable string
@@ -139,12 +156,11 @@ const BudgetManagement = () => {
 		return diffDays > 0 ? diffDays : 0;
 	};
 
-	// Calculate budget progress
-	const calculateProgress = (budget: Budget) => {
-		const totalDays =
-			(new Date(budget.endDate).getTime() - new Date(budget.startDate).getTime()) / (1000 * 60 * 60 * 24);
-		const elapsedDays = totalDays - getRemainingDays(budget.endDate);
-		return Math.min(100, Math.max(0, (elapsedDays / totalDays) * 100));
+  const calculateProgress = (budget: Budget) => {
+		const start = new Date(budget.startDate).getTime();
+		const end = new Date(budget.endDate).getTime();
+		const now = Date.now();
+		return ((now - start) / (end - start)) * 100;
 	};
 
 	return (
@@ -198,7 +214,7 @@ const BudgetManagement = () => {
 
 			{/* Budget List */}
 			<ScrollView className="flex-1 px-4 pt-4">
-				{filteredBudgets.length === 0 ? (
+				{filteredBudgets?.length === 0 ? (
 					<View className="flex-1 items-center justify-center py-10">
 						<View className="bg-gray-100 rounded-full p-4 mb-4">
 							<BarChart3 size={32} color="#6B7280" />
@@ -275,7 +291,7 @@ const BudgetManagement = () => {
 												<View
 													className="w-3 h-3 rounded-full mr-1"
 													style={{
-														backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+														backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS?.length],
 													}}
 												/>
 												<Text className="text-xs text-gray-600">
@@ -323,6 +339,14 @@ const BudgetManagement = () => {
 									</TouchableOpacity>
 								</View>
 							</View>
+							{budget.status === 'draft' && (
+								<TouchableOpacity
+									className="bg-indigo-600 py-2 px-4 rounded-xl mt-2"
+									onPress={() => handleActivateBudget(budget.id)}
+								>
+									<Text className="text-white text-sm font-medium">Activate Budget</Text>
+								</TouchableOpacity>
+							)}
 						</TouchableOpacity>
 					))
 				)}
@@ -334,7 +358,7 @@ const BudgetManagement = () => {
 					<View className="bg-white rounded-t-xl p-4 h-5/6">
 						<View className="flex-row justify-between items-center mb-6">
 							<Text className="text-xl font-bold text-gray-800">
-								{currentBudget?.id ? 'Edit Budget' : 'Create Budget'}
+								{currentBudget?.id ? 'Update Budget' : 'Create Budget'}
 							</Text>
 							<TouchableOpacity onPress={() => setModalVisible(false)}>
 								<Text className="text-indigo-600 font-medium">Cancel</Text>
@@ -343,17 +367,17 @@ const BudgetManagement = () => {
 
 						<ScrollView className="flex-1">
 							<View className="mb-4">
-								<Text className="text-gray-700 mb-1 font-medium">Budget Name</Text>
+								<Text className="text-gray-700 mb-1 font-amedium">Budget Name</Text>
 								<TextInput
 									className="bg-gray-100 p-3 rounded-lg text-gray-800"
 									value={currentBudget?.name}
-									onChangeText={(text) => setCurrentBudget({ ...currentBudget, name: text })}
+									onChangeText={(text) => setCurrentBudget({ ...currentBudget!, name: text })}
 									placeholder="Enter budget name"
 								/>
 							</View>
 
 							<View className="mb-4">
-								<Text className="text-gray-700 mb-1 font-medium">Budget Amount</Text>
+								<Text className="text-gray-700 mb-1 font-amedium">Budget Amount</Text>
 								<View className="flex-row items-center bg-gray-100 rounded-lg">
 									<View className="p-3">
 										<DollarSign size={20} color="#6B7280" />
@@ -363,7 +387,7 @@ const BudgetManagement = () => {
 										value={currentBudget?.amount ? currentBudget.amount.toString() : ''}
 										onChangeText={(text) => {
 											const amount = text.replace(/[^0-9]/g, '');
-											setCurrentBudget({ ...currentBudget, amount: parseInt(amount || '0') });
+											setCurrentBudget({ ...currentBudget!, amount: parseInt(amount || '0') });
 										}}
 										keyboardType="numeric"
 										placeholder="0"
@@ -372,7 +396,7 @@ const BudgetManagement = () => {
 							</View>
 
 							<View className="mb-4">
-								<Text className="text-gray-700 mb-1 font-medium">Budget Period</Text>
+								<Text className="text-gray-700 mb-1 font-amedium">Budget Period</Text>
 								<View className="flex-row">
 									{['week', 'month', 'year'].map((period) => (
 										<TouchableOpacity
@@ -382,10 +406,15 @@ const BudgetManagement = () => {
 													? 'bg-indigo-100 border border-indigo-300'
 													: 'bg-gray-100'
 											}`}
-											onPress={() => setCurrentBudget({ ...currentBudget, periodType: period as BudgetPeriodType })}
+											onPress={() =>
+												setCurrentBudget({
+													...currentBudget!,
+													periodType: period as BudgetPeriodType,
+												})
+											}
 										>
 											<Text
-												className={`text-center font-medium ${
+												className={`text-center font-rmedium ${
 													currentBudget?.periodType === period ? 'text-indigo-700' : 'text-gray-700'
 												}`}
 											>
@@ -399,13 +428,18 @@ const BudgetManagement = () => {
 							<View className="mb-4">
 								<Text className="text-gray-700 mb-1 font-medium">Allocation Rule</Text>
 								<View className="bg-gray-100 rounded-lg">
-									{['50-30-20', '10-70-20', '80-20', 'custom'].map((rule) => (
+									{['50-30-20', '10-70-20', '80-20'].map((rule) => (
 										<TouchableOpacity
 											key={rule}
 											className={`py-3 px-4 flex-row justify-between items-center ${
 												rule !== 'custom' ? 'border-b border-gray-200' : ''
 											}`}
-											onPress={() => setCurrentBudget({ ...currentBudget, ruleType: rule })}
+											onPress={() =>
+												setCurrentBudget({
+													...currentBudget!,
+													ruleType: rule as keyof typeof BUDGET_RULE_ALLOCATIONS,
+												})
+											}
 										>
 											<View>
 												<Text className="font-medium text-gray-800">
@@ -438,7 +472,9 @@ const BudgetManagement = () => {
 													? 'bg-indigo-100 border border-indigo-300'
 													: 'bg-gray-100'
 											}`}
-											onPress={() => setCurrentBudget({ ...currentBudget, status: status })}
+											onPress={() =>
+												setCurrentBudget({ ...currentBudget!, status: status as BudgetStatus })
+											}
 										>
 											<Text
 												className={`text-center font-medium ${
@@ -555,7 +591,7 @@ const BudgetManagement = () => {
 														<View
 															className="w-4 h-4 rounded-full mr-2"
 															style={{
-																backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+																backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS?.length],
 															}}
 														/>
 														<Text className="font-medium text-gray-800">{allocation.name}</Text>
@@ -609,4 +645,4 @@ const BudgetManagement = () => {
 	);
 };
 
-export default BudgetManagement;
+export default observer(BudgetManagement);

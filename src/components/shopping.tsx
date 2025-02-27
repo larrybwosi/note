@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import {
 	ShoppingBag,
@@ -9,112 +9,35 @@ import {
 	ChevronDown,
 	ChevronUp,
 } from 'lucide-react-native';
+import { ShoppingItem } from 'src/types/transaction';
+import useShoppingStore from 'src/store/shopping';
+import useStore from 'src/store/useStore';
 
-// Types
-interface Category {
-	id: string;
-	name: string;
-	type: 'income' | 'expense';
-	color: string;
-	icon: string;
-	isCustom?: boolean;
-	subcategories?: string[];
-	monthlyTotal?: number;
-	monthlyChange?: number;
-	colors?: string[];
-}
-
-interface Budget {
-	id: string;
-	categoryId: string;
-	amount: number;
-	period: 'weekly' | 'monthly' | 'yearly';
-	startDate: Date;
-	endDate: Date;
-}
-
-interface ShoppingItem {
-	id: string;
-	name: string;
-	categoryId: string;
-	price: number;
-	quantity: number;
-}
-
-// Mock data for categories
-const mockCategories: Category[] = [
-	{
-		id: '1',
-		name: 'Groceries',
-		type: 'expense',
-		color: '#4CAF50',
-		icon: 'ShoppingBag',
-		subcategories: ['Fruits', 'Vegetables', 'Meat', 'Dairy'],
-		monthlyTotal: 350,
-		colors: ['#4CAF50', '#81C784', '#C8E6C9'],
-	},
-	{
-		id: '2',
-		name: 'Household',
-		type: 'expense',
-		color: '#9C27B0',
-		icon: 'Home',
-		subcategories: ['Cleaning', 'Furniture', 'Decor'],
-		monthlyTotal: 150,
-		colors: ['#9C27B0', '#BA68C8', '#E1BEE7'],
-	},
-	{
-		id: '3',
-		name: 'Electronics',
-		type: 'expense',
-		color: '#2196F3',
-		icon: 'Smartphone',
-		subcategories: ['Gadgets', 'Accessories', 'Appliances'],
-		monthlyTotal: 200,
-		colors: ['#2196F3', '#64B5F6', '#BBDEFB'],
-	},
-	{
-		id: '4',
-		name: 'Clothing',
-		type: 'expense',
-		color: '#FF9800',
-		icon: 'Shirt',
-		subcategories: ['Tops', 'Bottoms', 'Footwear', 'Accessories'],
-		monthlyTotal: 120,
-		colors: ['#FF9800', '#FFB74D', '#FFE0B2'],
-	},
-];
-
-// Mock budget
-const mockBudget: Budget = {
-	id: 'budget1',
-	categoryId: 'all',
-	amount: 500,
-	period: 'monthly',
-	startDate: new Date(),
-	endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-};
 
 const ShoppingBudgetPlanner = () => {
-	const [budget, setBudget] = useState<Budget>(mockBudget);
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 	const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
 	const [newItemName, setNewItemName] = useState('');
 	const [newItemPrice, setNewItemPrice] = useState('');
 	const [newItemQuantity, setNewItemQuantity] = useState('1');
 	const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
+	const { addItem, } = useShoppingStore()
+	const { getActiveBudgetSpending, categories } = useStore();
+	const currentBudget = getActiveBudgetSpending();
+
+	const EXPENSE_CATEGORIES = categories.filter((cat) => cat.type === 'expense');
 
 	// Calculate total spent
 	const totalSpent = shoppingItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
 	// Calculate remaining budget
-	const remainingBudget = budget.amount - totalSpent;
+	const remainingBudget = currentBudget?.totalRemaining;
 
 	// Calculate percentage spent
-	const percentageSpent = (totalSpent / budget.amount) * 100;
+	const percentageSpent = currentBudget?.percentUsed;
 
 	// Function to add item to shopping list
-	const addItem = () => {
+	const handleAddItem = () => {
 		if (!selectedCategory) {
 			Alert.alert('Error', 'Please select a category first');
 			return;
@@ -143,10 +66,14 @@ const ShoppingBudgetPlanner = () => {
 			categoryId: selectedCategory,
 			price: price,
 			quantity: quantity,
+			purchased: false,
+			dateAdded: new Date,
+			priority:'medium',
+			description:'',
 		};
 
 		// Check if adding this item would exceed the budget
-		if (totalSpent + price * quantity > budget.amount) {
+		if (totalSpent + price * quantity > currentBudget?.totalRemaining!) {
 			Alert.alert(
 				'Budget Warning',
 				'Adding this item will exceed your budget. Do you want to continue?',
@@ -156,7 +83,14 @@ const ShoppingBudgetPlanner = () => {
 						text: 'Add Anyway',
 						style: 'destructive',
 						onPress: () => {
-							setShoppingItems([...shoppingItems, newItem]);
+							addItem({
+								name: newItemName.trim(),
+								categoryId: selectedCategory,
+								price,
+								quantity,
+								purchased: false,
+								priority: 'medium',
+							});
 							setNewItemName('');
 							setNewItemPrice('');
 							setNewItemQuantity('1');
@@ -187,8 +121,8 @@ const ShoppingBudgetPlanner = () => {
 
 	// Get budget status color
 	const getBudgetStatusColor = () => {
-		if (percentageSpent >= 90) return '#EF4444'; // Red
-		if (percentageSpent >= 70) return '#F59E0B'; // Amber
+		if (percentageSpent! >= 90) return '#EF4444'; // Red
+		if (percentageSpent! >= 70) return '#F59E0B'; // Amber
 		return '#10B981'; // Green
 	};
 
@@ -212,7 +146,7 @@ const ShoppingBudgetPlanner = () => {
 					<View className="flex-row items-center">
 						<DollarSign size={20} color="#10B981" />
 						<Text className="text-xl font-bold text-gray-800 dark:text-white">
-							${budget.amount.toFixed(2)}
+							${currentBudget?.totalRemaining.toFixed(2)}
 						</Text>
 					</View>
 				</View>
@@ -221,7 +155,7 @@ const ShoppingBudgetPlanner = () => {
 					<View
 						className="h-full"
 						style={{
-							width: `${Math.min(percentageSpent, 100)}%`,
+							width: `${Math.min(percentageSpent!, 100)}%`,
 							backgroundColor: getBudgetStatusColor(),
 						}}
 					/>
@@ -238,15 +172,15 @@ const ShoppingBudgetPlanner = () => {
 						<Text className="text-sm text-gray-500 dark:text-gray-400">Remaining</Text>
 						<Text
 							className="font-bold"
-							style={{ color: remainingBudget >= 0 ? '#10B981' : '#EF4444' }}
+							style={{ color: remainingBudget! >= 0 ? '#10B981' : '#EF4444' }}
 						>
-							${remainingBudget.toFixed(2)}
+							${remainingBudget?.toFixed(2)}
 						</Text>
 					</View>
 					<View>
 						<Text className="text-sm text-gray-500 dark:text-gray-400">Percentage</Text>
 						<Text className="font-bold" style={{ color: getBudgetStatusColor() }}>
-							{percentageSpent.toFixed(0)}%
+							{percentageSpent?.toFixed(0)}%
 						</Text>
 					</View>
 				</View>
@@ -258,7 +192,7 @@ const ShoppingBudgetPlanner = () => {
 				<View className="mb-6">
 					<Text className="text-lg font-bold text-gray-800 dark:text-white mb-3">Categories</Text>
 					<ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-						{mockCategories.map((category) => (
+						{EXPENSE_CATEGORIES.map((category) => (
 							<TouchableOpacity
 								key={category.id}
 								className={`mr-3 p-3 rounded-xl ${selectedCategory === category.id ? 'bg-blue-500' : 'bg-white dark:bg-gray-800'} shadow-sm`}
@@ -325,7 +259,7 @@ const ShoppingBudgetPlanner = () => {
 
 					<TouchableOpacity
 						className="bg-blue-500 p-3 rounded-lg flex-row justify-center items-center"
-						onPress={addItem}
+						onPress={handleAddItem}
 					>
 						<PlusCircle size={20} color="white" className="mr-2" />
 						<Text className="text-white font-medium">Add to List</Text>
@@ -338,7 +272,7 @@ const ShoppingBudgetPlanner = () => {
 						Shopping List
 					</Text>
 
-					{mockCategories.map((category) => {
+					{EXPENSE_CATEGORIES.map((category) => {
 						const { items, total } = getCategoryItems(category.id);
 						if (items.length === 0) return null;
 

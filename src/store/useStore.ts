@@ -78,9 +78,9 @@ const getCurrentMonthDateRange = () => {
 // Define actions to manipulate the store
 const actions = {
 	// Cached selectors
-	transactions: use$(store.transactions),
-	categories: use$(store.categories),
-	budgets: use$(store.budgets),
+	transactions:  store.transactions.get(),
+	categories:  store.categories.get(),
+	budgets:  store.budgets.get(),
 
 	// Transaction operations
 	addTransaction: (transaction: Transaction) => {
@@ -227,36 +227,36 @@ const actions = {
 			const ruleAllocations = BUDGET_RULE_ALLOCATIONS[ruleType];
 
 			// Find or create categories based on the rule
-			categories = ruleAllocations.map((allocation) => {
-				// Find existing category that matches the allocation name
-				const existingCategory = use$(store.categories).find(
-					(c) => c.name.toLowerCase() === allocation.name.toLowerCase()
-				);
+			// categories = ruleAllocations.map((allocation) => {
+			// 	// Find existing category that matches the allocation name
+			// 	const existingCategory = use$(store.categories).find(
+			// 		(c) => c.name.toLowerCase() === allocation.name.toLowerCase()
+			// 	);
 
-				if (existingCategory) {
-					return {
-						categoryId: existingCategory.id,
-						allocation: allocation.percentage,
-					};
-				} else {
-					// Create a new category if it doesn't exist
-					const newCategory: Category = {
-						id: createUniqueId(),
-						name: allocation.name,
-						type: allocation.name.toLowerCase() === 'income' ? 'income' : 'expense',
-						color: '#' + Math.floor(Math.random() * 16777215).toString(16), // Random color
-						icon: 'money', // Default icon
-					};
+			// 	if (existingCategory) {
+			// 		return {
+			// 			categoryId: existingCategory.id,
+			// 			allocation: allocation.percentage,
+			// 		};
+			// 	} else {
+			// 		// Create a new category if it doesn't exist
+			// 		const newCategory: Category = {
+			// 			id: createUniqueId(),
+			// 			name: allocation.name,
+			// 			type: allocation.name.toLowerCase() === 'income' ? 'income' : 'expense',
+			// 			color: '#' + Math.floor(Math.random() * 16777215).toString(16), // Random color
+			// 			icon: 'money', // Default icon
+			// 		};
 
-					// Add the new category
-					store.categories.push(newCategory);
+			// 		// Add the new category
+			// 		// store.categories.push(newCategory);
 
-					return {
-						categoryId: newCategory.id,
-						allocation: allocation.percentage,
-					};
-				}
-			});
+			// 		return {
+			// 			categoryId: newCategory.id,
+			// 			allocation: allocation.percentage,
+			// 		};
+			// 	}
+			// });
 		} else if (customAllocations) {
 			// Validate that allocations sum to 100%
 			const totalAllocation = customAllocations.reduce((sum, item) => sum + item.allocation, 0);
@@ -280,27 +280,28 @@ const actions = {
 			categories,
 			status: 'draft', // Start as draft until activated
 		};
-
+		
 		store.budgets.push(newBudget);
 		return newBudget;
 	},
 
 	// Activate a budget (and deactivate any other active budget)
 	activateBudget: (budgetId: string) => {
+		
 		// First deactivate any currently active budget
-		const activeBudgets = use$(store.budgets)
-			.filter((budget) => budget.status === 'active')
-			.map((_, index) => index);
-
-		activeBudgets.forEach((index) => {
+		const activeBudgets = store.budgets.get()
+			?.filter((budget) => budget.status === 'active')
+			?.map((_, index) => index);
+			
+		activeBudgets?.forEach((index) => {
 			store.budgets[index].status.set('expired');
 		});
 
 		// Then activate the selected budget
-		const targetIndex = store.budgets.findIndex((b) => use$(b.id) === budgetId);
+		const targetIndex = store.budgets.findIndex((b) => b.id.get() === budgetId);
 		if (targetIndex !== -1) {
 			store.budgets[targetIndex].status.set('active');
-			return use$(store.budgets[targetIndex]);
+			return store.budgets[targetIndex].get();
 		}
 
 		return null;

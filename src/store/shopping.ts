@@ -29,7 +29,7 @@ export const shoppingStore = observable(
 // Define actions to manipulate the shoppingStore
 const actions = {
 	// Getters using use$ to subscribe to reactive state
-	shoppingLists: () => use$(shoppingStore.shoppingLists),
+	shoppingLists: () => shoppingStore.shoppingLists.get(),
 
 
 	// Shopping list actions

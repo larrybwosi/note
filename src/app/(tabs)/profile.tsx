@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { View, Text, TouchableOpacity, Switch, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -17,8 +16,9 @@ import {
 	Gift,
   Group,
 	DollarSign,
+	BugPlay,
 } from 'lucide-react-native';
-import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { colorScheme } from 'nativewind';
 import { use$ } from '@legendapp/state/react';
@@ -70,8 +70,6 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
 
 const ProfileSettings = () => {
 	const darkMode = colorScheme.get() === 'dark';
-	const [notifications, setNotifications] = useState(true);
-
 	const userProfile = use$(profileData$);
 
 	return (
@@ -162,6 +160,12 @@ const ProfileSettings = () => {
 						title="Categories"
 						subtitle="Manage your spending and income categories"
 						onPress={() => router.push('/categories')}
+					/>
+					<SettingItem
+						icon={<BugPlay size={20} className="text-cyan-500" />}
+						title="Budget Management"
+						subtitle="Manage your budgets"
+						onPress={() => router.push('/budget.planner')}
 					/>
 				</Animated.View>
 
