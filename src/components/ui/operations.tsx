@@ -13,6 +13,7 @@ import Animated, {
 import useStore from 'src/store/useStore';
 import { getTransactionCategory, getTransactionIcon, getTransactionTitle } from 'src/utils/getCategory';
 import { Transaction } from 'src/types/transaction';
+import { observer } from '@legendapp/state/react';
 
 interface TransactionItemProps {
 	logo: React.ElementType;
@@ -47,7 +48,7 @@ const TransactionItem = ({ logo: Icon, title, description, amount, date, color }
 				}}
 			>
 				<View className="flex-row items-center flex-1">
-					<View className="w-12 h-12 rounded-2xl justify-center items-center bg-gray-50/90 dark:bg-gray-700">
+					<View className="w-12 h-12 rounded-2xl justify-center items-center bg-white/80 dark:bg-gray-700">
 						<Icon size={24} color={color} />
 					</View>
 					<View className="ml-3 flex-1">
@@ -204,4 +205,4 @@ const OperationsCard = (): React.ReactElement => {
 	);
 };
 
-export default OperationsCard;
+export default observer(OperationsCard);

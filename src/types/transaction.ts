@@ -35,15 +35,46 @@ export interface Category {
   colors?: string[];
 }
 
+
+// Budget rule types
+export type BudgetRuleType = '10-70-20' | '50-30-20' | '80-20' | 'custom';
+export type BudgetPeriodType = 'week' | 'month' | 'year';
+export type BudgetStatus = 'active' | 'expired' | 'draft';
+
+// Enhanced Budget interface
 export interface Budget {
   id: string;
-  categoryId: string;
+  name: string;
   amount: number;
-  period: 'weekly' | 'monthly' | 'yearly';
   startDate: Date;
   endDate: Date;
+  periodType: BudgetPeriodType;
+  ruleType: BudgetRuleType;
+  categories: {
+    categoryId: string;
+    allocation: number; // Percentage of total budget
+  }[];
+  status: BudgetStatus;
 }
 
+// Default budget allocations based on rule types
+export const BUDGET_RULE_ALLOCATIONS = {
+  '10-70-20': [
+    { name: 'Savings', percentage: 10 },
+    { name: 'Expenses', percentage: 70 },
+    { name: 'Investments', percentage: 20 }
+  ],
+  '50-30-20': [
+    { name: 'Needs', percentage: 50 },
+    { name: 'Wants', percentage: 30 },
+    { name: 'Savings', percentage: 20 }
+  ],
+  '80-20': [
+    { name: 'Necessities', percentage: 80 },
+    { name: 'Discretionary', percentage: 20 }
+  ],
+  'custom': [] // Custom allocations will be defined by the user
+};
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -54,14 +85,16 @@ export interface ShoppingItem {
   description?: string;
 }
 
-export interface ShoppingList {
-  id: string;
-  name: string;
-  items: ShoppingItem[];
-  shared?: boolean;
-  sharedWith?: string[];
-  budget?: number;
+export interface ShoppingItem {
+	id: string;
+	name: string;
+	categoryId: string;
+	price: number;
+	quantity: number;
+	completed?: boolean;
+	dateAdded: Date;
 }
+
 
 export const DEFAULT_INCOME_CATEGORIES: Category[] = [
 	{
@@ -119,6 +152,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#4F46E5', // Indigo
 		icon: 'home',
 		colors: ['#818cf8', '#4338ca'], // Light indigo to dark indigo gradient
+		subcategories: ['Rent', 'Mortgage'],
 	},
 	{
 		id: 'transport',
@@ -127,6 +161,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#EF4444', // Red
 		icon: 'car',
 		colors: ['#f87171', '#dc2626'], // Light red to dark red gradient
+		subcategories: ['Public Transport', 'Fuel', 'Parking'],
 	},
 	{
 		id: 'food',
@@ -135,6 +170,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#F97316', // Orange
 		icon: 'food',
 		colors: ['#fb923c', '#ea580c'], // Light orange to dark orange gradient
+		subcategories: ['Groceries', 'Dining Out', 'Snacks'],
 	},
 	{
 		id: 'entertainment',
@@ -143,6 +179,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#EC4899', // Pink
 		icon: 'camera',
 		colors: ['#f472b6', '#db2777'], // Light pink to dark pink gradient
+		subcategories: ['Movies', 'Concerts', 'Events'],
 	},
 	{
 		id: 'medical',
@@ -151,6 +188,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#10B981', // Emerald
 		icon: 'heart',
 		colors: ['#34d399', '#059669'], // Light green to dark green gradient
+		subcategories: ['Insurance', 'Medication', 'Appointments'],
 	},
 	{
 		id: 'education',
@@ -159,6 +197,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#3B82F6', // Blue
 		icon: 'book',
 		colors: ['#60a5fa', '#2563eb'], // Light blue to dark blue gradient
+		subcategories: ['Tuition', 'Books', 'Supplies'],
 	},
 	{
 		id: 'clothing',
@@ -167,6 +206,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#8B5CF6', // Purple
 		icon: 'shirt',
 		colors: ['#a78bfa', '#7c3aed'], // Light purple to dark purple gradient
+		subcategories: ['Shoes', 'Accessories', 'Apparel'],
 	},
 	{
 		id: 'utilities',
@@ -175,6 +215,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#06B6D4', // Cyan
 		icon: 'zap',
 		colors: ['#22d3ee', '#0891b2'], // Light cyan to dark cyan gradient
+		subcategories: ['Electricity', 'Water', 'Internet'],
 	},
 	{
 		id: 'debt',
@@ -183,6 +224,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#F59E0B', // Amber
 		icon: 'credit-card',
 		colors: ['#fbbf24', '#d97706'], // Light amber to dark amber gradient
+		subcategories: ['Loans', 'Credit Card Payments', 'Interest'],
 	},
 	{
 		id: 'saving',
@@ -191,6 +233,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		color: '#22C55E', // Green
 		icon: 'saving',
 		colors: ['#4ade80', '#16a34a'], // Light green to dark green gradient
+		subcategories: ['Emergency Fund', 'Retirement', 'Investments'],
 	},
 ];
 

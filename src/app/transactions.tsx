@@ -43,11 +43,11 @@ const SearchBar = ({ value, onChangeText }:SearchBarProps) => (
 
 const ActionButton = ({ onPress, icon: Icon, label, color }:ActionButtonProps) => (
   <TouchableOpacity
-    className={`flex-row items-center bg-gradient-to-r ${color} rounded-xl px-4 py-3 shadow-sm`}
+    className={`flex-row items-center bg-${color} rounded-xl px-4 py-3 shadow-sm`}
     onPress={onPress}
   >
     <Icon color="#ffffff" size={20} className="mr-2" />
-    <Text className="text-white font-rmedium">{label}</Text>
+    <Text className="text-white dark:text-gray-700 font-rmedium">{label}</Text>
   </TouchableOpacity>
 );
 
@@ -123,13 +123,13 @@ const FinanceScreen: React.FC = () => {
               onPress={() => setFilterModalVisible(true)}
               icon={Filter}
               label="Filter"
-              color="from-blue-500 to-blue-600"
+              color="blue-500"
             />
             <ActionButton
               onPress={() => setSortModalVisible(true)}
               icon={ArrowUpDown}
               label="Sort"
-              color="from-green-500 to-green-600"
+              color="green-500"
             />
           </View>
         </View>
@@ -166,4 +166,4 @@ const FinanceScreen: React.FC = () => {
   );
 };
 
-export default observer(FinanceScreen);
+export default FinanceScreen;

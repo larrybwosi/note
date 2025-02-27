@@ -37,7 +37,7 @@ const CategoryDetails = ({
   
   const category = categories.find((c) => c.id === categoryId);
   const transactions = trans.filter((t) => t.categoryId === categoryId);
-  const budget = budgets.find((b) => b.categoryId === categoryId);
+  const budget = budgets.find((b) => b.categories.find((c) => c.categoryId === categoryId));
 
   const	onUpdateBudget = (budget: Budget) => {};
 	const onCreateBudget = (budget: Partial<Budget>) => {};

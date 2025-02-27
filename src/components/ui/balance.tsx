@@ -1,24 +1,21 @@
 import { router } from "expo-router";
+import { TouchableOpacity, Text, View } from 'react-native';
 import { DollarSign, Plus } from "lucide-react-native";
 import { useEffect } from "react";
-import { TouchableOpacity } from "react-native";
-import { Text, View } from "react-native";
-import Animated, { FadeInDown, LinearTransition, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
-import useStore from "src/store/useStore";
+import Animated, { FadeInDown, LinearTransition, useSharedValue, withSpring } from "react-native-reanimated";
 
-export default function BalanceCard () {
+import useStore from "src/store/useStore";
+import { observer } from "@legendapp/state/react";
+
+function BalanceCard () {
   const scale = useSharedValue(0.98);
   const { getBalance } = useStore();
   const bl = getBalance()
-  console.log(bl)
+  console.log('current balance  ',bl)
   
   useEffect(() => {
     scale.value = withSpring(1, { damping: 12 });
   }, []);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
   
   const handlePressIn = () => {
     scale.value = withSpring(0.98, { damping: 10 });
@@ -33,7 +30,6 @@ export default function BalanceCard () {
 			entering={FadeInDown.duration(700).springify()}
 			layout={LinearTransition.springify()}
 			style={[
-				animatedStyle,
 				{
 					shadowColor: '#000',
 					shadowOffset: {
@@ -88,3 +84,4 @@ export default function BalanceCard () {
 		</Animated.View>
 	);
 };
+export default observer(BalanceCard)

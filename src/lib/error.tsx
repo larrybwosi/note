@@ -1,249 +1,149 @@
-import { Component } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  TouchableOpacity,
-  SafeAreaView,
-  ScrollView,
-} from 'react-native';
+import { Component, ErrorInfo, ReactNode } from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 interface ErrorBoundaryProps {
-  children: React.ReactNode;
-  onRetry?: () => void;
-  onHomePress?: () => void;
+	children: ReactNode;
+	fallbackComponent?: ReactNode;
+	onReset?: () => void;
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-  errorInfo: React.ErrorInfo | null;
-  fadeAnim: Animated.Value;
-  scaleAnim: Animated.Value;
+	hasError: boolean;
+	error: Error | null;
+	errorInfo: ErrorInfo | null;
 }
+
+// Separated fallback UI component to use hooks
+const ErrorFallbackUI = ({
+	error,
+	errorInfo,
+	resetErrorBoundary,
+}: {
+	error: Error | null;
+	errorInfo: ErrorInfo | null;
+	resetErrorBoundary: () => void;
+	homeScreenName?: string;
+}) => {
+
+	const navigateToHome = () => {
+		router.replace('/');
+		resetErrorBoundary();
+	};
+
+	return (
+		<View className="flex-1 bg-white dark:bg-gray-900 p-6 justify-center items-center">
+			<View className="bg-white dark:bg-gray-800 p-8 rounded-2xl w-full max-w-md shadow-lg border border-gray-100 dark:border-gray-700">
+				{/* Error icon and illustration */}
+				<View className="items-center mb-6">
+					<View className="bg-red-100 dark:bg-red-900/30 rounded-full p-4 mb-3">
+						<AlertCircle size={32} color="#EF4444" />
+					</View>
+					<Text className="text-2xl font-bold text-gray-800 dark:text-white mb-1">Oops!</Text>
+					<Text className="text-gray-500 dark:text-gray-400 text-center">
+						We hit an unexpected error
+					</Text>
+				</View>
+
+				{/* Error message */}
+				<View className="bg-red-50 dark:bg-red-900/10 p-4 rounded-xl mb-6">
+					<Text className="text-gray-700 dark:text-gray-300 text-center">
+						Something went wrong while loading this screen. We've been notified and are working on a
+						fix.
+					</Text>
+				</View>
+
+				{/* Dev mode error details */}
+				{__DEV__ && error && (
+					<ScrollView className="mb-6 max-h-32 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+						<Text className="font-mono text-xs text-gray-800 dark:text-gray-200">
+							{error.toString()}
+							{errorInfo && `\n\n${errorInfo.componentStack}`}
+						</Text>
+					</ScrollView>
+				)}
+
+				{/* Action buttons */}
+				<View className="flex-row space-x-3">
+					<TouchableOpacity
+						onPress={navigateToHome}
+						className="flex-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-xl flex-row justify-center items-center"
+					>
+						<Home size={18} color="#4B5563" className="mr-2" />
+						<Text className="font-medium text-gray-700 dark:text-gray-300">Home</Text>
+					</TouchableOpacity>
+
+					<TouchableOpacity
+						onPress={resetErrorBoundary}
+						className="flex-1 bg-red-500 dark:bg-red-600 p-4 rounded-xl flex-row justify-center items-center"
+					>
+						<RefreshCw size={18} color="white" className="mr-2" />
+						<Text className="text-white font-medium">Try Again</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
+		</View>
+	);
+};
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      fadeAnim: new Animated.Value(0),
-      scaleAnim: new Animated.Value(0.95),
-    };
-  }
+	constructor(props: ErrorBoundaryProps) {
+		super(props);
+		this.state = {
+			hasError: false,
+			error: null,
+			errorInfo: null,
+		};
+	}
 
-  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    return { hasError: true };
-  }
+	static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+		return {
+			hasError: true,
+			error,
+			errorInfo: null,
+		};
+	}
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    this.setState({
-      error: error,
-      errorInfo: errorInfo,
-    });
-  }
+	componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+		console.error('Error caught by ErrorBoundary:', error, errorInfo);
+		this.setState({
+			error,
+			errorInfo,
+		});
 
-  componentDidUpdate(prevProps: ErrorBoundaryProps, prevState: ErrorBoundaryState): void {
-    if (!prevState.hasError && this.state.hasError) {
-      this.startAnimation();
-    }
-  }
+		// Here you could send the error to your error reporting service
+		// e.g., Sentry, Bugsnag, etc.
+	}
 
-  startAnimation = (): void => {
-    Animated.parallel([
-      Animated.timing(this.state.fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.spring(this.state.scaleAnim, {
-        toValue: 1,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
+	resetErrorBoundary = (): void => {
+		if (this.props.onReset) {
+			this.props.onReset();
+		}
+		this.setState({
+			hasError: false,
+			error: null,
+			errorInfo: null,
+		});
+	};
 
-  handleRetry = (): void => {
-    const { onRetry } = this.props;
-    if (onRetry) {
-      onRetry();
-    }
-    this.setState({
-      hasError: false,
-      error: null,
-      errorInfo: null,
-    });
-  };
+	render(): ReactNode {
+		if (this.state.hasError) {
+			if (this.props.fallbackComponent) {
+				return this.props.fallbackComponent;
+			}
 
-  handleHomePress = (): void => {
-    const { onHomePress } = this.props;
-    if (onHomePress) {
-      onHomePress();
-    }
-  };
+			return (
+				<ErrorFallbackUI
+					error={this.state.error}
+					errorInfo={this.state.errorInfo}
+					resetErrorBoundary={this.resetErrorBoundary}
+				/>
+			);
+		}
 
-  render(): React.ReactNode {
-    if (this.state.hasError) {
-      return (
-        <SafeAreaView style={styles.container}>
-          <ScrollView contentContainerStyle={styles.scrollContainer}>
-            <Animated.View
-              style={[
-                styles.content,
-                {
-                  opacity: this.state.fadeAnim,
-                  transform: [{ scale: this.state.scaleAnim }],
-                },
-              ]}
-            >
-              <View style={styles.iconContainer}>
-                <View style={styles.iconBackground}>
-                  <AlertCircle size={48} color="#EF4444" />
-                </View>
-              </View>
-
-              <View style={styles.messageContainer}>
-                <Text style={styles.title}>Oops! Something went wrong</Text>
-                <Text style={styles.subtitle}>
-                  We apologize for the inconvenience. An unexpected error has occurred.
-                </Text>
-              </View>
-
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{this.state.error?.toString()}</Text>
-                {/* <Text style={styles.stackText}>{this.state.errorInfo?.componentStack}</Text> */}
-              </View>
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.retryButton]}
-                  onPress={this.handleRetry}
-                >
-                  <RefreshCw size={20} color="#374151" />
-                  <Text style={styles.retryButtonText}>Try Again</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.button, styles.homeButton]}
-                  onPress={this.handleHomePress}
-                >
-                  <Home size={20} color="#FFFFFF" />
-                  <Text style={styles.homeButtonText}>Back to Home</Text>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          </ScrollView>
-        </SafeAreaView>
-      );
-    }
-
-    return this.props.children;
-  }
+		return this.props.children;
+	}
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  content: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    maxWidth: 400,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  iconContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  iconBackground: {
-    backgroundColor: '#FEE2E2',
-    padding: 16,
-    borderRadius: 50,
-  },
-  messageContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  errorContainer: {
-    backgroundColor: '#F3F4F6',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 24,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#EF4444',
-    fontFamily: 'monospace',
-  },
-  stackText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontFamily: 'monospace',
-    marginTop: 8,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    gap: 8,
-  },
-  retryButton: {
-    backgroundColor: '#F3F4F6',
-  },
-  homeButton: {
-    backgroundColor: '#EF4444',
-  },
-  retryButtonText: {
-    color: '#374151',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  homeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 
 export default ErrorBoundary;

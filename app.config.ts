@@ -78,8 +78,6 @@ const config: ExpoConfig = {
 
 export default withSentry(config, {
 	url: 'https://sentry.io/',
-	// Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.
 	project: 'finance',
-	organization: 'clevery',
-  authToken:process.env.SENTRY_AUTH_TOKEN
+	organization: 'clevery'
 });
