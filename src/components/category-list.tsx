@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -9,7 +9,6 @@ import {
 	CreditCard,
 	PlusCircle,
 	TrendingUp,
-	X,
 } from 'lucide-react-native';
 import { ICON_MAP, TransactionType, Category } from 'src/types/transaction';
 
@@ -26,8 +25,8 @@ interface CategoryListProps {
 	setCustomCategory: (category: Category) => void;
 }
 
-const CategoryList: React.FC<CategoryListProps> = React.memo(
-	({
+const CategoryList: React.FC<CategoryListProps> = (
+	{
 		type,
 		selectedCategories,
 		setSelectedCategories,
@@ -125,7 +124,7 @@ const CategoryList: React.FC<CategoryListProps> = React.memo(
 									<TouchableOpacity
 										key={category.id}
 										onPress={() => handleToggleCategory(category.id)}
-										className="mb-3 p-3 rounded-2xl flex-row items-center shadow-sm"
+										className="mb-1 p-1 rounded-2xl flex-row items-center shadow-sm"
 										style={{
 											width: '48%',
 											elevation: isSelected ? 3 : 1,
@@ -135,7 +134,7 @@ const CategoryList: React.FC<CategoryListProps> = React.memo(
 										}}
 									>
 										<View
-											className="w-12 h-12 rounded-full mr-3 items-center justify-center"
+											className="w-8 h-8 rounded-full mr-3 items-center justify-center"
 											style={{ backgroundColor: category.color }}
 										>
 											<Icon size={20} color="#FFFFFF" />
@@ -149,13 +148,13 @@ const CategoryList: React.FC<CategoryListProps> = React.memo(
 												{category.name}
 											</Text>
 											{subcategories && subcategories.length > 0 && (
-												<View className="mt-2 pt-2 border-t border-gray-100">
+												<View className="mt-2 border-t border-gray-100">
 													<Text className="text-xs font-rmedium text-gray-500 mb-1">Includes:</Text>
 													<View className="flex-row flex-wrap">
 														{subcategories.slice(0, 2).map((subcat, idx) => (
 															<View
 																key={idx}
-																className="bg-gray-200 rounded-full px-2 py-1 mr-1 mb-1"
+																className="bg-gray-200 rounded-lg"
 															>
 																<Text className="text-xs text-gray-700">{subcat}</Text>
 															</View>
@@ -198,43 +197,10 @@ const CategoryList: React.FC<CategoryListProps> = React.memo(
 								<Text className="text-gray-600 font-bold">Add Custom</Text>
 							</TouchableOpacity>
 						</View>
-
-						{/* Selected categories section */}
-						{selectedCategories.length > 0 && (
-							<View
-								className="mt-6 p-4 rounded-2xl bg-white border border-gray-100 shadow-sm"
-								style={{ elevation: 1 }}
-							>
-								<Text className="font-bold text-gray-800 mb-3">Selected Categories</Text>
-								<View className="flex-row flex-wrap">
-									{typeCategories
-										.filter((cat) => selectedCategories.includes(cat.id))
-										.map((category) => (
-											<View
-												key={category.id}
-												className="flex-row items-center bg-gray-100 rounded-full px-4 py-2 m-1"
-											>
-												<View
-													className="w-5 h-5 rounded-full mr-2"
-													style={{ backgroundColor: category.color }}
-												/>
-												<Text className="text-sm text-gray-700 font-medium">{category.name}</Text>
-												<TouchableOpacity
-													className="ml-2 bg-white rounded-full p-1"
-													onPress={() => handleToggleCategory(category.id)}
-												>
-													<X size={14} color="#6B7280" />
-												</TouchableOpacity>
-											</View>
-										))}
-								</View>
-							</View>
-						)}
 					</View>
 				)}
 			</View>
 		);
-	}
-);
+	};
 
 export default CategoryList;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { observer, use$ } from '@legendapp/state/react';
+import { observer, use$, useObservable } from '@legendapp/state/react';
 import {
 	User,
 	Mail,
@@ -14,7 +14,7 @@ import {
 	CalendarDays,
 } from 'lucide-react-native';
 import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
-import { ProfileData, profileData$, updateProfile } from 'src/store/useProfile';
+import { ProfileData, profileData$, useUpdateProfile } from 'src/store/useProfile';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
@@ -118,7 +118,7 @@ const ProfilePage = () => {
 
 	const handleSave = () => {
 		try {
-			updateProfile(profileData);
+			useUpdateProfile(profileData);
 		} catch (error:any) {
 			Alert.alert(`Error: ${error?.message}`);
 		}

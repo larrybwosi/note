@@ -56,29 +56,39 @@ export interface Budget {
 	categoryAllocations: BudgetRuleGroups[]
 }
 
+interface BudgetRuleGroupsAllocation {
+	[key: string]: {
+		groups: {
+			name: string;
+			percentage: number;
+			description: string;
+			categories: string[];
+			color: string;
+		}[];
+	};
+}
 // Default budget allocations based on rule types
-export const BUDGET_RULE_ALLOCATIONS = {
+export const BUDGET_RULE_ALLOCATIONS: BudgetRuleGroupsAllocation = {
 	'50-30-20': {
 		groups: [
-			{ name: 'Needs', percentage: 50, description: 'Essential expenses', categories: [] },
-			{ name: 'Wants', percentage: 30, description: 'Non-essential spending', categories: [] },
-			{ name: 'Savings', percentage: 20, description: 'Future planning', categories: [] },
+			{ name: 'Needs', percentage: 50, description: 'Essential expenses', categories: [], color: '#4F46E5', },
+			{ name: 'Wants', percentage: 30, description: 'Non-essential spending', categories: [], color: '#EC4899' },
+			{ name: 'Savings', percentage: 20, description: 'Future planning', categories: [], color: '#10B981' },
 		],
 	},
 	'10-70-20': {
 		groups: [
-			{ name: 'Savings', percentage: 10, description: 'Set aside for future', categories: [] },
-			{ name: 'Expenses', percentage: 70, description: 'Daily and monthly costs', categories: [] },
-			{ name: 'Investments', percentage: 20, description: 'Growth opportunities', categories: [] },
+			{ name: 'Savings', percentage: 10, description: 'Set aside for future', categories: [], color: '#10B981' },
+			{ name: 'Expenses', percentage: 70, description: 'Daily and monthly costs', categories: [], color: '#4F46E5' },
+			{ name: 'Investments', percentage: 20, description: 'Growth opportunities', categories: [], color: '#F59E0B' },
 		],
 	},
 	'80-20': {
 		groups: [
-			{ name: 'Necessities', percentage: 80, description: 'Must-have expenses', categories: [] },
-			{ name: 'Discretionary', percentage: 20, description: 'Optional spending', categories: [] },
+			{ name: 'Necessities', percentage: 80, description: 'Must-have expenses', categories: [], color: '#4F46E5' },
+			{ name: 'Discretionary', percentage: 20, description: 'Optional spending', categories: [], color: '#EC4899' },
 		],
 	},
-	'custom': {}
 };
 
 export interface ShoppingItem {
@@ -139,16 +149,7 @@ export const DEFAULT_INCOME_CATEGORIES: Category[] = [
 		icon: 'gift',
 		colors: ['#fbbf24', '#d97706'], // Light amber to dark amber gradient
 		subcategories: ['Performance Bonus', 'Sales Commission', 'Holiday Bonus'],
-	},
-	{
-		id: 'other',
-		name: 'Other Income',
-		type: 'income',
-		color: '#6B7280', // Gray
-		icon: 'add-circle',
-		colors: ['#9ca3af', '#4b5563'], // Light gray to dark gray gradient
-		subcategories: ['Refunds', 'Rebates', 'Miscellaneous'],
-	},
+	}
 ];
 
 export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [

@@ -17,7 +17,7 @@ const getRuleAllocations = (ruleType: keyof typeof BUDGET_RULE_ALLOCATIONS) => {
 function BudgetDetails({ detailsVisible, setDetailsVisible, currentBudget, handleEditBudget, handleDeleteBudget }: BudgetDetailsProps): React.ReactElement {
 
 const CATEGORY_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-
+const ruleAllocations = getRuleAllocations(currentBudget?.ruleType);
   return (
 		<Modal visible={detailsVisible} animationType="slide" transparent={true}>
 			<View className="flex-1 bg-black bg-opacity-50 justify-end">
@@ -77,13 +77,13 @@ const CATEGORY_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
 									<View>
 										<Text className="text-gray-500 text-xs font-amedium">Start Date</Text>
 										<Text className="font-medium text-gray-800 mt-1">
-											{formatDate(new Date(currentBudget.startDate), 'MMM dd, yyyy')}
+											{formatDate(new Date(currentBudget.startDate || new Date()), 'MMM dd, yyyy')}
 										</Text>
 									</View>
 									<View>
 										<Text className="text-gray-500 text-xs font-amedium">End Date</Text>
 										<Text className="font-medium text-gray-800 mt-1">
-											{formatDate(new Date(currentBudget.endDate), 'MMM dd, yyyy')}
+											{/* {formatDate(new Date(currentBudget.endDate), 'MMM dd, yyyy')} */}
 										</Text>
 									</View>
 								</View>
@@ -97,11 +97,11 @@ const CATEGORY_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
 								<View className="p-4">
 									<Text className="text-gray-500 text-sm mb-2">
 										Rule Type:{' '}
-										<Text className="font-medium text-gray-700">{currentBudget.ruleType}</Text>
+										<Text className="font-medium text-gray-700">{currentBudget?.ruleType}</Text>
 									</Text>
 
 									<View className="flex-row flex-wrap mt-2">
-										{getRuleAllocations(currentBudget.ruleType).map((allocation, index) => (
+										{ruleAllocations.groups.map((allocation, index) => (
 											<View key={index} className="mr-4 mb-3">
 												<View className="flex-row items-center">
 													<View
@@ -119,7 +119,7 @@ const CATEGORY_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
 											</View>
 										))}
 
-										{currentBudget.ruleType === 'custom' && (
+										{currentBudget?.ruleType === 'custom' && (
 											<Text className="text-gray-600">Custom allocation details</Text>
 										)}
 									</View>
@@ -155,4 +155,5 @@ const CATEGORY_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
 		</Modal>
 	);
 }
+
 export default BudgetDetails;

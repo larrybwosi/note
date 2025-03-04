@@ -1,12 +1,10 @@
 import { observable } from '@legendapp/state';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
-import { use$ } from '@legendapp/state/react';
 import { synced } from '@legendapp/state/sync';
 import {
 	Transaction,
 	Category,
 	Budget,
-	DEFAULT_CATEGORIES,
 	BUDGET_RULE_ALLOCATIONS,
 	BudgetRuleType,
 	BudgetPeriodType,
@@ -44,49 +42,49 @@ const actions = {
 	},
 
 	updateTransaction: (transaction: Transaction) => {
-		const index = store.transactions.findIndex((t) => use$(t.id) === transaction.id);
+		const index = store.transactions.findIndex((t) => t.id.get() === transaction.id);
 		if (index !== -1) {
 			store.transactions[index].set(transaction);
 		}
 	},
 
 	deleteTransaction: (id: string) => {
-		const index = use$(store.transactions).findIndex((t) => t.id === id);
+		const index = store.transactions.get().findIndex((t) => t.id === id);
 		if (index !== -1) {
 			store.transactions[index].delete();
 		}
 	},
 
 	// Category operations
-	addCategory : (category: Category) => {
-    // Check if the category already exists
-    const isDuplicate = use$(store.categories).some(
-        (existingCategory) =>
-            existingCategory.name.toLowerCase() === category.name.toLowerCase() // Case-insensitive comparison
-    );
+	addCategory: (category: Category) => {
+		// Check if the category already exists
+		const isDuplicate = store.categories.get().some(
+			(existingCategory) => existingCategory.name.toLowerCase() === category.name.toLowerCase() // Case-insensitive comparison
+		);
 
-    if (!isDuplicate) {
-        // Add the category if it doesn't already exist
-        store.categories.push({ ...category, id: category.id || createUniqueId() });
-    } else {
-        console.warn(`Category "${category.name}" already exists.`);
-    }
-},
+		if (!isDuplicate) {
+			// Add the category if it doesn't already exist
+			store.categories.push({ ...category, id: category.id || createUniqueId() });
+		} else {
+			console.warn(`Category "${category.name}" already exists.`);
+		}
+	},
 
-	addBulkCategories:(categories: Category[]) => {
-    categories.forEach(category => {
-        actions.addCategory(category);
-    });
+	addBulkCategories: (categories: Category[]) => {
+		categories.forEach((category) => {
+			console.log(category);
+			actions.addCategory(category);
+		});
 	},
 	updateCategory: (category: Category) => {
-		const index = store.categories.findIndex((c) => use$(c.id) === category.id);
+		const index = store.categories.findIndex((c) => c.id.get() === category.id);
 		if (index !== -1) {
 			store.categories[index].set(category);
 		}
 	},
 
 	deleteCategory: (id: string) => {
-		const index = store.categories.findIndex((c) => use$(c.id) === id);
+		const index = store.categories.findIndex((c) => c.id.get() === id);
 		if (index !== -1) {
 			store.categories[index].delete();
 		}
@@ -94,7 +92,7 @@ const actions = {
 
 	// Budget operations
 	deleteBudget: (id: string) => {
-		const index = store.budgets.findIndex((b) => use$(b.id) === id);
+		const index = store.budgets.findIndex((b) => b.id.get() === id);
 		if (index !== -1) {
 			store.budgets[index].delete();
 		}
@@ -102,7 +100,7 @@ const actions = {
 
 	// Financial calculations
 	getBalance: () => {
-		const transactions = use$(store.transactions);
+		const transactions = store.transactions.get();
 
 		return transactions.reduce((balance, t) => {
 			return t.type === 'income' ? balance + t.amount : balance - t.amount;
@@ -110,7 +108,7 @@ const actions = {
 	},
 
 	getTotalSpent: () => {
-		const transactions = use$(store.transactions);
+		const transactions = store.transactions.get();
 
 		return transactions.reduce((total, t) => {
 			return t.type === 'expense' ? total + t.amount : total;
@@ -118,7 +116,7 @@ const actions = {
 	},
 
 	getTotalIncome: () => {
-		const transactions = use$(store.transactions);
+		const transactions = store.transactions.get();
 
 		return transactions.reduce((total, t) => {
 			return t.type === 'income' ? total + t.amount : total;
@@ -126,7 +124,8 @@ const actions = {
 	},
 
 	getRemainingBudget: () => {
-		const totalBudget = use$(store.budgets)
+		const totalBudget = store.budgets
+			.get()
 			.filter((budget) => budget.status === 'active')
 			.reduce((sum, budget) => sum + budget.amount, 0);
 
@@ -135,7 +134,8 @@ const actions = {
 	},
 
 	getPercentageSpent: () => {
-		const totalBudget = use$(store.budgets)
+		const totalBudget = store.budgets
+			.get()
 			.filter((budget) => budget.status === 'active')
 			.reduce((sum, budget) => sum + budget.amount, 0);
 
@@ -148,7 +148,8 @@ const actions = {
 	getCategoryMonthlyTotal: (categoryId: string) => {
 		const { startOfMonth, endOfMonth } = getCurrentMonthDateRange();
 
-		const total = use$(store.transactions)
+		const total = store.transactions
+			.get()
 			.filter(
 				(t) =>
 					t.categoryId === categoryId &&
@@ -161,7 +162,7 @@ const actions = {
 	},
 
 	getCategoryTransactions: (categoryId: string, startDate?: Date, endDate?: Date) => {
-		const transactions = use$(store.transactions);
+		const transactions = store.transactions.get();
 
 		if (!startDate && !endDate) {
 			return transactions.filter((t) => t.categoryId === categoryId);
@@ -233,13 +234,13 @@ const actions = {
 	// Check if budget has expired and needs renewal
 	checkBudgetStatus: () => {
 		const now = new Date();
-		const activeBudgets = use$(store.budgets).filter((b) => b.status === 'active');
+		const activeBudgets = store.budgets.get().filter((b) => b.status === 'active');
 		const expiredBudgets = [];
 
 		for (const budget of activeBudgets) {
 			if (now > new Date(budget.endDate)) {
 				// Set the budget to expired
-				const index = store.budgets.findIndex((b) => use$(b.id) === budget.id);
+				const index = store.budgets.findIndex((b) => b.id.get() === budget.id);
 				if (index !== -1) {
 					store.budgets[index].status.set('expired');
 					expiredBudgets.push(budget.id);
@@ -252,13 +253,17 @@ const actions = {
 			expiredBudgetIds: expiredBudgets,
 		};
 	},
+	getBudgetBudget: (budgetId: string) => {
+		const budget = store.budgets.get().find((b) => b.id === budgetId);
+		return budget
+	},
 
 	// Update an existing budget (only allowed if it's in draft status)
 	updateBudget: (budget: Partial<Budget> & { id: string }) => {
-		const index = store.budgets.findIndex((b) => use$(b.id) === budget.id);
+		const index = store.budgets.findIndex((b) => b.id.get() === budget.id);
 
 		if (index !== -1) {
-			const currentBudget = use$(store.budgets[index]);
+			const currentBudget = store.budgets[index].get();
 
 			// Only allow updates to drafts or if changing status
 			if (currentBudget.status !== 'draft' && budget.status === undefined) {
@@ -272,7 +277,7 @@ const actions = {
 				...budget,
 			});
 
-			return use$(store.budgets[index]);
+			return store.budgets[index].get();
 		}
 
 		return null;
@@ -280,7 +285,7 @@ const actions = {
 
 	// Renew an expired budget (create a new budget with same settings but new dates)
 	renewBudget: (expiredBudgetId: string) => {
-		const budget = use$(store.budgets).find((b) => b.id === expiredBudgetId);
+		const budget = store.budgets.get().find((b) => b.id === expiredBudgetId);
 
 		if (budget && budget.status === 'expired') {
 			// Calculate new dates
@@ -305,7 +310,7 @@ const actions = {
 
 	// Get spending for current active budget
 	getActiveBudgetSpending: () => {
-		const activeBudget = use$(store.budgets).find((b) => b.status === 'active');
+		const activeBudget = store.budgets.get().find((b) => b.status === 'active');
 		if (!activeBudget) return null;
 
 		const startDate = new Date(activeBudget.startDate);
@@ -313,13 +318,15 @@ const actions = {
 
 		const groupSpending = activeBudget.categoryAllocations.map((group) => {
 			// Get all transactions matching group's categories within date range
-			const transactions = use$(store.transactions).filter(
-				(t) =>
-					group.categories.includes(t.categoryId) &&
-					new Date(t.date) >= startDate &&
-					new Date(t.date) <= endDate &&
-					t.type === 'expense'
-			);
+			const transactions = store.transactions
+				.get()
+				.filter(
+					(t) =>
+						group.categories.includes(t.categoryId) &&
+						new Date(t.date) >= startDate &&
+						new Date(t.date) <= endDate &&
+						t.type === 'expense'
+				);
 
 			const spent = transactions.reduce((total, t) => total + t.amount, 0);
 			const allocated = (group.percentage / 100) * activeBudget.amount;
@@ -334,7 +341,7 @@ const actions = {
 				// Include category details for reference
 				categories: group.categories.map((categoryId) => ({
 					id: categoryId,
-					name: use$(store.categories).find((c) => c.id === categoryId)?.name || '',
+					name: store.categories.get().find((c) => c.id === categoryId)?.name || '',
 				})),
 			};
 		});
@@ -364,7 +371,7 @@ const actions = {
 			// Map the groups to the required BudgetRuleGroups structure
 			const categoryAllocations = (
 				ruleData as {
-					groups: { name: string; percentage: number; description: string; categories: never[] }[];
+					groups: { name: string; percentage: number; description: string; categories: string[] }[];
 				}
 			).groups.map((group) => ({
 				name: group.name,
@@ -387,7 +394,7 @@ const actions = {
 
 	// Get the time remaining in current budget
 	getActiveBudgetTimeRemaining: () => {
-		const activeBudget = use$(store.budgets).find((b) => b.status === 'active');
+		const activeBudget = store.budgets.get().find((b) => b.status === 'active');
 		if (!activeBudget) return null;
 
 		const now = new Date();
@@ -414,17 +421,17 @@ const actions = {
 	// Get all budgets organized by status
 	getAllBudgets: () => {
 		return {
-			active: use$(store.budgets).find((b) => b.status === 'active'),
-			expired: use$(store.budgets).filter((b) => b.status === 'expired'),
-			drafts: use$(store.budgets).filter((b) => b.status === 'draft'),
+			active: store.budgets.get().find((b) => b.status === 'active'),
+			expired: store.budgets.get().filter((b) => b.status === 'expired'),
+			drafts: store.budgets.get().filter((b) => b.status === 'draft'),
 		};
 	},
 
 	// Get transactions for a specific date range
 	getTransactionsByDateRange: (startDate: Date, endDate: Date) => {
-		return use$(store.transactions).filter(
-			(t) => new Date(t.date) >= startDate && new Date(t.date) <= endDate
-		);
+		return store.transactions
+			.get()
+			.filter((t) => new Date(t.date) >= startDate && new Date(t.date) <= endDate);
 	},
 
 	// Get spending trends by category over time
@@ -463,20 +470,22 @@ const actions = {
 		}
 
 		// Get categories
-		const categories = use$(store.categories);
+		const categories = store.categories.get();
 
 		// Calculate spending for each category in each period
 		const trends = categories
 			.filter((cat) => cat.type === 'expense')
 			.map((category) => {
 				const periodData = periods.map((period) => {
-					const transactions = use$(store.transactions).filter(
-						(t) =>
-							t.categoryId === category.id &&
-							new Date(t.date) >= period.start &&
-							new Date(t.date) <= period.end &&
-							t.type === 'expense'
-					);
+					const transactions = store.transactions
+						.get()
+						.filter(
+							(t) =>
+								t.categoryId === category.id &&
+								new Date(t.date) >= period.start &&
+								new Date(t.date) <= period.end &&
+								t.type === 'expense'
+						);
 
 					return {
 						period: period.label,

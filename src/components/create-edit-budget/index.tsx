@@ -9,35 +9,24 @@ import {
 	Alert,
 	ActivityIndicator,
 } from 'react-native';
-import { Check, DollarSign, MoveRight, X, Plus, SlidersHorizontal } from 'lucide-react-native';
+import { Check, DollarSign, X, SlidersHorizontal } from 'lucide-react-native';
 import {
 	Budget,
 	BUDGET_RULE_ALLOCATIONS,
 	BudgetPeriodType,
+	BudgetRuleType,
 	BudgetStatus,
 	Category,
-	ICON_MAP,
 } from 'src/types/transaction';
 import useStore from 'src/store/useStore';
-import React,{ useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import AllocationGroup from './allocation-group';
+import CategoryItem from './category-item';
 
 interface CreateEditBudgetProps {
 	modalVisible: boolean;
 	setModalVisible: (value: boolean) => void;
 	currentBudget: Budget;
-}
-
-// Defining the budget allocation groups based on the rule types
-interface BudgetRuleGroups {
-	[key: string]: {
-		groups: {
-			name: string;
-			percentage: number;
-			description: string;
-			categories: string[];
-			color: string;
-		}[];
-	};
 }
 
 function CreateEditBudget({
@@ -75,7 +64,8 @@ function CreateEditBudget({
 				} else {
 					// Check if rule type changed and we need to restructure
 					const currentGroupCount = currentBudget.categoryAllocations.length;
-					const expectedGroupCount = BUDGET_RULE_ALLOCATIONS[currentBudget.ruleType]?.groups.length || 0;
+					const expectedGroupCount =
+						BUDGET_RULE_ALLOCATIONS[currentBudget.ruleType]?.groups.length || 0;
 
 					if (currentGroupCount !== expectedGroupCount) {
 						// Rule type changed, we need to reset the allocations
@@ -147,131 +137,21 @@ function CreateEditBudget({
 
 	// Render a category item for selection
 	const renderCategoryItem = ({ item }: { item: Category }) => {
-		const groupIndex = getCategoryGroup(item.id);
-		const isSelected = groupIndex === activeGroupIndex;
-		const isInAnyGroup = groupIndex !== null;
-		const Icon = ICON_MAP[item.icon];
-
 		return (
-			<TouchableOpacity
-				className={`flex-row items-center p-3 border-b border-gray-200 ${isSelected ? 'bg-indigo-50' : ''}`}
-				onPress={() => {
-					if (activeGroupIndex !== null) {
-						toggleCategoryInGroup(item.id, activeGroupIndex);
-					}
-				}}
-			>
-				<View className="flex-row items-center flex-1">
-					<View
-						className="w-8 h-8 rounded-full mr-3 items-center justify-center"
-						style={{ backgroundColor: item.color }}
-					>
-						<Icon color={'white'} size={18}/>
-					</View>
-					<Text className="flex-1 text-gray-800 font-medium">{item.name}</Text>
-				</View>
-
-				{isInAnyGroup && (
-					<View
-						className="flex-row items-center px-2 py-1 rounded-full"
-					>
-						<Text
-							className="text-xs mr-1"
-						>
-							{currentBudget?.categoryAllocations[groupIndex].name}
-						</Text>
-						{isSelected && (
-							<Check size={16} color={'gray'} />
-						)}
-					</View>
-				)}
-
-				{!isInAnyGroup && activeGroupIndex !== null && (
-					<TouchableOpacity
-						className="bg-indigo-100 p-1 rounded-full"
-						onPress={() => toggleCategoryInGroup(item.id, activeGroupIndex)}
-					>
-						<Plus size={16} color="#4F46E5" />
-					</TouchableOpacity>
-				)}
-			</TouchableOpacity>
-		);
+			<CategoryItem
+        item={item}
+        activeGroupIndex={activeGroupIndex}
+        getCategoryGroup={getCategoryGroup}
+        toggleCategoryInGroup={toggleCategoryInGroup}
+        currentBudget={currentBudget}
+      />
+    );
 	};
 
 	// Calculate category count for each group
 	const getCategoryCountForGroup = (index: number) => {
 		if (!currentBudget?.categoryAllocations) return 0;
 		return currentBudget.categoryAllocations[index].categories.length;
-	};
-
-	// Render a budget allocation group
-	const renderAllocationGroup = (group: any, index: number) => {
-		const isActive = activeGroupIndex === index;
-		const categoryCount = getCategoryCountForGroup(index);
-
-		return (
-			<TouchableOpacity
-				key={index}
-				className={`p-4 mb-3 rounded-xl shadow-sm ${
-					isActive ? 'border-2 border-indigo-500 bg-indigo-50' : 'border border-gray-200 bg-white'
-				}`}
-				onPress={() => setActiveGroupIndex(index === activeGroupIndex ? null : index)}
-			>
-				<View className="flex-row justify-between items-center">
-					<View className="flex-row items-center">
-						<View
-							className="w-10 h-10 rounded-full mr-3 items-center justify-center"
-							style={{ backgroundColor: group.color + '30' }}
-						>
-							<Text className="font-bold" style={{ color: group.color }}>
-								{group.percentage}%
-							</Text>
-						</View>
-						<View>
-							<Text className="font-bold text-gray-800 text-base">{group.name}</Text>
-							<Text className="text-xs text-gray-500">{group.description}</Text>
-						</View>
-					</View>
-					<View className="flex-row items-center">
-						<View className="bg-gray-100 px-2 py-1 rounded-full mr-2">
-							<Text className="text-xs text-gray-600">{categoryCount}</Text>
-						</View>
-						<MoveRight size={18} color={isActive ? '#4F46E5' : '#9CA3AF'} />
-					</View>
-				</View>
-
-				{group.categories.length > 0 && (
-					<View className="mt-4 pt-3 border-t border-gray-200">
-						<Text className="text-xs text-gray-500 mb-2 font-aregular">Assigned Categories:</Text>
-						<View className="flex-row flex-wrap">
-							{group.categories.map((catId: string) => {
-								const category = EXPENSE_CATEGORIES.find((c) => c.id === catId);
-								const Icon = ICON_MAP[category?.icon!];
-								return category ? (
-									<View
-										key={catId}
-										className="flex-row items-center bg-gray-100 rounded-full px-3 py-1 mr-2 mb-2"
-									>
-										<View
-											className="w-4 h-4 rounded-full mr-2 items-center justify-center"
-										>
-											<Icon size={14} />
-										</View>
-										<Text className="text-xs text-gray-700 mr-1 font-rmedium">{category.name}</Text>
-										<TouchableOpacity
-											onPress={() => toggleCategoryInGroup(catId, index)}
-											className="ml-1"
-										>
-											<X size={12} color="#9CA3AF" />
-										</TouchableOpacity>
-									</View>
-								) : null;
-							})}
-						</View>
-					</View>
-				)}
-			</TouchableOpacity>
-		);
 	};
 
 	const handleSaveBudget = () => {
@@ -356,12 +236,12 @@ function CreateEditBudget({
 
 						{/* Budget Period */}
 						<View className="mb-5">
-							<Text className="text-gray-700 mb-2 font-medium text-base">Budget Period</Text>
+							<Text className="text-gray-700 mb-2 font-amedium text-sm">Budget Period</Text>
 							<View className="flex-row">
 								{['week', 'month', 'year'].map((period) => (
 									<TouchableOpacity
 										key={period}
-										className={`flex-1 py-4 ${period === 'year' ? '' : 'mr-3'} rounded-xl ${
+										className={`flex-1 py-2 ${period === 'year' ? '' : 'mr-3'} rounded-xl ${
 											currentBudget?.periodType === period
 												? 'bg-indigo-100 border-2 border-indigo-300'
 												: 'bg-gray-100 border border-gray-200'
@@ -387,7 +267,7 @@ function CreateEditBudget({
 
 						{/* Allocation Rule */}
 						<View className="mb-5">
-							<Text className="text-gray-700 mb-2 font-medium text-base">Allocation Rule</Text>
+							<Text className="text-gray-700 mb-2 font-amedium text-base">Allocation Rule</Text>
 							<View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
 								{Object.keys(BUDGET_RULE_ALLOCATIONS).map((rule, index, array) => (
 									<TouchableOpacity
@@ -398,7 +278,7 @@ function CreateEditBudget({
 										onPress={() => {
 											setCurrentBudget({
 												...currentBudget!,
-												ruleType: rule as keyof typeof BUDGET_RULE_ALLOCATIONS,
+												ruleType: rule as BudgetRuleType,
 											});
 											// Reset active group when changing rule
 											setActiveGroupIndex(null);
@@ -460,7 +340,17 @@ function CreateEditBudget({
 									<>
 										{/* Render allocation groups */}
 										{currentBudget.categoryAllocations.map((group: any, index: number) =>
-											renderAllocationGroup(group, index)
+											<AllocationGroup
+                        key={group.id}
+                        index={index}
+                        group={group}
+                        categoryCount={getCategoryCountForGroup(index)}
+                        activeGroupIndex={activeGroupIndex}
+                        expenseCategories={EXPENSE_CATEGORIES}
+                        isActive={activeGroupIndex === index}
+                        setActiveGroupIndex={setActiveGroupIndex}
+                        toggleCategoryInGroup={toggleCategoryInGroup}
+                      />,
 										)}
 									</>
 								)}
@@ -496,12 +386,12 @@ function CreateEditBudget({
 
 						{/* Status */}
 						<View className="mb-5">
-							<Text className="text-gray-700 mb-2 font-medium text-base">Status</Text>
+							<Text className="text-gray-700 mb-2 font-amedium text-base">Status</Text>
 							<View className="flex-row">
 								{['draft', 'active'].map((status) => (
 									<TouchableOpacity
 										key={status}
-										className={`flex-1 py-4 ${status === 'active' ? '' : 'mr-3'} rounded-xl ${
+										className={`flex-1 py-2 ${status === 'active' ? '' : 'mr-3'} rounded-xl ${
 											currentBudget?.status === status
 												? 'bg-indigo-100 border-2 border-indigo-300'
 												: 'bg-gray-100 border border-gray-200'
@@ -511,7 +401,7 @@ function CreateEditBudget({
 										}
 									>
 										<Text
-											className={`text-center font-medium ${
+											className={`text-center font-amedium ${
 												currentBudget?.status === status ? 'text-indigo-700' : 'text-gray-700'
 											}`}
 										>

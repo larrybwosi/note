@@ -9,16 +9,16 @@ import {
 	BarChart3,
   Edit,
 } from 'lucide-react-native';
-import { Budget, BUDGET_RULE_ALLOCATIONS, BudgetRuleGroups } from 'src/types/transaction';
+import { Budget, BUDGET_RULE_ALLOCATIONS } from 'src/types/transaction';
 import { format } from 'date-fns';
 import useStore from 'src/store/useStore';
 import { observer } from '@legendapp/state/react';
 import BudgetDetails from 'src/components/budget-details';
-import CreateEditBudget from 'src/components/create-edit-budget';
+import { router } from 'expo-router';
 
 
 // Budget Rule allocations labels generator
-const getRuleAllocations = (ruleType: keyof typeof BUDGET_RULE_ALLOCATIONS):BudgetRuleGroups[] => {
+const getRuleAllocations = (ruleType: keyof typeof BUDGET_RULE_ALLOCATIONS) => {
 	return BUDGET_RULE_ALLOCATIONS[ruleType] || [];
 };
 
@@ -27,7 +27,6 @@ const CATEGORY_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
 
 const BudgetManagement = () => {
 	const [activeTab, setActiveTab] = useState('active');
-	const [modalVisible, setModalVisible] = useState(false); 
 	const [currentBudget, setCurrentBudget] = useState<Budget>();
 	const [detailsVisible, setDetailsVisible] = useState(false);
  
@@ -36,8 +35,7 @@ const BudgetManagement = () => {
   const filteredBudgets = budgets.filter((budget) =>
 		activeTab === 'all' ? true : budget.status === activeTab
 	);
-
-	console.log(filteredBudgets)
+	
 	
 	const handleCreateBudget = () => {
 		//@ts-ignore
@@ -50,12 +48,12 @@ const BudgetManagement = () => {
 			ruleType: '50-30-20',
 			status: 'draft',
 		});
-		setModalVisible(true);
+		router.push('create-edit-budget');
 	}; 
 
 	const handleEditBudget = (budget: Budget) => {
 		setCurrentBudget({ ...budget });
-		setModalVisible(true);
+		router.push(`create-edit-budget?selectedBudgetId=${budget.id}`);
 	};
 
 	  const handleActivateBudget = (id: string) => {
@@ -64,6 +62,7 @@ const BudgetManagement = () => {
 				if (!result) {
 					Alert.alert('Error', 'Failed to activate budget');
 				}
+				setActiveTab('active')
 			} catch (error:any) {
 				Alert.alert('Error ⚠️', `Failed to activate budget. Some unknown error occured, please check the input fields are correct then try again.`);
 			}
@@ -170,129 +169,124 @@ const BudgetManagement = () => {
 						</TouchableOpacity>
 					</View>
 				) : (
-					filteredBudgets?.map((budget) => (
-						<TouchableOpacity
-							key={budget.id}
-							className="bg-white rounded-xl mb-4 shadow-sm overflow-hidden"
-							onPress={() => handleViewDetails(budget)}
-						>
-							<View className="p-4">
-								<View className="flex-row justify-between items-center mb-2">
-									<Text className="font-rbold text-lg text-gray-800">{budget.name}</Text>
-									<View
-										className={`px-3 py-1 rounded-full ${
-											budget.status === 'active'
-												? 'bg-green-100'
-												: budget.status === 'draft'
-													? 'bg-blue-100'
-													: 'bg-gray-100'
-										}`}
-									>
-										<Text
-											className={`text-xs font-rmedium ${
+					filteredBudgets?.map((budget) =>{
+						const budgetRuleAllocations = getRuleAllocations(budget?.ruleType)?.groups;
+						return (
+							<TouchableOpacity
+								key={budget.id}
+								className="bg-white rounded-xl mb-4 shadow-sm overflow-hidden"
+								onPress={() => handleViewDetails(budget)}
+							>
+								<View className="p-4">
+									<View className="flex-row justify-between items-center mb-2">
+										<Text className="font-rbold text-lg text-gray-800">{budget.name}</Text>
+										<View
+											className={`px-3 py-1 rounded-full ${
 												budget.status === 'active'
-													? 'text-green-800'
+													? 'bg-green-100'
 													: budget.status === 'draft'
-														? 'text-blue-800'
-														: 'text-gray-800'
+														? 'bg-blue-100'
+														: 'bg-gray-100'
 											}`}
 										>
-											{budget.status.charAt(0).toUpperCase() + budget.status.slice(1)}
-										</Text>
+											<Text
+												className={`text-xs font-rmedium ${
+													budget.status === 'active'
+														? 'text-green-800'
+														: budget.status === 'draft'
+															? 'text-blue-800'
+															: 'text-gray-800'
+												}`}
+											>
+												{budget.status.charAt(0).toUpperCase() + budget.status.slice(1)}
+											</Text>
+										</View>
 									</View>
-								</View>
 
-								<View className="flex-row justify-between items-center mb-3">
-									<View className="flex-row items-center">
-										<DollarSign size={16} color="#6B7280" />
-										<Text className="text-gray-700 ml-1 font-medium">
-											${budget.amount.toLocaleString()}
-										</Text>
-									</View>
-									<View className="flex-row items-center">
-										<Calendar size={16} color="#6B7280" />
-										<Text className="text-gray-700 ml-1">
-											{format(new Date(budget.startDate), 'MMM d, yyyy')} -{' '}
+									<View className="flex-row justify-between items-center mb-3">
+										<View className="flex-row items-center">
+											<DollarSign size={16} color="#6B7280" />
+											<Text className="text-gray-700 ml-1 font-medium">
+												${budget.amount.toLocaleString()}
+											</Text>
+										</View>
+										<View className="flex-row items-center">
+											<Calendar size={16} color="#6B7280" />
+											<Text className="text-gray-700 ml-1 font-amedium text-sm">
+												{format(new Date(budget.startDate), 'MMM d, yyyy')} -{' '}
 											{format(new Date(budget.endDate), 'MMM d, yyyy')} ({budget.periodType})
-										</Text>
+											</Text>
+										</View>
 									</View>
-								</View>
 
-								{/* Budget Rule Type */}
-								<View className="flex-row mb-3">
-									<View className="flex-row flex-wrap">
-										{getRuleAllocations(budget.ruleType).map((allocation, index) => (
-											<View key={index} className="flex-row items-center mr-3 mb-1">
+									{/* Budget Rule Type */}
+									<View className="flex-row mb-3">
+										<View className="flex-row flex-wrap">
+											{budgetRuleAllocations.map((allocation, index) => (
+												<View key={index} className="flex-row items-center mr-3 mb-1">
+													<View
+														className="w-3 h-3 rounded-full mr-1"
+														style={{
+															backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS?.length],
+														}}
+													/>
+													<Text className="text-xs text-gray-600">
+														{allocation.name} ({allocation.percentage}%)
+													</Text>
+												</View>
+											))}
+											{budget.ruleType === 'custom' && (
+												<Text className="text-xs text-gray-600">Custom allocation</Text>
+											)}
+										</View>
+									</View>
+
+									{/* Progress Bar */}
+									{budget.status === 'active' && (
+										<View className="mt-1">
+											<View className="flex-row justify-between items-center mb-1">
+												<Text className="text-xs text-gray-500">Progress</Text>
+												<View className="flex-row items-center">
+													<Clock size={12} color="#6B7280" />
+													<Text className="text-xs text-gray-500 ml-1">
+														{getRemainingDays(budget.endDate)} days left
+													</Text>
+												</View>
+											</View>
+											<View className="h-2 bg-gray-200 rounded-full overflow-hidden">
 												<View
-													className="w-3 h-3 rounded-full mr-1"
-													style={{
-														backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS?.length],
-													}}
+													className="h-full bg-indigo-600 rounded-full"
+													style={{ width: `${calculateProgress(budget)}%` }}
 												/>
-												<Text className="text-xs text-gray-600">
-													{allocation.name} ({allocation.percentage}%)
-												</Text>
 											</View>
-										))}
-										{budget.ruleType === 'custom' && (
-											<Text className="text-xs text-gray-600">Custom allocation</Text>
-										)}
+										</View>
+									)}
+
+									{/* Actions */}
+									<View className="flex-row justify-end mt-3 pt-2 border-t border-gray-100">
+										<TouchableOpacity className="p-2" onPress={() => handleEditBudget(budget)}>
+											<Edit size={18} color="#4F46E5" />
+										</TouchableOpacity>
+										<TouchableOpacity
+											className="p-2 ml-2"
+											onPress={() => handleDeleteBudget(budget.id)}
+										>
+											<Trash2 size={18} color="#EF4444" />
+										</TouchableOpacity>
 									</View>
 								</View>
-
-								{/* Progress Bar */}
-								{budget.status === 'active' && (
-									<View className="mt-1">
-										<View className="flex-row justify-between items-center mb-1">
-											<Text className="text-xs text-gray-500">Progress</Text>
-											<View className="flex-row items-center">
-												<Clock size={12} color="#6B7280" />
-												<Text className="text-xs text-gray-500 ml-1">
-													{getRemainingDays(budget.endDate)} days left
-												</Text>
-											</View>
-										</View>
-										<View className="h-2 bg-gray-200 rounded-full overflow-hidden">
-											<View
-												className="h-full bg-indigo-600 rounded-full"
-												style={{ width: `${calculateProgress(budget)}%` }}
-											/>
-										</View>
-									</View>
-								)}
-
-								{/* Actions */}
-								<View className="flex-row justify-end mt-3 pt-2 border-t border-gray-100">
-									<TouchableOpacity className="p-2" onPress={() => handleEditBudget(budget)}>
-										<Edit size={18} color="#4F46E5" />
-									</TouchableOpacity>
+								{budget.status === 'draft' && (
 									<TouchableOpacity
-										className="p-2 ml-2"
-										onPress={() => handleDeleteBudget(budget.id)}
+										className="bg-indigo-600 py-2 px-4 rounded-xl mt-2"
+										onPress={() => handleActivateBudget(budget.id)}
 									>
-										<Trash2 size={18} color="#EF4444" />
+										<Text className="text-white text-sm font-medium">Activate Budget</Text>
 									</TouchableOpacity>
-								</View>
-							</View>
-							{budget.status === 'draft' && (
-								<TouchableOpacity
-									className="bg-indigo-600 py-2 px-4 rounded-xl mt-2"
-									onPress={() => handleActivateBudget(budget.id)}
-								>
-									<Text className="text-white text-sm font-medium">Activate Budget</Text>
-								</TouchableOpacity>
-							)}
-						</TouchableOpacity>
-					))
+								)}
+							</TouchableOpacity>
+						);})
 				)}
 			</ScrollView>
-
-			{/* Add/Edit Budget Modal */}
-			<CreateEditBudget
-				currentBudget={currentBudget!}
-				modalVisible={modalVisible}
-				setModalVisible={setModalVisible}
-			/>
 
 			{/* Budget Details Modal */}
 			<BudgetDetails

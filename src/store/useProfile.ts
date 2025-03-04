@@ -38,7 +38,7 @@ export const profileData$ = observable<ProfileData>(
 	})
 );
 
-  export function updateProfile (profile:ProfileData){
+  export function useUpdateProfile (profile:ProfileData){
 		//Validation
 		const profileSchema = z.object({
 			name: z.string().min(3),

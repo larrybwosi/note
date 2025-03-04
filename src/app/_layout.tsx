@@ -54,52 +54,56 @@ function Root() {
 			<ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
 				<ErrorBoundary onReset={() => {}}>
 					{/* <AuthProvider> */}
-						<ModalProvider>
-							<Stack>
-								<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-								<Stack.Screen name="plans" options={{ headerShown: false }} />
-								<Stack.Screen
-									name="create.transactions"
-									options={{ headerShown: false, presentation: 'modal' }}
-								/>
-								<Stack.Screen
-									name="budget.planner"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-								<Stack.Screen
-									name="splash"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-								<Stack.Screen
-									name="signup"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-								<Stack.Screen
-									name="login"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-								<Stack.Screen
-									name="transactions"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-								<Stack.Screen
-									name="categories"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-								<Stack.Screen
-									name="profile_update"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-								<Stack.Screen
-									name="ai.create.transaction"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-								<Stack.Screen
-									name="settings"
-									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-								/>
-							</Stack>
-						</ModalProvider>
+					<ModalProvider>
+						<Stack>
+							<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+							<Stack.Screen name="plans" options={{ headerShown: false }} />
+							<Stack.Screen
+								name="create.transactions"
+								options={{ headerShown: false, presentation: 'modal' }}
+							/>
+							<Stack.Screen
+								name="budget.planner"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="splash"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="signup"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="login"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="transactions"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="categories"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="profile_update"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="ai.create.transaction"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="settings"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+							<Stack.Screen
+								name="create-edit-budget"
+								options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+							/>
+						</Stack>
+					</ModalProvider>
 					{/* </AuthProvider> */}
 				</ErrorBoundary>
 			</ThemeProvider>

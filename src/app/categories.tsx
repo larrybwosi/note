@@ -19,16 +19,21 @@ const CategorySelection = () => {
 	// Default selections (at least 3 of each type)
 	const defaultSelected = ['salary', 'part_time_job', 'gifts', 'housing', 'food', 'clothing'];
 
-	const { categories: existingCategories, addBulkCategories } = useStore();
-
+	const { categories: existingCategories, addCategory } = useStore();
 	// Initialize selected IDs with existing categories' IDs if they exist, otherwise use defaults
 	const initialSelectedIds =
-		existingCategories.length > 0
-			? existingCategories.filter((cat) => cat.isSelected).map((cat) => cat.id)
-			: defaultSelected;
+		existingCategories.length > 0 ? existingCategories.map((cat) => cat.id) : defaultSelected;
+
+	// Merge existing categories with default categories, ensuring no duplicates
+	const mergedCategories = [
+		...DEFAULT_CATEGORIES,
+		...existingCategories.filter(
+			(existingCat) => !DEFAULT_CATEGORIES.some((defaultCat) => defaultCat.id === existingCat.id)
+		),
+	];
 
 	const state$ = useObservable({
-		categories: DEFAULT_CATEGORIES,
+		categories: mergedCategories,
 		selectedIds: initialSelectedIds,
 		searchQuery: '',
 		activeTab: 'expense' as TransactionType,
@@ -43,6 +48,7 @@ const CategorySelection = () => {
 			isCustom: true,
 		} as Category,
 	});
+
 	const {
 		categories,
 		selectedIds,
@@ -115,17 +121,21 @@ const CategorySelection = () => {
 	const handleSave = () => {
 		setLoading(true);
 		setTimeout(() => {
-			// Get IDs of existing categories
-			const existingCategoryIds = existingCategories.map((cat) => cat.id);
+			try {
+				const existingCategoryIds = existingCategories.map((cat) => cat.id);
 
-			// Filter out only the newly selected categories (not in existing categories)
-			const newlySelectedCategories = categories
-				.filter((cat) => selectedIds.includes(cat.id) && !existingCategoryIds.includes(cat.id))
-				.map((cat) => ({ ...cat, isSelected: true }));
-
-			console.log(newlySelectedCategories.map((cat) => cat.type));
-			addBulkCategories(newlySelectedCategories);
+				// Filter out only the newly selected categories (not in existing categories)
+				const newlySelectedCategories = categories
+					.filter((cat) => selectedIds.includes(cat.id) && !existingCategoryIds.includes(cat.id))
+					.map((cat) => ({ ...cat, isSelected: true }));
+				newlySelectedCategories.forEach((cat) => {
+					addCategory(cat);
+				})
 			setLoading(false);
+			} catch (error: any) {
+				setLoading(false);
+				Alert.alert('Error', error.message);
+			}
 		}, 800);
 	};
 
