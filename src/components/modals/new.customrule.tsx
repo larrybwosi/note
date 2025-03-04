@@ -2,7 +2,6 @@ import { observer, use$, useObservable } from "@legendapp/state/react";
 import { Save, Tag, X } from "lucide-react-native";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { CustomRule } from "src/store/types";
 
 
 const CustomRuleForm = observer(({ isVisible, close }: any) => {
@@ -17,11 +16,6 @@ const CustomRuleForm = observer(({ isVisible, close }: any) => {
   const newRule = use$(newRule$);
   const setNewRule = newRule$.set;
 
-  const handleCustomRuleSave = (newRule: CustomRule) => {
-    // setCustomRules([...customRules, newRule]);
-    // setSelectedRule(newRule.type);
-    // setShowCustomForm(false);
-  };
   
   const handleSubmit = () => {
     if (name && description && breakdown) {

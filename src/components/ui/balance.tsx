@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import { TouchableOpacity, Text, View } from 'react-native';
 import { DollarSign, Plus } from "lucide-react-native";
-import { useEffect } from "react";
 import Animated, { FadeInDown, LinearTransition, useSharedValue, withSpring } from "react-native-reanimated";
 
 import useStore from "src/store/useStore";
@@ -9,13 +8,9 @@ import { observer } from "@legendapp/state/react";
 
 function BalanceCard () {
   const scale = useSharedValue(0.98);
-  const { getBalance } = useStore();
-  const bl = getBalance()
-  console.log('current balance  ',bl)
-  
-  useEffect(() => {
-    scale.value = withSpring(1, { damping: 12 });
-  }, []);
+  const { getBalance, getTotalSpent } = useStore();
+  const balance = getBalance()
+	const totalSpent = getTotalSpent()
   
   const handlePressIn = () => {
     scale.value = withSpring(0.98, { damping: 10 });
@@ -43,12 +38,12 @@ function BalanceCard () {
 			]}
 			className="w-full bg-amber-100 rounded-3xl p-5 mb-4"
 		>
-			<Text className="text-gray-500 text-sm mb-1">Available on card</Text>
-			<Text className="text-4xl font-amedium mb-4 text-gray-800">$13,528.31</Text>
+			<Text className="text-gray-500 text-sm mb-1 font-rregular">Available Balance</Text>
+			<Text className="text-4xl font-amedium mb-4 text-gray-800">${balance}</Text>
 
 			<View className="mb-2">
 				<View className="flex-row justify-between items-center mb-1">
-					<Text className="text-gray-500 text-sm">Transfer Limit</Text>
+					<Text className="text-gray-500 text-sm font-amedium">Spending Limit</Text>
 					<Text className="text-gray-800 font-semibold">$12,000</Text>
 				</View>
 				<View className="h-2 bg-gray-200 rounded-full w-full overflow-hidden">
@@ -56,7 +51,7 @@ function BalanceCard () {
 				</View>
 			</View>
 
-			<Text className="text-gray-500 text-sm my-3">Spent $1,244.65</Text>
+			<Text className="text-gray-500 text-sm my-3 font-rmedium">Spent ${totalSpent}</Text>
 
 			<View className="flex-row justify-between mt-3">
 				<TouchableOpacity

@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowRight, Calendar } from 'lucide-react-native';
+import { ArrowRight, CalendarDays } from 'lucide-react-native';
 import { colorScheme } from 'nativewind';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
@@ -73,7 +73,7 @@ const NoRecentTransactions = () => (
 	<Animated.View entering={FadeInDown.duration(400)} className="items-center justify-center py-6">
 		<View className="bg-gray-50/80 dark:bg-gray-800/30 rounded-3xl p-6 items-center backdrop-blur-sm">
 			<View className="bg-gray-100 dark:bg-gray-700 rounded-full p-4 mb-4">
-				<Calendar size={32} className="text-gray-400 dark:text-gray-300" />
+				<CalendarDays size={32} className="text-gray-400 dark:text-gray-300" />
 			</View>
 			<Text className="font-rmedium text-gray-800 dark:text-gray-200 text-lg mb-2">
 				No Recent Transactions
@@ -168,7 +168,7 @@ const OperationsCard = (): React.ReactElement => {
 					onPress={() => router.navigate('/transactions')}
 					className="flex-row items-center bg-purple-100 dark:bg-purple-900/30 px-3 py-1.5 rounded-full"
 				>
-					<Text className="text-purple-600 font-rregular text-sm mr-1 dark:text-purple-300">
+					<Text className="text-purple-600 font-rmedium text-sm mr-1 dark:text-purple-300">
 						View All
 					</Text>
 					<ArrowRight size={14} color="#7C3AED" />

@@ -5,12 +5,14 @@ import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
+import { useAuth } from 'src/utils/auth.provider';
 
 const signupSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
-  phone: z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/, 'Invalid phone format (123) 456-7890'),
+  // phone: z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/, 'Invalid phone format (123) 456-7890'),
+  phone: z.string(),
   password: z.string().min(6, 'Password must be at least 6 characters')
 });
 
@@ -75,10 +77,12 @@ const SignupScreen = () => {
     resolver: zodResolver(signupSchema)
   });
 
-  const handleRegister = (data: FormData) => {
+  // const { signup } = useAuth()
+  const handleRegister = async(data: FormData) => {
     setIsLoading(true);
     console.log('Form data:', data);
-    setTimeout(() => setIsLoading(false), 1500);
+    // await signup({email:data.email, password:data.password, name:data.fullName});
+    setIsLoading(false);
   };
 
   return (

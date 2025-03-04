@@ -33,6 +33,7 @@ export interface Category {
 	monthlyTotal?: number;
 	monthlyChange?: number;
   colors?: string[];
+	description?:string
 }
 
 
@@ -40,6 +41,7 @@ export interface Category {
 export type BudgetRuleType = '10-70-20' | '50-30-20' | '80-20' | 'custom';
 export type BudgetPeriodType = 'week' | 'month' | 'year';
 export type BudgetStatus = 'active' | 'expired' | 'draft';
+export type BudgetRuleGroups = { name: string; percentage: number; description: string; categories: string[] };
 
 // Enhanced Budget interface
 export interface Budget {
@@ -50,31 +52,35 @@ export interface Budget {
   endDate: Date;
   periodType: BudgetPeriodType;
   ruleType: BudgetRuleType;
-  categories: {
-    categoryId: string;
-    allocation: number; // Percentage of total budget
-  }[];
   status: BudgetStatus;
+	categoryAllocations: BudgetRuleGroups[]
 }
 
 // Default budget allocations based on rule types
 export const BUDGET_RULE_ALLOCATIONS = {
-  '10-70-20': [
-    { name: 'Savings', percentage: 10 },
-    { name: 'Expenses', percentage: 70 },
-    { name: 'Investments', percentage: 20 }
-  ],
-  '50-30-20': [
-    { name: 'Needs', percentage: 50 },
-    { name: 'Wants', percentage: 30 },
-    { name: 'Savings', percentage: 20 }
-  ],
-  '80-20': [
-    { name: 'Necessities', percentage: 80 },
-    { name: 'Discretionary', percentage: 20 }
-  ],
-  'custom': [] // Custom allocations will be defined by the user
+	'50-30-20': {
+		groups: [
+			{ name: 'Needs', percentage: 50, description: 'Essential expenses', categories: [] },
+			{ name: 'Wants', percentage: 30, description: 'Non-essential spending', categories: [] },
+			{ name: 'Savings', percentage: 20, description: 'Future planning', categories: [] },
+		],
+	},
+	'10-70-20': {
+		groups: [
+			{ name: 'Savings', percentage: 10, description: 'Set aside for future', categories: [] },
+			{ name: 'Expenses', percentage: 70, description: 'Daily and monthly costs', categories: [] },
+			{ name: 'Investments', percentage: 20, description: 'Growth opportunities', categories: [] },
+		],
+	},
+	'80-20': {
+		groups: [
+			{ name: 'Necessities', percentage: 80, description: 'Must-have expenses', categories: [] },
+			{ name: 'Discretionary', percentage: 20, description: 'Optional spending', categories: [] },
+		],
+	},
+	'custom': {}
 };
+
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -114,13 +120,14 @@ export const DEFAULT_INCOME_CATEGORIES: Category[] = [
 		icon: 'laptop',
 		colors: ['#60a5fa', '#2563eb'], // Light blue to dark blue gradient
 		subcategories: ['Consulting', 'Project Work', 'Commissions'],
+		description: 'Income from contract or freelance work',
 	},
 	{
 		id: 'scholarship',
 		name: 'Scholarship',
 		type: 'income',
 		color: '#8B5CF6', // Purple
-		icon: 'school',
+		icon: 'laptop',
 		colors: ['#a78bfa', '#7c3aed'], // Light purple to dark purple gradient
 		subcategories: ['Tuition Coverage', 'Grants', 'Stipends'],
 	},
@@ -153,6 +160,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		icon: 'home',
 		colors: ['#818cf8', '#4338ca'], // Light indigo to dark indigo gradient
 		subcategories: ['Rent', 'Mortgage'],
+		description: 'Rent, mortgage, repairs, and home improvements',
 	},
 	{
 		id: 'transport',
@@ -162,6 +170,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		icon: 'car',
 		colors: ['#f87171', '#dc2626'], // Light red to dark red gradient
 		subcategories: ['Public Transport', 'Fuel', 'Parking'],
+		description: 'Flights, hotels, and vacation expenses',
 	},
 	{
 		id: 'food',
@@ -198,6 +207,7 @@ export const DEFAULT_EXPENSE_CATEGORIES: Category[] = [
 		icon: 'book',
 		colors: ['#60a5fa', '#2563eb'], // Light blue to dark blue gradient
 		subcategories: ['Tuition', 'Books', 'Supplies'],
+		description: 'Tuition, books, courses, and school supplies',
 	},
 	{
 		id: 'clothing',

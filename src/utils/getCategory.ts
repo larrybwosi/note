@@ -36,6 +36,7 @@ export const getTransactionTitle = (categoryId: string): string => {
 	// Return a default icon if the category or icon is not found
 	return 'Transaction'; // You can change this to any default icon you prefer
 };
+
 export const getTransactionCategory = (categoryId: string): Category => {
 	const { categories } = useStore(); // Access the categories from your store
 	// Find the category by categoryId

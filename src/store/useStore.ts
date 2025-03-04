@@ -10,30 +10,18 @@ import {
 	BUDGET_RULE_ALLOCATIONS,
 	BudgetRuleType,
 	BudgetPeriodType,
+	BudgetRuleGroups,
 } from 'src/types/transaction';
-
-// Use memoized selectors to prevent unnecessary rerenders
-const createSelector = <T, R>(fn: (state: T) => R): ((state: T) => R) => {
-	let lastState: T;
-	let lastResult: R;
-
-	return (state: T) => {
-		if (state === lastState) {
-			return lastResult;
-		}
-		lastState = state;
-		lastResult = fn(state);
-		return lastResult;
-	};
-};
+import { calcTotalDaysInPeriod, calculateTotalPeriodMs, createUniqueId, formatPeriodLabel, getCurrentMonthDateRange, getDateRangeForPeriod } from 'src/utils/store';
 
 // Define the store structure using observables
 export const store = observable(
 	synced({
 		initial: {
 			transactions: [] as Transaction[],
-			categories: DEFAULT_CATEGORIES as Category[],
+			categories:[] as Category[],
 			budgets: [] as Budget[],
+			isSetup: false,
 		},
 		persist: {
 			name: 'financestore',
@@ -42,45 +30,13 @@ export const store = observable(
 	})
 );
 
-// Helper functions for date handling and ID generation
-const createUniqueId = (): string => {
-	return Date.now().toString() + Math.random().toString(36).substring(2, 9);
-};
-
-const getDateRangeForPeriod = (
-	periodType: BudgetPeriodType,
-	startDate: Date
-): { startDate: Date; endDate: Date } => {
-	const endDate = new Date(startDate);
-
-	switch (periodType) {
-		case 'week':
-			endDate.setDate(endDate.getDate() + 7);
-			break;
-		case 'month':
-			endDate.setMonth(endDate.getMonth() + 1);
-			break;
-		case 'year':
-			endDate.setFullYear(endDate.getFullYear() + 1);
-			break;
-	}
-
-	return { startDate, endDate };
-};
-
-const getCurrentMonthDateRange = () => {
-	const now = new Date();
-	const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-	const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-	return { startOfMonth, endOfMonth };
-};
 
 // Define actions to manipulate the store
 const actions = {
 	// Cached selectors
-	transactions:  store.transactions.get(),
-	categories:  store.categories.get(),
-	budgets:  store.budgets.get(),
+	transactions: store.transactions.get(),
+	categories: store.categories.get(),
+	budgets: store.budgets.get(),
 
 	// Transaction operations
 	addTransaction: (transaction: Transaction) => {
@@ -102,10 +58,26 @@ const actions = {
 	},
 
 	// Category operations
-	addCategory: (category: Category) => {
-		store.categories.push({ ...category, id: category.id || createUniqueId() });
-	},
+	addCategory : (category: Category) => {
+    // Check if the category already exists
+    const isDuplicate = use$(store.categories).some(
+        (existingCategory) =>
+            existingCategory.name.toLowerCase() === category.name.toLowerCase() // Case-insensitive comparison
+    );
 
+    if (!isDuplicate) {
+        // Add the category if it doesn't already exist
+        store.categories.push({ ...category, id: category.id || createUniqueId() });
+    } else {
+        console.warn(`Category "${category.name}" already exists.`);
+    }
+},
+
+	addBulkCategories:(categories: Category[]) => {
+    categories.forEach(category => {
+        actions.addCategory(category);
+    });
+	},
 	updateCategory: (category: Category) => {
 		const index = store.categories.findIndex((c) => use$(c.id) === category.id);
 		if (index !== -1) {
@@ -129,7 +101,7 @@ const actions = {
 	},
 
 	// Financial calculations
-	getBalance:() => {
+	getBalance: () => {
 		const transactions = use$(store.transactions);
 
 		return transactions.reduce((balance, t) => {
@@ -137,7 +109,7 @@ const actions = {
 		}, 0);
 	},
 
-	getTotalSpent:() => {
+	getTotalSpent: () => {
 		const transactions = use$(store.transactions);
 
 		return transactions.reduce((total, t) => {
@@ -212,61 +184,12 @@ const actions = {
 		periodType: BudgetPeriodType;
 		ruleType: BudgetRuleType;
 		startDate: Date;
-		customAllocations?: { categoryId: string; allocation: number }[];
+		categoryAllocations: BudgetRuleGroups[];
 	}) => {
-		const { name, amount, periodType, ruleType, startDate, customAllocations } = budgetData;
+		const { name, amount, periodType, ruleType, startDate, categoryAllocations } = budgetData;
 
 		// Calculate end date based on period type
 		const { endDate } = getDateRangeForPeriod(periodType, startDate);
-
-		// Generate categories based on rule type or use custom allocations
-		let categories = [] as { categoryId: string; allocation: number }[];
-
-		if (ruleType !== 'custom' && !customAllocations) {
-			// Get predefined allocations based on rule type
-			const ruleAllocations = BUDGET_RULE_ALLOCATIONS[ruleType];
-
-			// Find or create categories based on the rule
-			// categories = ruleAllocations.map((allocation) => {
-			// 	// Find existing category that matches the allocation name
-			// 	const existingCategory = use$(store.categories).find(
-			// 		(c) => c.name.toLowerCase() === allocation.name.toLowerCase()
-			// 	);
-
-			// 	if (existingCategory) {
-			// 		return {
-			// 			categoryId: existingCategory.id,
-			// 			allocation: allocation.percentage,
-			// 		};
-			// 	} else {
-			// 		// Create a new category if it doesn't exist
-			// 		const newCategory: Category = {
-			// 			id: createUniqueId(),
-			// 			name: allocation.name,
-			// 			type: allocation.name.toLowerCase() === 'income' ? 'income' : 'expense',
-			// 			color: '#' + Math.floor(Math.random() * 16777215).toString(16), // Random color
-			// 			icon: 'money', // Default icon
-			// 		};
-
-			// 		// Add the new category
-			// 		// store.categories.push(newCategory);
-
-			// 		return {
-			// 			categoryId: newCategory.id,
-			// 			allocation: allocation.percentage,
-			// 		};
-			// 	}
-			// });
-		} else if (customAllocations) {
-			// Validate that allocations sum to 100%
-			const totalAllocation = customAllocations.reduce((sum, item) => sum + item.allocation, 0);
-			if (Math.abs(totalAllocation - 100) > 0.01) {
-				throw new Error(`Budget allocations must sum to 100%. Current sum: ${totalAllocation}%`);
-			}
-
-			// Use custom category allocations
-			categories = customAllocations;
-		}
 
 		// Create the budget in draft status
 		const newBudget: Budget = {
@@ -277,22 +200,22 @@ const actions = {
 			endDate,
 			periodType,
 			ruleType,
-			categories,
+			categoryAllocations,
 			status: 'draft', // Start as draft until activated
 		};
-		
+
 		store.budgets.push(newBudget);
 		return newBudget;
 	},
 
 	// Activate a budget (and deactivate any other active budget)
 	activateBudget: (budgetId: string) => {
-		
 		// First deactivate any currently active budget
-		const activeBudgets = store.budgets.get()
+		const activeBudgets = store.budgets
+			.get()
 			?.filter((budget) => budget.status === 'active')
 			?.map((_, index) => index);
-			
+
 		activeBudgets?.forEach((index) => {
 			store.budgets[index].status.set('expired');
 		});
@@ -381,42 +304,47 @@ const actions = {
 	},
 
 	// Get spending for current active budget
-	getActiveBudgetSpending:() => {
+	getActiveBudgetSpending: () => {
 		const activeBudget = use$(store.budgets).find((b) => b.status === 'active');
 		if (!activeBudget) return null;
 
 		const startDate = new Date(activeBudget.startDate);
 		const endDate = new Date(activeBudget.endDate);
 
-		const spending = activeBudget.categories.map((category) => {
+		const groupSpending = activeBudget.categoryAllocations.map((group) => {
+			// Get all transactions matching group's categories within date range
 			const transactions = use$(store.transactions).filter(
 				(t) =>
-					t.categoryId === category.categoryId &&
+					group.categories.includes(t.categoryId) &&
 					new Date(t.date) >= startDate &&
 					new Date(t.date) <= endDate &&
 					t.type === 'expense'
 			);
 
 			const spent = transactions.reduce((total, t) => total + t.amount, 0);
-			const allocated = (category.allocation / 100) * activeBudget.amount;
+			const allocated = (group.percentage / 100) * activeBudget.amount;
 
 			return {
-				categoryId: category.categoryId,
-				categoryName: use$(store.categories).find((c) => c.id === category.categoryId)?.name || '',
+				groupName: group.name,
 				allocated,
 				spent,
 				remaining: allocated - spent,
 				percentUsed: allocated > 0 ? (spent / allocated) * 100 : 0,
-				transactions: transactions,
+				transactions,
+				// Include category details for reference
+				categories: group.categories.map((categoryId) => ({
+					id: categoryId,
+					name: use$(store.categories).find((c) => c.id === categoryId)?.name || '',
+				})),
 			};
 		});
 
-		const totalSpent = spending.reduce((total, cat) => total + cat.spent, 0);
+		const totalSpent = groupSpending.reduce((total, group) => total + group.spent, 0);
 		const totalRemaining = activeBudget.amount - totalSpent;
 
 		return {
 			budget: activeBudget,
-			categories: spending,
+			groups: groupSpending,
 			totalSpent,
 			totalRemaining,
 			percentUsed: (totalSpent / activeBudget.amount) * 100,
@@ -429,27 +357,36 @@ const actions = {
 	getPredefinedBudgetTemplates: (amount: number) => {
 		const templates = [];
 
-		// Add predefined templates
-		for (const [ruleType, allocations] of Object.entries(BUDGET_RULE_ALLOCATIONS)) {
-			if (ruleType !== 'custom') {
-				templates.push({
-					name: ruleType,
-					ruleType: ruleType as BudgetRuleType,
-					amount,
-					allocations: allocations.map((a) => ({
-						name: a.name,
-						allocation: a.percentage,
-						amount: (a.percentage / 100) * amount,
-					})),
-				});
-			}
+		// Iterate over predefined budget rules
+		for (const [ruleType, ruleData] of Object.entries(BUDGET_RULE_ALLOCATIONS)) {
+			// Skip the 'custom' rule type
+			if (ruleType === 'custom') continue;
+			// Map the groups to the required BudgetRuleGroups structure
+			const categoryAllocations = (
+				ruleData as {
+					groups: { name: string; percentage: number; description: string; categories: never[] }[];
+				}
+			).groups.map((group) => ({
+				name: group.name,
+				percentage: group.percentage,
+				description: group.description,
+				categories: group.categories, // This will be an empty array by default
+			}));
+
+			// Add the template to the list
+			templates.push({
+				name: ruleType,
+				ruleType: ruleType as BudgetRuleType,
+				amount,
+				categoryAllocations,
+			});
 		}
 
 		return templates;
 	},
 
 	// Get the time remaining in current budget
-	getActiveBudgetTimeRemaining:() => {
+	getActiveBudgetTimeRemaining: () => {
 		const activeBudget = use$(store.budgets).find((b) => b.status === 'active');
 		if (!activeBudget) return null;
 
@@ -475,7 +412,7 @@ const actions = {
 	},
 
 	// Get all budgets organized by status
-	getAllBudgets:() => {
+	getAllBudgets: () => {
 		return {
 			active: use$(store.budgets).find((b) => b.status === 'active'),
 			expired: use$(store.budgets).filter((b) => b.status === 'expired'),
@@ -560,45 +497,6 @@ const actions = {
 			categoryTrends: trends,
 		};
 	},
-};
-
-// Helper functions
-const calcTotalDaysInPeriod = (periodType: BudgetPeriodType, startDate: Date): number => {
-	switch (periodType) {
-		case 'week':
-			return 7;
-		case 'month': {
-			// Calculate days in the month
-			const year = startDate.getFullYear();
-			const month = startDate.getMonth();
-			return new Date(year, month + 1, 0).getDate();
-		}
-		case 'year':
-			// Check for leap year
-			const year = startDate.getFullYear();
-			return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 366 : 365;
-		default:
-			return 30;
-	}
-};
-
-const calculateTotalPeriodMs = (budget: Budget): number => {
-	const startDate = new Date(budget.startDate);
-	const endDate = new Date(budget.endDate);
-	return endDate.getTime() - startDate.getTime();
-};
-
-const formatPeriodLabel = (start: Date, end: Date, periodType: string): string => {
-	switch (periodType) {
-		case 'week':
-			return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-		case 'month':
-			return start.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-		case 'year':
-			return start.getFullYear().toString();
-		default:
-			return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-	}
 };
 
 // Export the store and actions for use in components

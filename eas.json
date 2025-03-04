@@ -1,17 +1,18 @@
 {
   "cli": {
-    "version": ">= 3.15.1"
-  },
+		"version": ">= 3.15.1",
+		"appVersionSource": "remote"
+	},
   "build": {
     "development": {
       "extends": "production",
       "distribution": "internal",
       "android": {
-        "gradleCommand": ":app:assembleRelease",
+        "gradleCommand": ":app:assembleDebug",
         "buildType": "apk"
       },
       "ios": {
-        "buildConfiguration": "Release",
+        "buildConfiguration": "Debug",
         "simulator": true
       }
     },
@@ -19,11 +20,11 @@
 			"extends": "development",
 			"distribution": "internal",
 			"ios": {
-				"buildConfiguration": "Release",
+				"buildConfiguration": "Debug",
 				"simulator": false
 			},
 			"android": {
-				"gradleCommand": ":app:assembleRelease",
+				"gradleCommand": ":app:assembleDebug",
 				"buildType": "apk"
 			}
 		},

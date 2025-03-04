@@ -192,7 +192,7 @@ const ShoppingBudgetPlanner = () => {
 				<View className="mb-6">
 					<Text className="text-lg font-bold text-gray-800 dark:text-white mb-3">Categories</Text>
 					<ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-						{EXPENSE_CATEGORIES.map((category) => (
+						{EXPENSE_CATEGORIES?.map((category) => (
 							<TouchableOpacity
 								key={category.id}
 								className={`mr-3 p-3 rounded-xl ${selectedCategory === category.id ? 'bg-blue-500' : 'bg-white dark:bg-gray-800'} shadow-sm`}
@@ -272,7 +272,7 @@ const ShoppingBudgetPlanner = () => {
 						Shopping List
 					</Text>
 
-					{EXPENSE_CATEGORIES.map((category) => {
+					{EXPENSE_CATEGORIES?.map((category) => {
 						const { items, total } = getCategoryItems(category.id);
 						if (items.length === 0) return null;
 
@@ -319,7 +319,7 @@ const ShoppingBudgetPlanner = () => {
 
 								{expanded[category.id] && (
 									<View className="p-4 border-t border-gray-100 dark:border-gray-700">
-										{items.map((item) => (
+										{items?.map((item) => (
 											<View
 												key={item.id}
 												className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700"

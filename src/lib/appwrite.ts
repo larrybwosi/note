@@ -1,10 +1,11 @@
 import { Client, Account, ID, Avatars, Databases } from 'react-native-appwrite';
 
 export const config = {
-  platform: 'com.note',
-  endpoint: 'https://appwrite.io/v1',
-  projectId: '677905330029530f17c9',
-  databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!,
+	platform: 'com.note',
+	endpoint: 'https://appwrite.io/v1',
+	projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!,
+	databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!,
+	userPrefrencesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_PREFERENCE_COLLECTION_ID!,
 };
 
 export const client = new Client()

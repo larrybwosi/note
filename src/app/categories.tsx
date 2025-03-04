@@ -1,195 +1,389 @@
-import { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, useColorScheme } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
-import { Dimensions } from 'react-native';
 import {
-	Book,
-	Briefcase,
-	Building,
-	Camera,
-	Car,
-	Coffee,
-	CreditCard,
-	Dumbbell,
-	Gift,
-	Heart,
-	Home,
-	Plane,
-	ShoppingCart,
-	Smartphone,
-	Trash2,
-	Utensils,
-	Volleyball,
-	Wallet,
-} from 'lucide-react-native';
-import CategoryList from 'src/components/category-list';
-import { Category } from 'src/types/transaction';
-import CategoryCharts from 'src/components/category-charts';
-import CategoryForm from 'src/components/category-form';
-import AnimatedCard from 'src/components/animated-card';
+	View,
+	Text,
+	TouchableOpacity,
+	ScrollView,
+	TextInput,
+	ActivityIndicator,
+	Alert,
+} from 'react-native';
+import { PlusCircle, Search, Check, X, Tag, ArrowRight } from 'lucide-react-native';
+import { Category, DEFAULT_CATEGORIES, ICON_MAP, TransactionType } from 'src/types/transaction';
 import useStore from 'src/store/useStore';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { observer, use$, useObservable } from '@legendapp/state/react';
+import CustomCategoryModal from 'src/components/custom-category-modal';
+import CategoryList from 'src/components/category-list';
 
-const COLOR_OPTIONS = [
-	'#FF6B6B',
-	'#4ECDC4',
-	'#45B7D1',
-	'#96CEB4',
-	'#FFEEAD',
-	'#D4A5A5',
-	'#9B59B6',
-	'#3498DB',
-	'#F1C40F',
-	'#2ECC71',
-];
+const CategorySelection = () => {
+	// Default selections (at least 3 of each type)
+	const defaultSelected = ['salary', 'part_time_job', 'gifts', 'housing', 'food', 'clothing'];
 
-const ICON_MAP = {
-	utensils: Utensils,
-	car: Car,
-	home: Home,
-	medical: Heart,
-	cart: ShoppingCart,
-	plane: Plane,
-	business: Briefcase,
-	card: CreditCard,
-	wallet: Wallet,
-	gift: Gift,
-	basketball: Volleyball,
-	book: Book,
-	building: Building,
-	coffee: Coffee,
-	camera: Camera,
-	fitness: Dumbbell,
-	phone: Smartphone,
-};
-const ICON_OPTIONS = Object.keys(ICON_MAP);
+	const { categories: existingCategories, addBulkCategories } = useStore();
 
+	// Initialize selected IDs with existing categories' IDs if they exist, otherwise use defaults
+	const initialSelectedIds =
+		existingCategories.length > 0
+			? existingCategories.filter((cat) => cat.isSelected).map((cat) => cat.id)
+			: defaultSelected;
 
-function Categories() {
-	const { categories, transactions, budgets, addCategory, deleteCategory } = useStore();
-	const [newCategory, setNewCategory] = useState('');
-	const [selectedIcon, setSelectedIcon] = useState<(typeof ICON_OPTIONS)[number]>(ICON_OPTIONS[0]);
-	const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0]);
-	const colorScheme = useColorScheme();
-	const isDark = colorScheme === 'dark';
-	const screenWidth = Dimensions.get('window').width;
-
-	const calculateCategorySpending = useCallback(
-		(categoryId: string) => {
-			return transactions
-				.filter((t) => t.categoryId === categoryId)
-				.reduce((sum, t) => sum + t.amount, 0);
-		},
-		[transactions]
-	);
-
-	const getBudgetStatus = useCallback(
-		(categoryId: string) => {
-			const budget = budgets.find((b) => b.categoryId === categoryId);
-			const spending = calculateCategorySpending(categoryId);
-			if (!budget) return null;
-			return {
-				total: budget.amount,
-				spent: spending,
-				remaining: budget.amount - spending,
-				percentage: (spending / budget.amount) * 100,
-			};
-		},
-		[budgets, calculateCategorySpending]
-	);
-	
-	const barChartData = useMemo(
-		() => ({
-			labels: categories.slice(0, 6).map((c) => c.name.substring(0, 5)),
-			datasets: [
-				{
-					data: categories.slice(0, 6).map((category) => {
-						const budget = getBudgetStatus(category.id);
-						return budget ? budget.spent : 0;
-					}),
-				},
-			],
-		}),
-		[categories, getBudgetStatus]
-	);
-
-	const handleAddCategory = () => {
-		if (!newCategory.trim()) return;
-
-		addCategory({
-			id: Date.now().toString(),
-			name: newCategory.trim(),
+	const state$ = useObservable({
+		categories: DEFAULT_CATEGORIES,
+		selectedIds: initialSelectedIds,
+		searchQuery: '',
+		activeTab: 'expense' as TransactionType,
+		customModalVisible: false,
+		expandedGroups: { expense: true, income: true },
+		loading: false,
+		customCategory: {
+			name: '',
 			type: 'expense',
-			color: selectedColor,
-			icon: selectedIcon,
+			color: '#4F46E5',
+			icon: 'circle',
+			isCustom: true,
+		} as Category,
+	});
+	const {
+		categories,
+		selectedIds,
+		searchQuery,
+		activeTab,
+		customModalVisible,
+		expandedGroups,
+		customCategory,
+		loading,
+	} = use$(state$);
+	const setCategories = state$.categories.set;
+	const setSelectedIds = state$.selectedIds.set;
+	const setSearchQuery = state$.searchQuery.set;
+	const setActiveTab = state$.activeTab.set;
+	const setCustomModalVisible = state$.customModalVisible.set;
+	const setExpandedGroups = state$.expandedGroups.set;
+	const setCustomCategory = state$.customCategory.set;
+	const setLoading = state$.loading.set;
+
+	const filteredCategories = categories.filter((category) => {
+		const matchesSearch = category.name.toLowerCase().includes(searchQuery.toLowerCase());
+		const matchesType = !activeTab || category.type === activeTab;
+		return matchesSearch && matchesType;
+	});
+
+	const expenseCategories = categories.filter((cat) => cat.type === 'expense');
+	const incomeCategories = categories.filter((cat) => cat.type === 'income');
+
+	const selectedExpenseCount = selectedIds.filter(
+		(id) => categories.find((cat) => cat.id === id)?.type === 'expense'
+	).length;
+
+	const selectedIncomeCount = selectedIds.filter(
+		(id) => categories.find((cat) => cat.id === id)?.type === 'income'
+	).length;
+
+	const handleToggleCategory = (id: string) => {
+		if (selectedIds.includes(id)) {
+			// Check if removing would violate minimum requirements
+			const category = categories.find((cat) => cat.id === id);
+			if (category?.type === 'expense' && selectedExpenseCount <= 3) {
+				Alert.alert('Cannot Remove', 'You need at least 3 expense categories');
+				return;
+			}
+			if (category?.type === 'income' && selectedIncomeCount <= 3) {
+				Alert.alert('Cannot Remove', 'You need at least 3 income categories');
+				return;
+			}
+
+			setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+		} else {
+			setSelectedIds([...selectedIds, id]);
+		}
+	};
+
+	const handleCreateCustomCategory = (newCategory: Category) => {
+		setCategories([...categories, newCategory]);
+		setSelectedIds([...selectedIds, newCategory.id]);
+		setCustomModalVisible(false);
+		setCustomCategory({
+			id: '',
+			name: '',
+			type: 'expense',
+			color: '#4F46E5',
+			icon: 'circle',
 			isCustom: true,
 		});
-
-		setNewCategory('');
 	};
 
-	const handleDeleteCategory = (categoryId: string) => {
-		deleteCategory(categoryId);
+	const handleSave = () => {
+		setLoading(true);
+		setTimeout(() => {
+			// Get IDs of existing categories
+			const existingCategoryIds = existingCategories.map((cat) => cat.id);
+
+			// Filter out only the newly selected categories (not in existing categories)
+			const newlySelectedCategories = categories
+				.filter((cat) => selectedIds.includes(cat.id) && !existingCategoryIds.includes(cat.id))
+				.map((cat) => ({ ...cat, isSelected: true }));
+
+			console.log(newlySelectedCategories.map((cat) => cat.type));
+			addBulkCategories(newlySelectedCategories);
+			setLoading(false);
+		}, 800);
 	};
 
-	const handleEditCategory = (category: Category) => {
-		// const category = categories.find((c) => c.id === categoryId);
-		// if (category) {
-		// 	// TODO: Add category editing logic here
-		// }
+	const toggleGroup = (type: TransactionType) => {
+		setExpandedGroups({
+			...expandedGroups,
+			[type]: !expandedGroups[type],
+		});
 	};
 
 	return (
-		<ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
-			<View className="p-4">
-				<Text className="text-3xl font-rbold text-gray-900 dark:text-white mb-2">Categories</Text>
-				<Text className="text-gray-600 dark:text-gray-400 mb-6">
-					Manage your spending categories and track your budget allocations
-				</Text>
+		<SafeAreaView className="bg-opacity-50 justify-center items-center">
+			<View className="bg-white rounded-2xl w-full max-h-5/6">
+				{/* Header */}
+				<View className="p-2 rounded-t-2xl">
+					<View className="flex-row justify-between items-center">
+						<View>
+							<Text className=" dark:text-gray-200 text-xl font-bold">Select Your Categories</Text>
+							<Text className="text-indigo-500 mt-1">
+								Choose at least 3 categories of each type
+							</Text>
+						</View>
+					</View>
 
-				{/* Add New Category */}
-				<CategoryForm onSubmit={handleAddCategory} />
+					<View className="flex-row justify-between items-center mt-4 bg-white bg-opacity-20 rounded-full p-1">
+						<TouchableOpacity
+							className={`flex-1 py-2 px-4 rounded-full ${activeTab === 'expense' ? 'bg-white' : ''}`}
+							onPress={() => setActiveTab('expense')}
+						>
+							<Text
+								className={`text-center font-medium ${activeTab === 'expense' ? 'text-indigo-700' : 'text-white'}`}
+							>
+								Expenses
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							className={`flex-1 py-2 px-4 rounded-full ${activeTab === 'income' ? 'bg-white' : ''}`}
+							onPress={() => setActiveTab('income')}
+						>
+							<Text
+								className={`text-center font-medium ${activeTab === 'income' ? 'text-indigo-700' : 'text-white'}`}
+							>
+								Income
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
 
-				{/* Spending Distribution */}
-				<CategoryCharts categories={categories} budgets={budgets} transactions={transactions} />
+				{/* Search */}
+				<View className="px-4 py-3 border-b border-gray-200">
+					<View className="flex-row items-center bg-gray-100 rounded-full px-3 py-2">
+						<Search size={18} color="#6B7280" />
+						<TextInput
+							className="flex-1 ml-2 text-gray-800"
+							value={searchQuery}
+							onChangeText={setSearchQuery}
+							placeholder="Search categories..."
+						/>
+						{searchQuery.length > 0 && (
+							<TouchableOpacity onPress={() => setSearchQuery('')}>
+								<X size={16} color="#6B7280" />
+							</TouchableOpacity>
+						)}
+					</View>
+				</View>
 
-				{/* Budget vs Actual */}
-				<AnimatedCard className="mb-6">
-					<Text className="text-lg font-amedium text-gray-900 dark:text-white mb-2">
-						Budget Analysis
-					</Text>
-					<Text className="text-gray-600 dark:text-gray-400 mb-4">
-						Compare your actual spending against set budgets
-					</Text>
-					<BarChart
-						data={barChartData}
-						width={screenWidth - 48}
-						height={220}
-						yAxisLabel="$"
-						yAxisSuffix="k"
-						chartConfig={{
-							backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
-							backgroundGradientFrom: isDark ? '#1F2937' : '#FFFFFF',
-							backgroundGradientTo: isDark ? '#1F2937' : '#FFFFFF',
-							decimalPlaces: 0,
-							color: (opacity = 1) =>
-								isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 122, 255, ${opacity})`,
-							labelColor: (opacity = 1) =>
-								isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`,
-							style: {
-								borderRadius: 16,
-							},
-						}}
-						style={{
-							marginVertical: 8,
-							borderRadius: 16,
-						}}
-					/>
-				</AnimatedCard>
-				
-				<CategoryList categories={categories} transactions={transactions} budgets={budgets} onDelete={handleDeleteCategory} onEdit={handleEditCategory} />
+				{/* Main Content */}
+				<ScrollView className="p-4" showsVerticalScrollIndicator={false}>
+					{searchQuery ? (
+						<View className="mb-4">
+							<Text className="text-gray-700 font-medium mb-2">Search Results</Text>
+							{filteredCategories.length === 0 ? (
+								<View className="bg-gray-50 p-4 rounded-xl border border-gray-200 items-center">
+									<Text className="text-gray-500">No categories found</Text>
+									<TouchableOpacity
+										className="mt-2 flex-row items-center bg-indigo-100 px-3 py-2 rounded-full"
+										onPress={() => {
+											setCustomCategory({
+												...customCategory,
+												name: searchQuery,
+												type: activeTab || ('expense' as TransactionType),
+											});
+											setCustomModalVisible(true);
+										}}
+									>
+										<PlusCircle size={16} color="#4F46E5" />
+										<Text className="text-indigo-600 font-medium ml-1">Create "{searchQuery}"</Text>
+									</TouchableOpacity>
+								</View>
+							) : (
+								<View className="flex-row flex-wrap">
+									{filteredCategories.map((category) => {
+										const isSelected = selectedIds.includes(category.id);
+										const Icon = ICON_MAP[category.icon];
+										return (
+											<TouchableOpacity
+												key={category.id}
+												onPress={() => handleToggleCategory(category.id)}
+												className={`m-1 p-3 rounded-xl flex-row items-center border ${
+													isSelected
+														? 'border-2 border-indigo-500 bg-indigo-50'
+														: 'border-gray-200 bg-white'
+												}`}
+												style={{ width: '47%' }}
+											>
+												<View
+													className="w-10 h-10 rounded-full mr-2 items-center justify-center"
+													style={{ backgroundColor: category.color }}
+												>
+													<Icon size={18} color="#FFFFFF" />
+												</View>
+												<View className="flex-1">
+													<Text
+														className={`font-medium ${isSelected ? 'text-indigo-700' : 'text-gray-800'}`}
+														numberOfLines={1}
+													>
+														{category.name}
+													</Text>
+													<Text className="text-gray-500 text-xs" numberOfLines={1}>
+														{category.type.charAt(0).toUpperCase() + category.type.slice(1)}
+													</Text>
+												</View>
+												{isSelected && (
+													<View className="absolute top-1 right-1 bg-indigo-100 rounded-full w-5 h-5 items-center justify-center">
+														<Check size={12} color="#4F46E5" />
+													</View>
+												)}
+											</TouchableOpacity>
+										);
+									})}
+								</View>
+							)}
+						</View>
+					) : (
+						<>
+							<View className="mb-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+								<View className="flex-row items-start">
+									<Tag size={20} color="#4F46E5" />
+									<View className="ml-2 flex-1">
+										<Text className="font-medium text-indigo-800">
+											Why categorize your finances?
+										</Text>
+										<Text className="text-indigo-700 text-sm mt-1">
+											Categories help you understand your spending habits and track your financial
+											progress. Select categories that match your lifestyle for better insights.
+										</Text>
+									</View>
+								</View>
+							</View>
+
+							{/* Expense Categories */}
+							<CategoryList
+								customCategory={customCategory!}
+								setCustomCategory={setCustomCategory}
+								setCustomModalVisible={setCustomModalVisible}
+								expandedGroups={expandedGroups}
+								expenseCategories={expenseCategories}
+								incomeCategories={incomeCategories}
+								selectedCategories={selectedIds}
+								setSelectedCategories={setSelectedIds}
+								toggleGroup={toggleGroup}
+								type="expense"
+							/>
+
+							{/* Income Categories */}
+							<CategoryList
+								customCategory={customCategory!}
+								setCustomCategory={setCustomCategory}
+								setCustomModalVisible={setCustomModalVisible}
+								expandedGroups={expandedGroups}
+								expenseCategories={expenseCategories}
+								incomeCategories={incomeCategories}
+								selectedCategories={selectedIds}
+								setSelectedCategories={setSelectedIds}
+								toggleGroup={toggleGroup}
+								type="income"
+							/>
+
+							<View className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+								<Text className="font-amedium text-gray-800 mb-2">Category Requirements</Text>
+								<View className="flex-row items-center mb-2">
+									<View
+										className={`w-4 h-4 rounded-full mr-2 ${selectedExpenseCount >= 3 ? 'bg-green-500' : 'bg-gray-300'}`}
+									>
+										{selectedExpenseCount >= 3 && <Check size={12} color="#FFFFFF" />}
+									</View>
+									<Text className="text-gray-600 font-aregular">
+										At least 3 expense categories selected
+									</Text>
+								</View>
+								<View className="flex-row items-center">
+									<View
+										className={`w-4 h-4 rounded-full mr-2 ${selectedIncomeCount >= 3 ? 'bg-green-500' : 'bg-gray-300'}`}
+									>
+										{selectedIncomeCount >= 3 && <Check size={12} color="#FFFFFF" />}
+									</View>
+									<Text className="text-gray-600 font-aregular">
+										At least 3 income categories selected
+									</Text>
+								</View>
+							</View>
+						</>
+					)}
+				</ScrollView>
+
+				{/* Footer */}
+				<View className="p-4 border-t border-gray-200 bg-gray-50">
+					<View className="flex-row justify-between mb-3">
+						<Text className="text-gray-600 font-amedium">Selected Categories:</Text>
+						<Text className="font-medium text-gray-800">{selectedIds.length}</Text>
+					</View>
+					<TouchableOpacity
+						className={`py-3 rounded-xl flex-row justify-center items-center ${
+							selectedExpenseCount >= 3 && selectedIncomeCount >= 3
+								? 'bg-indigo-600'
+								: 'bg-gray-300'
+						}`}
+						onPress={handleSave}
+						disabled={!(selectedExpenseCount >= 3 && selectedIncomeCount >= 3)}
+					>
+						{loading ? (
+							<ActivityIndicator color="#FFFFFF" size="small" />
+						) : (
+							<>
+								<Text
+									className={`font-abold text-center mr-2 ${
+										selectedExpenseCount >= 3 && selectedIncomeCount >= 3
+											? 'text-white'
+											: 'text-gray-500'
+									}`}
+								>
+									Save Categories
+								</Text>
+								<ArrowRight
+									size={18}
+									color={
+										selectedExpenseCount >= 3 && selectedIncomeCount >= 3 ? '#FFFFFF' : '#9CA3AF'
+									}
+								/>
+							</>
+						)}
+					</TouchableOpacity>
+					{!(selectedExpenseCount >= 3 && selectedIncomeCount >= 3) && (
+						<Text className="text-red-500 text-xs text-center mt-2">
+							Please select at least 3 expense and 3 income categories
+						</Text>
+					)}
+				</View>
+
+				{/* Custom Category Modal */}
+				<CustomCategoryModal
+					createCustomCategory={handleCreateCustomCategory}
+					customModalVisible={customModalVisible}
+					setCustomModalVisible={setCustomModalVisible}
+				/>
 			</View>
-		</ScrollView>
+		</SafeAreaView>
 	);
-}
+};
 
-export default Categories;
+export default observer(CategorySelection);

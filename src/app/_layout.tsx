@@ -13,15 +13,15 @@ import ModalProvider from 'src/components/modals/provider';
 import './global.css';
 
 import { customFontsToLoad } from 'src/utils/theme/fonts';
-import GlobalProvider from 'src/lib/global.context';
 import ErrorBoundary from 'src/lib/error';
+import AuthProvider from 'src/utils/auth.provider';
 
-// Sentry.init({
-// 	dsn: 'https://057dd094b79aa98c59f138fbdfacc62d@o4508136465956864.ingest.de.sentry.io/4508878482636880',
+Sentry.init({
+	dsn: 'https://057dd094b79aa98c59f138fbdfacc62d@o4508136465956864.ingest.de.sentry.io/4508878482636880',
 
-// 	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
-// 	spotlight: __DEV__,
-// });
+	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
+	spotlight: __DEV__,
+});
 
 // bf94542d-923b-4506-8a8b-b8a2baac45ca
 
@@ -53,58 +53,54 @@ function Root() {
 			<StatusBar hidden backgroundColor={'gray'} />
 			<ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
 				<ErrorBoundary onReset={() => {}}>
-						<GlobalProvider>
-							<ModalProvider>
-								<Stack>
-									<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-									<Stack.Screen name="plans" options={{ headerShown: false }} />
-									<Stack.Screen
-										name="create.transactions"
-										options={{ headerShown: false, presentation: 'modal' }}
-									/>
-									<Stack.Screen
-										name="budget.planner"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="splash"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="signup"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="login"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="transactions"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="categories"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="profile_update"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="ai.create.transaction"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="categoryId"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-									<Stack.Screen
-										name="settings"
-										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
-									/>
-								</Stack>
-							</ModalProvider>
-						</GlobalProvider>
+					{/* <AuthProvider> */}
+						<ModalProvider>
+							<Stack>
+								<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+								<Stack.Screen name="plans" options={{ headerShown: false }} />
+								<Stack.Screen
+									name="create.transactions"
+									options={{ headerShown: false, presentation: 'modal' }}
+								/>
+								<Stack.Screen
+									name="budget.planner"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+								<Stack.Screen
+									name="splash"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+								<Stack.Screen
+									name="signup"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+								<Stack.Screen
+									name="login"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+								<Stack.Screen
+									name="transactions"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+								<Stack.Screen
+									name="categories"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+								<Stack.Screen
+									name="profile_update"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+								<Stack.Screen
+									name="ai.create.transaction"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+								<Stack.Screen
+									name="settings"
+									options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
+								/>
+							</Stack>
+						</ModalProvider>
+					{/* </AuthProvider> */}
 				</ErrorBoundary>
 			</ThemeProvider>
 		</GestureHandlerRootView>

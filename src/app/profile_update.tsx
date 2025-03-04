@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { observer, use$ } from '@legendapp/state/react';
 import {
 	User,
@@ -117,7 +117,11 @@ const ProfilePage = () => {
 	};
 
 	const handleSave = () => {
-		updateProfile(profileData)
+		try {
+			updateProfile(profileData);
+		} catch (error:any) {
+			Alert.alert(`Error: ${error?.message}`);
+		}
 		setEditing(null);
 	}
 
@@ -149,7 +153,7 @@ const ProfilePage = () => {
 			))}
 
 			{editing && (
-				<Animated.View entering={SlideInRight} className="flex-row justify-end mt-4 space-x-3">
+				<Animated.View entering={SlideInRight} className="flex-row justify-end mt-4 mx-2 gap-2">
 					<TouchableOpacity
 						onPress={() => setEditing(null)}
 						className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700"

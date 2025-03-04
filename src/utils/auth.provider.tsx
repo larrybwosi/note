@@ -1,293 +1,227 @@
-import React, { createContext, useContext, useEffect, useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Alert } from 'react-native';
+import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { router } from 'expo-router';
+import { account, config, databases, getCurrentUser } from 'src/lib/appwrite';
+import { createUniqueId } from './store';
 
-// Types
-type ProfileStatus = {
-  personal: boolean;
-  finance: boolean;
-  schedule?: boolean;
-};
-
-type User = {
-  id: string;
-  email: string;
-  name?: string;
-  profileStatus: ProfileStatus;
-  token: string;
-};
-
-type AuthState = {
-  isLoading: boolean;
-  user: User | null;
-};
-
-type AuthContextValue = {
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  user: User | null;
-  profileComplete: boolean;
-  financeComplete: boolean;
-  scheduleComplete: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshUserStatus: () => Promise<void>;
-};
-
-// Constants
-const AUTH_API = {
-  LOGIN: 'YOUR_API_URL/login',
-  LOGOUT: 'YOUR_API_URL/logout',
-  VERIFY_TOKEN: 'YOUR_API_URL/verify-token',
-  USER_STATUS: 'YOUR_API_URL/user/status',
-} as const;
-
-export const ROUTES = {
-  HOME: '/',
-  LOGIN: 'auth',
-  PERSONAL_PROFILE: 'create.profile',
-  FINANCE_PROFILE: 'finance_setup',
-  SCHEDULE_SETUP: 'calendar_setup',
-} as const;
-
-// Context
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-// Custom hook
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-// API utilities
-const api = {
-  async post<T>(url: string, body?: object, token?: string): Promise<T> {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      ...(body && { body: JSON.stringify(body) }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || 'Network response was not ok');
-    }
-
-    return response.json();
-  },
-
-  async get<T>(url: string, token: string): Promise<T> {
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    return response.json();
-  },
-};
-
-// Provider component
-interface AuthProviderProps {
-  children: React.ReactNode;
-  onAuthStateChange?: (isAuthenticated: boolean) => void;
+// Define user type
+interface User {
+	$id: string;
+	email: string;
+	name?: string;
+	// Add other user properties as needed
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ 
-  children, 
-  onAuthStateChange 
-}) => {
-  const navigation = useNavigation<NavigationProp<any>>();
-  const [state, setState] = React.useState<AuthState>({
-    isLoading: true,
-    user: null,
-  });
+// Define user preferences type (including finance setup status)
+interface UserPreferences {
+	financeSetupComplete: boolean;
+	profileComplete: boolean;
+	// Add other preference properties as needed
+}
 
-  // Computed properties
-  const isAuthenticated = Boolean(state.user?.token);
-  const profileComplete = Boolean(state.user?.profileStatus.personal);
-  const financeComplete = Boolean(state.user?.profileStatus.finance);
-  const scheduleComplete = Boolean(state.user?.profileStatus.schedule);
+interface SignupProps {
+	email: string;
+	password: string;
+	name: string;
+}
+// Auth context type definition
+interface AuthContextType {
+	user: User | null;
+	preferences: UserPreferences | null;
+	isLoading: boolean;
+	error: string | null;
+	login: (email: string, password: string) => Promise<void>;
+	logout: () => Promise<void>;
+	signup: (data: SignupProps) => Promise<void>;
+	refreshUserData: () => Promise<void>;
+}
 
-  // Initialize auth state
-  useEffect(() => {
-    initializeAuth();
-  }, []);
+// Create the auth context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  // Handle auth state changes
-  useEffect(() => {
-    handleAuthStateChange();
-    onAuthStateChange?.(isAuthenticated);
-  }, [isAuthenticated, profileComplete, financeComplete, scheduleComplete]);
-
-  const initializeAuth = async () => {
-    try {
-      const storedUser = await loadStoredUser();
-      if (storedUser) {
-        const isValid = await verifyToken(storedUser.token);
-        if (isValid) {
-          setState(prev => ({ ...prev, user: storedUser }));
-        } else {
-          await handleLogout();
-        }
-      }
-    } catch (error) {
-      console.error('Auth initialization error:', error);
-      Alert.alert('Error', 'Failed to restore authentication state');
-    } finally {
-      setState(prev => ({ ...prev, isLoading: false }));
-    }
-  };
-
-  const loadStoredUser = async (): Promise<User | null> => {
-    // Implement your storage logic here
-    return null;
-  };
-
-  const verifyToken = async (token: string): Promise<boolean> => {
-    try {
-      await api.post(AUTH_API.VERIFY_TOKEN, undefined, token);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const handleAuthStateChange = useCallback(() => {
-    if (!state.isLoading) {
-      if (!isAuthenticated) {
-        navigation.navigate(ROUTES.LOGIN);
-      } else if (!profileComplete) {
-        navigation.navigate(ROUTES.PERSONAL_PROFILE);
-      } else if (!financeComplete) {
-        navigation.navigate(ROUTES.FINANCE_PROFILE);
-      } else if (!scheduleComplete) {
-        navigation.navigate(ROUTES.SCHEDULE_SETUP);
-      }
-    }
-  }, [state.isLoading, isAuthenticated, profileComplete, financeComplete, scheduleComplete]);
-
-  const login = async (email: string, password: string): Promise<void> => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true }));
-
-      const { user, token } = await api.post<{ user: User; token: string }>(
-        AUTH_API.LOGIN,
-        { email, password }
-      );
-
-      const userData: User = { ...user, token };
-      setState({ isLoading: false, user: userData });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Please try again';
-      Alert.alert('Login Failed', message);
-      throw error;
-    }
-  };
-
-  const handleLogout = async (): Promise<void> => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true }));
-
-      if (state.user?.token) {
-        await api.post(AUTH_API.LOGOUT, undefined, state.user.token);
-      }
-
-      setState({ isLoading: false, user: null });
-      router.navigate(ROUTES.LOGIN);
-    } catch (error) {
-      console.error('Logout error:', error);
-      Alert.alert('Error', 'Failed to logout properly');
-    }
-  };
-
-  const refreshUserStatus = async (): Promise<void> => {
-    if (!state.user?.token) return;
-
-    try {
-      const updatedUser = await api.get<User>(
-        AUTH_API.USER_STATUS,
-        state.user.token
-      );
-
-      setState(prev => ({
-        ...prev,
-        user: prev.user ? { ...prev.user, ...updatedUser } : null,
-      }));
-    } catch (error) {
-      console.error('Status refresh error:', error);
-      Alert.alert('Error', 'Failed to refresh user status');
-    }
-  };
-
-  const value: AuthContextValue = {
-    isLoading: state.isLoading,
-    isAuthenticated,
-    user: state.user,
-    profileComplete,
-    financeComplete,
-    scheduleComplete,
-    login,
-    logout: handleLogout,
-    refreshUserStatus,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+// User preferences collection ID and default values
+const PREFERENCES_COLLECTION_ID = config.userPrefrencesCollectionId;
+const DEFAULT_PREFERENCES: UserPreferences = {
+	financeSetupComplete: false,
+	profileComplete: false,
 };
 
-// HOC for protected routes
-type RequiredFields = {
-  profile?: boolean;
-  finance?: boolean;
-  schedule?: boolean;
+const AuthProvider = ({ children }: { children: ReactNode }) => {
+	const [user, setUser] = useState<User | null>(null);
+	const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [error, setError] = useState<string | null>(null);
+
+	// Function to fetch user preferences
+	const fetchUserPreferences = async (userId: string): Promise<UserPreferences> => {
+		try {
+			const response = await databases.getDocument(
+				config.databaseId, // Replace with your database ID
+				PREFERENCES_COLLECTION_ID,
+				userId
+			);
+
+			return response as unknown as UserPreferences;
+		} catch (error) {
+			// If preferences don't exist, create them with default values
+			const newPreferences = {
+				...DEFAULT_PREFERENCES,
+				userId,
+			};
+
+			await databases.createDocument(
+				config.databaseId, // Replace with your database ID
+				PREFERENCES_COLLECTION_ID,
+				userId,
+				newPreferences
+			);
+
+			return newPreferences;
+		}
+	};
+
+	// Check auth state and redirect based on conditions
+	const checkAuthAndRedirect = async () => {
+		try {
+			setIsLoading(true);
+
+			// Get current session
+			const session = await account.getSession('current');
+
+			if (session) {
+				// Get user account
+				const userData = await getCurrentUser();
+				setUser(userData as User);
+
+				// Get user preferences
+				const userPreferences = await fetchUserPreferences(userData?.$id || '');
+				setPreferences(userPreferences);
+
+				// Handle navigation based on user state
+				if (!userPreferences.financeSetupComplete) {
+					router.navigate('setup');
+				} else if (!userPreferences.profileComplete) {
+					router.navigate('profile');
+				}
+			} else {
+				// No active session, navigate to welcome screen
+				setUser(null);
+				setPreferences(null);
+				router.navigate('splash');
+			}
+		} catch (error) {
+			// Handle error (likely no active session)
+			setUser(null);
+			setPreferences(null);
+			router.navigate('splash');
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	// Fetch user data and preferences
+	const refreshUserData = async () => {
+		if (user?.$id) {
+			const userPreferences = await fetchUserPreferences(user.$id);
+			setPreferences(userPreferences);
+		}
+	};
+
+	// Authentication functions
+	const login = async (email: string, password: string) => {
+		try {
+			setIsLoading(true);
+			setError(null);
+
+			await account.createEmailPasswordSession(email, password);
+			checkAuthAndRedirect();
+		} catch (error: any) {
+			console.log('Login Error: ', error);
+			setError(error.message || 'Login failed. Please try again.');
+			setIsLoading(false);
+		}
+	};
+
+	const logout = async () => {
+		try {
+			setIsLoading(true);
+			await account.deleteSession('current');
+			setUser(null);
+			setPreferences(null);
+			router.navigate('/splash');
+		} catch (error: any) {
+			console.log('Logout error: ', error);
+			setError(error.message || 'Logout failed. Please try again.');
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const signup = async ({ email, name, password }: SignupProps) => {
+		try {
+			setIsLoading(true);
+			setError(null);
+
+			// Create user account
+			const response = await account.create(createUniqueId(), email, password, name);
+			console.log(response);
+
+			// Automatically log in after signup
+			await account.createEmailPasswordSession(email, password);
+
+			// Initialize user preferences
+			await databases.createDocument(
+				config.databaseId, // Replace with your database ID
+				PREFERENCES_COLLECTION_ID,
+				response.$id,
+				{
+					...DEFAULT_PREFERENCES,
+					userId: response.$id,
+				}
+			);
+
+			checkAuthAndRedirect();
+		} catch (error: any) {
+			console.log(error);
+			setError(error.message || 'Signup failed. Please try again.');
+			setIsLoading(false);
+		}
+	};
+
+	// Check auth state on mount
+	useEffect(() => {
+		checkAuthAndRedirect();
+
+		// Setup a listener for Appwrite auth changes (optional)
+		// You may need to implement a custom solution for this in React Native
+
+		return () => {
+			// Cleanup if necessary
+		};
+	}, []);
+
+	// Provide auth context
+	const contextValue: AuthContextType = {
+		user,
+		preferences,
+		isLoading,
+		error,
+		login,
+		logout,
+		signup,
+		refreshUserData,
+	};
+
+	return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
-export const withAuth = <P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  requiredFields: RequiredFields = {}
-) => {
-  const AuthHOC: React.FC<P> = (props) => {
-    const { isAuthenticated, profileComplete, financeComplete, scheduleComplete } = useAuth();
+// Custom hook for using auth context
+export const useAuth = (): AuthContextType => {
+	const context = useContext(AuthContext);
 
-    useEffect(() => {
-      if (!isAuthenticated) {
-        router.navigate(ROUTES.LOGIN);
-        return;
-      }
+	if (context === undefined) {
+		throw new Error('useAuth must be used within an AuthProvider');
+	}
 
-      if (requiredFields.profile && !profileComplete) {
-        router.navigate(ROUTES.PERSONAL_PROFILE);
-        return;
-      }
-
-      if (requiredFields.finance && !financeComplete) {
-        router.navigate(ROUTES.FINANCE_PROFILE);
-        return;
-      }
-
-      if (requiredFields.schedule && !scheduleComplete) {
-        router.navigate(ROUTES.SCHEDULE_SETUP);
-        return;
-      }
-    }, [isAuthenticated, profileComplete, financeComplete, scheduleComplete]);
-
-    return <WrappedComponent {...props} />;
-  };
-
-  AuthHOC.displayName = `withAuth(${
-    WrappedComponent.displayName || WrappedComponent.name || 'Component'
-  })`;
-
-  return AuthHOC;
+	return context;
 };
-
 export default AuthProvider;

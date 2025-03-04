@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { CheckSquare, Eye, EyeOff, Shield, ShieldCheck, Square } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useAuth } from 'src/utils/auth.provider';
 
 const LoginScreen = () => {
   // State variables
@@ -11,13 +12,13 @@ const LoginScreen = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // const { login } = useAuth()
+  
   // Handle login function
-  const handleLogin = () => {
+  const handleLogin = async() => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    // await login(email, password);
+    setIsLoading(false);
   };
 
   // Social login handlers
