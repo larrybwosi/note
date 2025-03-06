@@ -1,7 +1,9 @@
-import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { createContext, useEffect, useContext, ReactNode } from 'react';
 import { router } from 'expo-router';
 import { account, config, databases, getCurrentUser } from 'src/lib/appwrite';
 import { createUniqueId } from './store';
+import useStore from 'src/store/useStore';
+import { use$, useObservable } from '@legendapp/state/react';
 
 // Define user type
 interface User {
@@ -21,7 +23,9 @@ interface UserPreferences {
 interface SignupProps {
 	email: string;
 	password: string;
-	name: string;
+	fullName: string;
+	dob: string;
+	phone: string;
 }
 // Auth context type definition
 interface AuthContextType {
@@ -39,24 +43,32 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // User preferences collection ID and default values
-const PREFERENCES_COLLECTION_ID = config.userPrefrencesCollectionId;
+const USERS_COLLECTION_ID = config.userPrefrencesCollectionId;
 const DEFAULT_PREFERENCES: UserPreferences = {
 	financeSetupComplete: false,
 	profileComplete: false,
 };
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
-	const [user, setUser] = useState<User | null>(null);
-	const [preferences, setPreferences] = useState<UserPreferences | null>(null);
-	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [error, setError] = useState<string | null>(null);
+	const state$ = useObservable({
+		user: null as User | null,
+		preferences: null as UserPreferences | null,
+		isLoading: true,
+		error: null as null | string,
+	});
+const { user, error, isLoading, preferences} = use$(state$)
 
+const setUser = state$.user.set
+const setPreferences = state$.preferences.set;
+const setIsLoading = state$.isLoading.set
+const setError = state$.error.set;
+	const { categories } = useStore();
 	// Function to fetch user preferences
 	const fetchUserPreferences = async (userId: string): Promise<UserPreferences> => {
 		try {
 			const response = await databases.getDocument(
 				config.databaseId, // Replace with your database ID
-				PREFERENCES_COLLECTION_ID,
+				USERS_COLLECTION_ID,
 				userId
 			);
 
@@ -70,7 +82,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 			await databases.createDocument(
 				config.databaseId, // Replace with your database ID
-				PREFERENCES_COLLECTION_ID,
+				USERS_COLLECTION_ID,
 				userId,
 				newPreferences
 			);
@@ -86,8 +98,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 			// Get current session
 			const session = await account.getSession('current');
-
-			if (session) {
+			if (session?.$id) {
 				// Get user account
 				const userData = await getCurrentUser();
 				setUser(userData as User);
@@ -98,9 +109,11 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 				// Handle navigation based on user state
 				if (!userPreferences.financeSetupComplete) {
-					router.navigate('setup');
+					router.navigate('profile');
 				} else if (!userPreferences.profileComplete) {
 					router.navigate('profile');
+				} else if (categories.length === 0 || null) {
+					router.navigate('categories');
 				}
 			} else {
 				// No active session, navigate to welcome screen
@@ -118,7 +131,6 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 		}
 	};
 
-	// Fetch user data and preferences
 	const refreshUserData = async () => {
 		if (user?.$id) {
 			const userPreferences = await fetchUserPreferences(user.$id);
@@ -156,32 +168,35 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 		}
 	};
 
-	const signup = async ({ email, name, password }: SignupProps) => {
+	const signup = async ({ email, dob, fullName, password, phone }: SignupProps) => {
 		try {
 			setIsLoading(true);
 			setError(null);
 
+			const id = createUniqueId()
+			
 			// Create user account
-			const response = await account.create(createUniqueId(), email, password, name);
-			console.log(response);
+			const response = await account.create(id, email, password, fullName);
 
-			// Automatically log in after signup
-			await account.createEmailPasswordSession(email, password);
+			const session = await account.createEmailPasswordSession(email, password);
 
-			// Initialize user preferences
+			if(!session.$id) throw new Error('Failed to create session Created')
+				
 			await databases.createDocument(
-				config.databaseId, // Replace with your database ID
-				PREFERENCES_COLLECTION_ID,
+				config.databaseId,
+				USERS_COLLECTION_ID,
 				response.$id,
 				{
 					...DEFAULT_PREFERENCES,
 					userId: response.$id,
+					dob,
+					phone
 				}
 			);
 
 			checkAuthAndRedirect();
 		} catch (error: any) {
-			console.log(error);
+			console.log(error.message);
 			setError(error.message || 'Signup failed. Please try again.');
 			setIsLoading(false);
 		}
@@ -190,13 +205,6 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 	// Check auth state on mount
 	useEffect(() => {
 		checkAuthAndRedirect();
-
-		// Setup a listener for Appwrite auth changes (optional)
-		// You may need to implement a custom solution for this in React Native
-
-		return () => {
-			// Cleanup if necessary
-		};
 	}, []);
 
 	// Provide auth context

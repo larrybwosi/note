@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import useStore from "src/store/useStore";
 import { ICON_MAP, IconName, TransactionType } from "src/types/transaction";
+import { formatCurrency } from 'src/utils/currency';
 
 const { width } = Dimensions.get('window');
 
@@ -55,7 +56,7 @@ const SpendingBarChart = (): React.ReactElement => {
   
   const calculateTotalSpending = () => {
     return EXPENSE_CATEGORIES.reduce((total, category) => {
-      const categoryTotal = category.monthlyTotal || 0;
+      const categoryTotal = getCategoryMonthlyTotal(category.id) || 0;
       return total + categoryTotal;
     }, 0);
   };
@@ -78,13 +79,15 @@ const SpendingBarChart = (): React.ReactElement => {
         };
       case 'Month':
         return {
-          labels: EXPENSE_CATEGORIES.map(c => c.name),
-          datasets: [{
-            data: EXPENSE_CATEGORIES.map(c => c.monthlyTotal || 0),
-            colors: EXPENSE_CATEGORIES.map(c => () => c.color),
-          }],
-          total: calculateTotalSpending(),
-        };
+					labels: EXPENSE_CATEGORIES.map((c) => c.name),
+					datasets: [
+						{
+							data: EXPENSE_CATEGORIES.map((c) => getCategoryMonthlyTotal(c.id) || 0),
+							colors: EXPENSE_CATEGORIES.map((c) => () => c.color),
+						},
+					],
+					total: calculateTotalSpending(),
+				};
       case 'Year':
         return {
           labels: EXPENSE_CATEGORIES.map(c => c.name),
@@ -162,14 +165,6 @@ const SpendingBarChart = (): React.ReactElement => {
     </View>
   );
 
-  const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
 
   return (
     <Animated.View
@@ -178,7 +173,7 @@ const SpendingBarChart = (): React.ReactElement => {
       className="w-full bg-white dark:bg-gray-800 rounded-3xl p-5 mb-4 shadow-lg"
     >
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-lg font-abold text-gray-800">Spending Overview</Text>
+        <Text className="text-lg font-rbold text-gray-800">Spending Overview</Text>
         <Pressable className="bg-gray-100 px-3 py-1.5 rounded-xl flex-row items-center">
           <Text className="text-sm font-medium text-gray-700">
             {selectedPeriod === 'Month' ? getCurrentMonth() : selectedPeriod}

@@ -20,3 +20,14 @@ export const currencies: Record<string, Currency> = {
 
 export const CurrencyOptions = Object.keys(currencies)
 export type CurrencyCode = keyof typeof currencies
+
+
+export const formatCurrency = (amount: number) => {
+  const res= amount.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${res}`
+};

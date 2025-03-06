@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { Search, Filter, ArrowUpDown, PlusCircle, } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -67,7 +67,7 @@ const FinanceScreen: React.FC = () => {
 
   const { transactions } = useStore();
 
-  const filteredAndSortedTransactions = useMemo(() => {
+  const useFilteredAndSortedTransactions = () => {
     return transactions
       .filter((transaction) => {
         const matchesSearch = transaction.description
@@ -86,7 +86,9 @@ const FinanceScreen: React.FC = () => {
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
-  }, [transactions, searchQuery, activeFilters, sortConfig]);
+  }
+const filteredAndSortedTransactions = useFilteredAndSortedTransactions();
+  
 
   const handleFilter = (filters: typeof activeFilters) => {
     setActiveFilters(filters);
@@ -107,10 +109,10 @@ const FinanceScreen: React.FC = () => {
             Transactions
           </Text>
           <TouchableOpacity
-            className="rounded-xl flex-row items-center gap-1 p-2 dark:bg-blue-500"
+            className="rounded-xl flex-row items-center gap-1 p-2 bg-blue-500"
             onPress={() => router.navigate('create.transactions')}
           >
-            <Text className='dark:text-gray-200'>Create</Text>
+            <Text className='text-gray-200 font-rregular'>Create</Text>
             <PlusCircle size={18} color="white" />
           </TouchableOpacity>
         </View>
@@ -166,4 +168,4 @@ const FinanceScreen: React.FC = () => {
   );
 };
 
-export default FinanceScreen;
+export default observer(FinanceScreen);

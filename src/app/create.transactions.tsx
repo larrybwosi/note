@@ -151,7 +151,7 @@ const CreateTransactionScreen = () => {
 		const newTransaction = {
 			id: date.toDateString(),
 			description,
-			amount: parseFloat(amount) * (selectedType === 'expense' ? -1 : 1),
+			amount: Number(amount),
 			type: selectedType,
 			categoryId: selectedCategory,
 			date,
@@ -403,10 +403,11 @@ const CreateTransactionScreen = () => {
 						}
 						start={{ x: 0, y: 0 }}
 						end={{ x: 1, y: 0 }}
-						className="w-full rounded-xl py-4 flex-row items-center justify-center shadow-lg"
+						style={{ borderRadius:18 }}
+						className="w-full py-2 flex-row items-center justify-center shadow-lg"
 					>
 						<Plus size={20} color="white" />
-						<Text className="ml-2 text-white dark:text-black-100 font-rbold text-lg">
+						<Text className="ml-2 text-white dark:text-black-100 font-rbold text-md">
 							Save {selectedType === 'income' ? 'Income' : 'Expense'}
 						</Text>
 					</LinearGradient>

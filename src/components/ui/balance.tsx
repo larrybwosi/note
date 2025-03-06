@@ -1,17 +1,23 @@
-import { router } from "expo-router";
-import { TouchableOpacity, Text, View } from 'react-native';
-import { DollarSign, Plus } from "lucide-react-native";
 import Animated, { FadeInDown, LinearTransition, useSharedValue, withSpring } from "react-native-reanimated";
+import { BadgeDollarSignIcon, PlusCircle } from 'lucide-react-native';
+import { TouchableOpacity, Text, View } from 'react-native';
+import { observer } from '@legendapp/state/react';
+import { router } from 'expo-router';
 
 import useStore from "src/store/useStore";
-import { observer } from "@legendapp/state/react";
+import { formatCurrency } from "src/utils/currency";
 
 function BalanceCard () {
   const scale = useSharedValue(0.98);
-  const { getBalance, getTotalSpent } = useStore();
+  const { getBalance, getTotalSpent, getRemainingBudget, getActiveBudgetSpending } = useStore();
+	const {
+		budget: { amount: spendingLimit },
+		percentUsed
+	} = getActiveBudgetSpending()!;
+
   const balance = getBalance()
 	const totalSpent = getTotalSpent()
-  
+	const remaining = getRemainingBudget();
   const handlePressIn = () => {
     scale.value = withSpring(0.98, { damping: 10 });
   };
@@ -39,19 +45,21 @@ function BalanceCard () {
 			className="w-full bg-amber-100 rounded-3xl p-5 mb-4"
 		>
 			<Text className="text-gray-500 text-sm mb-1 font-rregular">Available Balance</Text>
-			<Text className="text-4xl font-amedium mb-4 text-gray-800">${balance}</Text>
+			<Text className="text-4xl font-amedium mb-4 text-gray-800">{formatCurrency(balance)}</Text>
 
 			<View className="mb-2">
 				<View className="flex-row justify-between items-center mb-1">
 					<Text className="text-gray-500 text-sm font-amedium">Spending Limit</Text>
-					<Text className="text-gray-800 font-semibold">$12,000</Text>
+					<Text className="text-gray-800 font-semibold">{formatCurrency(spendingLimit!)}</Text>
 				</View>
 				<View className="h-2 bg-gray-200 rounded-full w-full overflow-hidden">
 					<View className="h-2 bg-black rounded-full w-3/4" />
 				</View>
 			</View>
 
-			<Text className="text-gray-500 text-sm my-3 font-rmedium">Spent ${totalSpent}</Text>
+			<Text className="text-gray-500 text-sm my-3 font-rmedium">
+				Spent {formatCurrency(totalSpent)}
+			</Text>
 
 			<View className="flex-row justify-between mt-3">
 				<TouchableOpacity
@@ -62,7 +70,7 @@ function BalanceCard () {
 					onPress={() => router.navigate('create.transactions?type=expense')}
 				>
 					<Text className="text-white font-amedium mr-1">Pay</Text>
-					<DollarSign size={16} color="white" />
+					<BadgeDollarSignIcon size={16} color="white" />
 				</TouchableOpacity>
 
 				<TouchableOpacity
@@ -73,7 +81,7 @@ function BalanceCard () {
 					onPress={() => router.navigate('create.transactions?type=income')}
 				>
 					<Text className="text-white font-amedium mr-1">Deposit</Text>
-					<Plus size={16} color="white" />
+					<PlusCircle size={16} color="white" />
 				</TouchableOpacity>
 			</View>
 		</Animated.View>

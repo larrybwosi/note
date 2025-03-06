@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer, use$, useObservable } from '@legendapp/state/react';
 import CustomCategoryModal from 'src/components/custom-category-modal';
 import CategoryList from 'src/components/category-list';
+import { router } from 'expo-router';
 
 const CategorySelection = () => {
 	// Default selections (at least 3 of each type)
@@ -131,6 +132,7 @@ const CategorySelection = () => {
 				newlySelectedCategories.forEach((cat) => {
 					addCategory(cat);
 				})
+				router.back()
 			setLoading(false);
 			} catch (error: any) {
 				setLoading(false);
@@ -147,40 +149,14 @@ const CategorySelection = () => {
 	};
 
 	return (
-		<SafeAreaView className="bg-opacity-50 justify-center items-center">
-			<View className="bg-white rounded-2xl w-full max-h-5/6">
+		<SafeAreaView className="bg-opacity-50 justify-center items-center flex-1 h-full">
+			<View className="bg-white rounded-2xl w-full">
 				{/* Header */}
 				<View className="p-2 rounded-t-2xl">
 					<View className="flex-row justify-between items-center">
 						<View>
 							<Text className=" dark:text-gray-200 text-xl font-bold">Select Your Categories</Text>
-							<Text className="text-indigo-500 mt-1">
-								Choose at least 3 categories of each type
-							</Text>
 						</View>
-					</View>
-
-					<View className="flex-row justify-between items-center mt-4 bg-white bg-opacity-20 rounded-full p-1">
-						<TouchableOpacity
-							className={`flex-1 py-2 px-4 rounded-full ${activeTab === 'expense' ? 'bg-white' : ''}`}
-							onPress={() => setActiveTab('expense')}
-						>
-							<Text
-								className={`text-center font-medium ${activeTab === 'expense' ? 'text-indigo-700' : 'text-white'}`}
-							>
-								Expenses
-							</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							className={`flex-1 py-2 px-4 rounded-full ${activeTab === 'income' ? 'bg-white' : ''}`}
-							onPress={() => setActiveTab('income')}
-						>
-							<Text
-								className={`text-center font-medium ${activeTab === 'income' ? 'text-indigo-700' : 'text-white'}`}
-							>
-								Income
-							</Text>
-						</TouchableOpacity>
 					</View>
 				</View>
 
@@ -292,8 +268,7 @@ const CategorySelection = () => {
 								setCustomCategory={setCustomCategory}
 								setCustomModalVisible={setCustomModalVisible}
 								expandedGroups={expandedGroups}
-								expenseCategories={expenseCategories}
-								incomeCategories={incomeCategories}
+								categories={expenseCategories}
 								selectedCategories={selectedIds}
 								setSelectedCategories={setSelectedIds}
 								toggleGroup={toggleGroup}
@@ -306,8 +281,7 @@ const CategorySelection = () => {
 								setCustomCategory={setCustomCategory}
 								setCustomModalVisible={setCustomModalVisible}
 								expandedGroups={expandedGroups}
-								expenseCategories={expenseCategories}
-								incomeCategories={incomeCategories}
+								categories={incomeCategories}
 								selectedCategories={selectedIds}
 								setSelectedCategories={setSelectedIds}
 								toggleGroup={toggleGroup}

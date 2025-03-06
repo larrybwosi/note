@@ -1,17 +1,17 @@
-import { Client, Account, ID, Avatars, Databases } from 'react-native-appwrite';
+import { Client, Account, Avatars, Databases } from 'react-native-appwrite';
 
 export const config = {
 	platform: 'com.note',
-	endpoint: 'https://appwrite.io/v1',
+	endpoint: 'https://cloud.appwrite.io/v1',
+	userPrefrencesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_PREFERENCE_COLLECTION_ID!,
 	projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!,
 	databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!,
-	userPrefrencesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_PREFERENCE_COLLECTION_ID!,
 };
 
 export const client = new Client()
-  .setEndpoint(config.endpoint)
-  .setProject(config.projectId)
-  .setPlatform(config.platform);
+	.setEndpoint('https://cloud.appwrite.io/v1')
+	.setProject('677905330029530f17c9')
+	.setPlatform(config.platform);
 
 export const avatar = new Avatars(client);
 export const account = new Account(client);

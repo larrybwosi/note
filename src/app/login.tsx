@@ -1,23 +1,31 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { CheckSquare, Eye, EyeOff, Shield, ShieldCheck, Square } from 'lucide-react-native';
+import { observer, use$, useObservable } from '@legendapp/state/react';
 import { router } from 'expo-router';
+
 import { useAuth } from 'src/utils/auth.provider';
-
 const LoginScreen = () => {
-  // State variables
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // const { login } = useAuth()
+  const state$ = useObservable({
+    email:'',
+    password:'',
+    showPassword: false,
+    rememberMe: false,
+    isLoading: false,
+  })
+  const { email, password, rememberMe, showPassword, isLoading } = use$(state$)
+  const setEmail = state$.email.set;
+  const setPassword = state$.password.set;
+  const setRememberMe = state$.rememberMe.set;
+  const setShowPassword = state$.showPassword.set;
+  const setIsLoading = state$.isLoading.set;
+
+  const { login } = useAuth()
   
   // Handle login function
   const handleLogin = async() => {
     setIsLoading(true);
-    // await login(email, password);
+    await login('larrydean@gmail.co', 'A2LVs@S3kNqheby');
     setIsLoading(false);
   };
 
@@ -155,4 +163,4 @@ const LoginScreen = () => {
   );
 };
 
-export default LoginScreen;
+export default observer(LoginScreen);

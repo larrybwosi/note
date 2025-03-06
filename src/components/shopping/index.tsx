@@ -3,16 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert } from 'reac
 import {
 	ShoppingBag,
 	PlusCircle,
-	X,
 	DollarSign,
-	TrendingUp,
-	ChevronDown,
-	ChevronUp,
 } from 'lucide-react-native';
 import { ShoppingItem } from 'src/types/transaction';
 import useShoppingStore from 'src/store/shopping';
 import useStore from 'src/store/useStore';
-
+import ShoppingList from './list';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ShoppingBudgetPlanner = () => {
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -20,8 +17,7 @@ const ShoppingBudgetPlanner = () => {
 	const [newItemName, setNewItemName] = useState('');
 	const [newItemPrice, setNewItemPrice] = useState('');
 	const [newItemQuantity, setNewItemQuantity] = useState('1');
-	const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
-	const { addItem, } = useShoppingStore()
+	const { addItem } = useShoppingStore();
 	const { getActiveBudgetSpending, categories } = useStore();
 	const currentBudget = getActiveBudgetSpending();
 
@@ -30,7 +26,6 @@ const ShoppingBudgetPlanner = () => {
 	// Calculate total spent
 	const totalSpent = shoppingItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-	// Calculate remaining budget
 	const remainingBudget = currentBudget?.totalRemaining;
 
 	// Calculate percentage spent
@@ -67,9 +62,9 @@ const ShoppingBudgetPlanner = () => {
 			price: price,
 			quantity: quantity,
 			purchased: false,
-			dateAdded: new Date,
-			priority:'medium',
-			description:'',
+			dateAdded: new Date(),
+			priority: 'medium',
+			description: '',
 		};
 
 		// Check if adding this item would exceed the budget
@@ -111,14 +106,6 @@ const ShoppingBudgetPlanner = () => {
 		setShoppingItems(shoppingItems.filter((item) => item.id !== id));
 	};
 
-	// Function to toggle category expansion
-	const toggleExpand = (categoryId: string) => {
-		setExpanded({
-			...expanded,
-			[categoryId]: !expanded[categoryId],
-		});
-	};
-
 	// Get budget status color
 	const getBudgetStatusColor = () => {
 		if (percentageSpent! >= 90) return '#EF4444'; // Red
@@ -126,15 +113,9 @@ const ShoppingBudgetPlanner = () => {
 		return '#10B981'; // Green
 	};
 
-	// Get category items and total
-	const getCategoryItems = (categoryId: string) => {
-		const items = shoppingItems.filter((item) => item.categoryId === categoryId);
-		const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-		return { items, total };
-	};
 
 	return (
-		<View className="flex-1 bg-gray-50 dark:bg-gray-900">
+		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
 			{/* Header with budget information */}
 			<View className="bg-white dark:bg-gray-800 p-4 rounded-b-3xl shadow-md mb-4">
 				<Text className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
@@ -218,7 +199,7 @@ const ShoppingBudgetPlanner = () => {
 				</View>
 
 				{/* Add item form */}
-				<View className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm mb-6">
+				<View className="bg-white dark:bg-gray-800 rounded-xl p-2 shadow-sm mb-6">
 					<Text className="text-lg font-bold text-gray-800 dark:text-white mb-3">Add Item</Text>
 
 					<View className="mb-3">
@@ -272,79 +253,14 @@ const ShoppingBudgetPlanner = () => {
 						Shopping List
 					</Text>
 
-					{EXPENSE_CATEGORIES?.map((category) => {
-						const { items, total } = getCategoryItems(category.id);
-						if (items.length === 0) return null;
-
-						return (
-							<View
-								key={category.id}
-								className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm mb-3"
-							>
-								<TouchableOpacity
-									className="flex-row justify-between items-center p-4"
-									onPress={() => toggleExpand(category.id)}
-									style={{
-										borderLeftWidth: 4,
-										borderLeftColor: category.color,
-									}}
-								>
-									<View className="flex-row items-center">
-										<View
-											className="w-8 h-8 rounded-full justify-center items-center mr-2"
-											style={{ backgroundColor: category.color }}
-										>
-											<ShoppingBag size={16} color="white" />
-										</View>
-										<View>
-											<Text className="font-medium text-gray-800 dark:text-white">
-												{category.name}
-											</Text>
-											<Text className="text-xs text-gray-500 dark:text-gray-400">
-												{items.length} items
-											</Text>
-										</View>
-									</View>
-									<View className="flex-row items-center">
-										<Text className="font-bold text-gray-800 dark:text-white mr-2">
-											${total.toFixed(2)}
-										</Text>
-										{expanded[category.id] ? (
-											<ChevronUp size={20} color="#9CA3AF" />
-										) : (
-											<ChevronDown size={20} color="#9CA3AF" />
-										)}
-									</View>
-								</TouchableOpacity>
-
-								{expanded[category.id] && (
-									<View className="p-4 border-t border-gray-100 dark:border-gray-700">
-										{items?.map((item) => (
-											<View
-												key={item.id}
-												className="flex-row justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700"
-											>
-												<View>
-													<Text className="text-gray-800 dark:text-white">{item.name}</Text>
-													<Text className="text-xs text-gray-500 dark:text-gray-400">
-														${item.price.toFixed(2)} × {item.quantity}
-													</Text>
-												</View>
-												<View className="flex-row items-center">
-													<Text className="font-medium text-gray-800 dark:text-white mr-3">
-														${(item.price * item.quantity).toFixed(2)}
-													</Text>
-													<TouchableOpacity onPress={() => removeItem(item.id)}>
-														<X size={18} color="#EF4444" />
-													</TouchableOpacity>
-												</View>
-											</View>
-										))}
-									</View>
-								)}
-							</View>
-						);
-					})}
+					{EXPENSE_CATEGORIES?.map((category, i) => (
+						<ShoppingList
+							key={i}
+							category={category}
+							removeItem={removeItem}
+							shoppingItems={shoppingItems}
+						/>
+					))}
 
 					{shoppingItems.length === 0 && (
 						<View className="bg-white dark:bg-gray-800 rounded-xl p-6 items-center">
@@ -358,7 +274,7 @@ const ShoppingBudgetPlanner = () => {
 					)}
 				</View>
 			</ScrollView>
-		</View>
+		</SafeAreaView>
 	);
 };
 

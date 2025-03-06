@@ -12,7 +12,7 @@ interface DateTimePickerProps {
 	showTimePicker: boolean;
 	timeSelection: boolean;
 	setShowDatePicker: (value: boolean) => void;
-	setShowTimePicker: (value: boolean) => void;
+	setShowTimePicker?: (value: boolean) => void;
 }
 const DateTimePickerComponent = ({
 	value,
@@ -61,37 +61,38 @@ const DateTimePickerComponent = ({
 					</View>
 
 					{/* Time Section */}
-					{timeSelection && (
-						<View className="flex-1">
-							<View className="flex-row items-center mb-2">
-								<Clock size={16} color="gray" />
-								<Text className="text-sm font-amedium dark:text-gray-200 ml-2">Time</Text>
+					{timeSelection &&
+						setShowTimePicker&&(
+							<View className="flex-1">
+								<View className="flex-row items-center mb-2">
+									<Clock size={16} color="gray" />
+									<Text className="text-sm font-amedium dark:text-gray-200 ml-2">Time</Text>
+								</View>
+								<TouchableOpacity
+									onPress={() => setShowTimePicker(true)}
+									className="bg-white/10 p-4 rounded-xl border border-white/20"
+								>
+									<Text className="dark:text-white font-aregular text-sm">
+										{format(value || new Date(), 'p')}
+									</Text>
+									{showTimePicker && (
+										<DateTimePicker
+											value={value || new Date()}
+											mode="time"
+											display="clock"
+											onChange={(event, selectedDate) => {
+												setShowTimePicker(false);
+												if (selectedDate) {
+													onTimeChange(selectedDate);
+												}
+											}}
+											onError={() => setShowTimePicker(false)}
+											onTouchCancel={() => setShowTimePicker(false)}
+										/>
+									)}
+								</TouchableOpacity>
 							</View>
-							<TouchableOpacity
-								onPress={() => setShowTimePicker(true)}
-								className="bg-white/10 p-4 rounded-xl border border-white/20"
-							>
-								<Text className="dark:text-white font-aregular text-sm">
-									{format(value || new Date(), 'p')}
-								</Text>
-								{showTimePicker && (
-									<DateTimePicker
-										value={value || new Date()}
-										mode="time"
-										display="clock"
-										onChange={(event, selectedDate) => {
-											setShowTimePicker(false);
-											if (selectedDate) {
-												onTimeChange(selectedDate);
-											}
-										}}
-										onError={() => setShowTimePicker(false)}
-										onTouchCancel={() => setShowTimePicker(false)}
-									/>
-								)}
-							</TouchableOpacity>
-						</View>
-					)}
+						)}
 				</View>
 			</Animated.View>
 		</View>

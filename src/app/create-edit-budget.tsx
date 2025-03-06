@@ -8,7 +8,7 @@ import {
 	Alert,
 	ActivityIndicator,
 } from 'react-native';
-import { Check, DollarSign, X, SlidersHorizontal, MoveLeft } from 'lucide-react-native';
+import { Check, DollarSign, SlidersHorizontal, MoveLeft } from 'lucide-react-native';
 import {
 	Budget,
 	BUDGET_RULE_ALLOCATIONS,
@@ -24,35 +24,33 @@ import AllocationGroup from 'src/components/create-edit-budget/allocation-group'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import DateTimePickerComponent from 'src/components/date.time';
-import { use$, useObservable } from '@legendapp/state/react';
+import { observer, use$, useObservable } from '@legendapp/state/react';
 
-interface CreateEditBudgetProps {
-	modalVisible: boolean;
-	setModalVisible: (value: boolean) => void;
-	currentBudget: Budget;
-}
 
 function CreateEditBudget(): React.ReactElement {
-	const { categories, getBudgetBudget } = useStore();
+	const { categories, getBudgetById } = useStore();
 	const EXPENSE_CATEGORIES = categories.filter((cat) => cat.type === 'expense');
   const { selectedBudgetId } = useLocalSearchParams()
 
-  const selectedBudget = getBudgetBudget(selectedBudgetId as string || '');
-	const [currentBudget, setCurrentBudget] = useState<Budget>(selectedBudget!);
-	const [loading, setLoading] = useState<boolean>(false);
+  const selectedBudget = getBudgetById(selectedBudgetId as string || '');
   const state$ = useObservable({
     date: new Date(),
-    showDatePicker :false
+    showDatePicker :false,
+		currentBudget: selectedBudget,
+		loading: false,
+		activeGroupIndex: null as number | null,
+		searchText: '',
   })
-  const { showDatePicker, date } = use$(state$)
+
+  const { showDatePicker, date, currentBudget, loading, activeGroupIndex, searchText } = use$(state$)
   const setShowDatePicker = state$.showDatePicker.set
   const setDate = state$.date.set
+	const setCurrentBudget = state$.currentBudget.set
+	const setLoading = state$.loading.set
+	const setActiveGroupIndex = state$.activeGroupIndex.set
+	const setSearchText = state$.searchText.set
 
 	const { updateBudget, createBudget } = useStore();
-	// State to track which group is currently being edited
-	const [activeGroupIndex, setActiveGroupIndex] = useState<number | null>(null);
-	const [searchText, setSearchText] = useState<string>('');
-
 	// Initialize or update the budget allocation groups when the rule type changes
 	useEffect(() => {
 		if (currentBudget?.ruleType) {
@@ -451,4 +449,4 @@ function CreateEditBudget(): React.ReactElement {
 	);
 }
 
-export default CreateEditBudget;
+export default observer(CreateEditBudget);

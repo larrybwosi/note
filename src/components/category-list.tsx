@@ -16,8 +16,7 @@ interface CategoryListProps {
 	type: TransactionType;
 	selectedCategories: string[];
 	setSelectedCategories: (categories: string[]) => void;
-	expenseCategories: Category[];
-	incomeCategories: Category[];
+	categories: Category[];
 	expandedGroups: Record<TransactionType, boolean>;
 	toggleGroup: (type: TransactionType) => void;
 	customCategory: Partial<Category>;
@@ -30,15 +29,13 @@ const CategoryList: React.FC<CategoryListProps> = (
 		type,
 		selectedCategories,
 		setSelectedCategories,
-		expenseCategories,
-		incomeCategories,
+		categories,
 		expandedGroups,
 		toggleGroup,
 		customCategory,
 		setCustomModalVisible,
 		setCustomCategory,
 	}) => {
-		const typeCategories = type === 'expense' ? expenseCategories : incomeCategories;
 		const isExpanded = expandedGroups[type];
 		const Icon = type === 'expense' ? CreditCard : TrendingUp;
 		const gradientColors = type === 'expense' ? ['#FF6B6B', '#FF8C66'] : ['#4FD1C5', '#38B2AC'];
@@ -88,10 +85,10 @@ const CategoryList: React.FC<CategoryListProps> = (
 						<View className="bg-gray-100 px-4 py-2 rounded-full mr-3">
 							<Text className="text-gray-700 text-sm font-medium">
 								{
-									selectedCategories.filter((id) => typeCategories.some((cat) => cat.id === id))
+									selectedCategories.filter((id) => categories.some((cat) => cat.id === id))
 										.length
 								}
-								/{typeCategories.length}
+								/{categories.length}
 							</Text>
 						</View>
 						{isExpanded ? (
@@ -105,7 +102,7 @@ const CategoryList: React.FC<CategoryListProps> = (
 				{/* Expanded Section */}
 				{isExpanded && (
 					<View
-						className="bg-gray-50 rounded-2xl border border-gray-100 p-4 mt-2 shadow-sm"
+						className="bg-gray-50 rounded-2xl border border-gray-100 p-2 mt-2 shadow-sm"
 						style={{ elevation: 1 }}
 					>
 						<Text className="text-gray-600 text-sm mb-4 px-2 font-amedium">
@@ -115,7 +112,7 @@ const CategoryList: React.FC<CategoryListProps> = (
 						</Text>
 
 						<View className="flex-row flex-wrap justify-between">
-							{typeCategories.map((category) => {
+							{categories.map((category) => {
 								const isSelected = selectedCategories.includes(category.id);
 								const Icon = getIcon(category.icon);
 								const subcategories = category.subcategories;

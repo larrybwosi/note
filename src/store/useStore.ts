@@ -38,7 +38,65 @@ const actions = {
 
 	// Transaction operations
 	addTransaction: (transaction: Transaction) => {
-		store.transactions.push({ ...transaction, id: transaction.id || createUniqueId() });
+		// First, check if there's an active budget
+		const activeBudget = store.budgets.get().find((b) => b.status === 'active');
+
+		if (activeBudget) {
+			// Find the category allocation group for this transaction's category
+			const categoryAllocationGroup = activeBudget.categoryAllocations.find((group) =>
+				group.categories.includes(transaction.categoryId)
+			);
+
+			if (categoryAllocationGroup) {
+				// Calculate the allocated amount for this category group
+				const groupAllocation = (categoryAllocationGroup.percentage / 100) * activeBudget.amount;
+
+				// Calculate existing spending for this category in the current budget period
+				const existingSpending = store.transactions
+					.get()
+					.filter(
+						(t) =>
+							t.categoryId === transaction.categoryId &&
+							t.type === 'expense' &&
+							new Date(t.date) >= new Date(activeBudget.startDate) &&
+							new Date(t.date) <= new Date(activeBudget.endDate)
+					)
+					.reduce((total, t) => total + t.amount, 0);
+
+				// Check if the new transaction would exceed the category group's allocation
+				const totalAfterNewTransaction =
+					existingSpending + (transaction.type === 'expense' ? transaction.amount : 0);
+
+				if (totalAfterNewTransaction > groupAllocation) {
+					// Return an object indicating the budget limit issue
+					return {
+						success: false,
+						error: {
+							message: 'Transaction exceeds budget category limit',
+							details: {
+								categoryName: store.categories.get().find((c) => c.id === transaction.categoryId)
+									?.name,
+								currentSpending: existingSpending,
+								newTransactionAmount: transaction.amount,
+								groupAllocation: groupAllocation,
+								wouldExceedBy: totalAfterNewTransaction - groupAllocation,
+							},
+						},
+					};
+				}
+			}
+		}
+
+		// If no issues, proceed with adding the transaction
+		store.transactions.push({
+			...transaction,
+			id: transaction.id || createUniqueId(),
+		});
+
+		return {
+			success: true,
+			transaction: transaction,
+		};
 	},
 
 	updateTransaction: (transaction: Transaction) => {
@@ -70,12 +128,6 @@ const actions = {
 		}
 	},
 
-	addBulkCategories: (categories: Category[]) => {
-		categories.forEach((category) => {
-			console.log(category);
-			actions.addCategory(category);
-		});
-	},
 	updateCategory: (category: Category) => {
 		const index = store.categories.findIndex((c) => c.id.get() === category.id);
 		if (index !== -1) {
@@ -253,9 +305,10 @@ const actions = {
 			expiredBudgetIds: expiredBudgets,
 		};
 	},
-	getBudgetBudget: (budgetId: string) => {
+	
+	getBudgetById: (budgetId: string) => {
 		const budget = store.budgets.get().find((b) => b.id === budgetId);
-		return budget
+		return budget;
 	},
 
 	// Update an existing budget (only allowed if it's in draft status)
@@ -317,7 +370,7 @@ const actions = {
 		const endDate = new Date(activeBudget.endDate);
 
 		const groupSpending = activeBudget.categoryAllocations.map((group) => {
-			// Get all transactions matching group's categories within date range
+			// Get all transactions matching group's categories within date range console
 			const transactions = store.transactions
 				.get()
 				.filter(
@@ -328,7 +381,7 @@ const actions = {
 						t.type === 'expense'
 				);
 
-			const spent = transactions.reduce((total, t) => total + t.amount, 0);
+			const spent = actions.getTotalSpent();
 			const allocated = (group.percentage / 100) * activeBudget.amount;
 
 			return {
