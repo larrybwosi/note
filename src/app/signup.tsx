@@ -90,11 +90,10 @@ const SignupScreen = () => {
     resolver: zodResolver(signupSchema)
   });
 
-  const { signup } = useAuth()
+  // const { signup } = useAuth()
   const handleRegister = async(data: FormData) => {
     setIsLoading(true);
-		const { email, dob, fullName, password, phone} = data;
-    await signup(data);
+    // await signup(data);
     setIsLoading(false);
   };
  

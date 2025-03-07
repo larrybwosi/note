@@ -6,9 +6,11 @@ import BudgetQuickLinks from 'src/components/quick-links';
 import BalanceCard from 'src/components/ui/balance';
 import OperationsCard from 'src/components/ui/operations';
 import { profileData$ } from 'src/store/useProfile';
+import useStore from 'src/store/useStore';
 
 // Main App Component
-export default function BankingApp(): React.ReactElement {
+export default function Home(): React.ReactElement {
+	const { transactions } = useStore();
   return (
 		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
 			<StatusBar barStyle="dark-content" backgroundColor="#18181b" hidden={true} />
@@ -25,9 +27,9 @@ export default function BankingApp(): React.ReactElement {
 				showsVerticalScrollIndicator={false}
 				contentContainerStyle={{ paddingBottom: 32 }}
 			>
+				<BalanceCard />
 				<View className="px-4 ">
-					<BalanceCard />
-					<BudgetQuickLinks />
+					{transactions.length === 0 ? <BudgetQuickLinks/> : <OperationsCard />}
 				</View>
 			</ScrollView>
 		</SafeAreaView>

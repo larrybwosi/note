@@ -20,7 +20,6 @@ export interface Transaction {
 	attachments?: string[];
 }
 
-export type IconName = keyof typeof ICON_MAP;
 
 export interface Category {
 	id: string;
@@ -35,6 +34,9 @@ export interface Category {
   colors?: string[];
 	description?:string
 }
+
+
+export type IconName = keyof typeof ICON_MAP;
 
 
 // Budget rule types

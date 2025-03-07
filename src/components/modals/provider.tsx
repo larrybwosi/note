@@ -8,7 +8,6 @@ import Animated, {
   Easing,
   runOnJS
 } from 'react-native-reanimated';
-import { NewCategoryProps } from './new.category';
 
 // Constants
 const ANIMATION_DURATION = 300;
@@ -20,9 +19,8 @@ const ANIMATION_CONFIG = {
 // Types
 
 interface ModalConfig {
-  NewCategory: NewCategoryProps;
-  CustomRuleForm: any;
-  SetUp: any
+	CustomRuleForm: any;
+	SetUp: any;
 }
 
 type ModalName = keyof ModalConfig;
@@ -46,7 +44,6 @@ interface ModalState<T extends ModalName = ModalName> {
 
 // Lazy load modal components
 const modalComponents: ModalComponents = {
-  NewCategory: memo(require('./new.category').default),
   CustomRuleForm: memo(require('./custom.rule').default),
   SetUp: memo(require('./setup').default),
 };

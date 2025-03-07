@@ -20,12 +20,12 @@ const LoginScreen = () => {
   const setShowPassword = state$.showPassword.set;
   const setIsLoading = state$.isLoading.set;
 
-  const { login } = useAuth()
+  // const { login } = useAuth()
   
   // Handle login function
   const handleLogin = async() => {
     setIsLoading(true);
-    await login('larrydean@gmail.co', 'A2LVs@S3kNqheby');
+    // await login('larrydean@gmail.co', 'A2LVs@S3kNqheby');
     setIsLoading(false);
   };
 

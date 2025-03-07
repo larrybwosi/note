@@ -157,7 +157,7 @@ const OperationsCard = (): React.ReactElement => {
 				shadowRadius: 12,
 				elevation: 4,
 			}}
-			className="w-full rounded-3xl p-4 h-full"
+			className="w-full rounded-3xl p-4 h-full bg-gray-50 dark:bg-gray-900"
 		>
 			<View className="flex-row justify-between items-center mb-4">
 				<Text className="text-lg font-amedium text-gray-800 dark:text-white">

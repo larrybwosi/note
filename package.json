@@ -43,6 +43,7 @@
 		"expo-notifications": "0.28.19",
 		"expo-router": "~3.5.17",
 		"expo-secure-store": "^13.0.2",
+		"expo-updates": "~0.25.28",
 		"expo-web-browser": "~13.0.3",
 		"lucide-react-native": "^0.475.0",
 		"nativewind": "^4.1.23",

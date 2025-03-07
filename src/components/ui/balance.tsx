@@ -1,32 +1,48 @@
-import Animated, { FadeInDown, LinearTransition, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, {
+	FadeInDown,
+	LinearTransition,
+	useSharedValue,
+	withSpring,
+} from 'react-native-reanimated';
 import { BadgeDollarSignIcon, PlusCircle } from 'lucide-react-native';
 import { TouchableOpacity, Text, View } from 'react-native';
 import { observer } from '@legendapp/state/react';
 import { router } from 'expo-router';
 
-import useStore from "src/store/useStore";
-import { formatCurrency } from "src/utils/currency";
+import useStore from 'src/store/useStore';
+import { formatCurrency } from 'src/utils/currency';
 
-function BalanceCard () {
-  const scale = useSharedValue(0.98);
-  const { getBalance, getTotalSpent, getRemainingBudget, getActiveBudgetSpending } = useStore();
+function BalanceCard() {
+	const scale = useSharedValue(0.98);
+	const { getBalance, getTotalSpent, getRemainingBudget, getActiveBudgetSpending } = useStore();
 	const {
 		budget: { amount: spendingLimit },
-		percentUsed
+		percentUsed,
 	} = getActiveBudgetSpending()!;
 
-  const balance = getBalance()
-	const totalSpent = getTotalSpent()
+	const balance = getBalance();
+	const totalSpent = getTotalSpent();
 	const remaining = getRemainingBudget();
-  const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 10 });
-  };
-  
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 10 });
-  };
-  
-  return (
+
+	const handlePressIn = () => {
+		scale.value = withSpring(0.98, { damping: 10 });
+	};
+
+	const handlePressOut = () => {
+		scale.value = withSpring(1, { damping: 10 });
+	};
+
+	// Calculate progress width based on percentUsed
+	const progressWidth = `${Math.min(percentUsed, 100)}%`;
+
+	// Determine progress bar color based on percentage
+	const getProgressColor = () => {
+		if (percentUsed >= 90) return 'bg-red-500';
+		if (percentUsed >= 75) return 'bg-orange-500';
+		return 'bg-black';
+	};
+
+	return (
 		<Animated.View
 			entering={FadeInDown.duration(700).springify()}
 			layout={LinearTransition.springify()}
@@ -53,13 +69,19 @@ function BalanceCard () {
 					<Text className="text-gray-800 font-semibold">{formatCurrency(spendingLimit!)}</Text>
 				</View>
 				<View className="h-2 bg-gray-200 rounded-full w-full overflow-hidden">
-					<View className="h-2 bg-black rounded-full w-3/4" />
+					<View
+						className={`h-2 ${getProgressColor()} rounded-full`}
+						style={{ width: progressWidth }}
+					/>
 				</View>
 			</View>
 
-			<Text className="text-gray-500 text-sm my-3 font-rmedium">
-				Spent {formatCurrency(totalSpent)}
-			</Text>
+			<View className="flex-row justify-between items-center my-3">
+				<Text className="text-gray-500 text-sm font-rmedium">
+					Spent {formatCurrency(totalSpent)}
+				</Text>
+				<Text className="text-gray-500 text-sm font-rmedium">{percentUsed.toFixed(0)}% used</Text>
+			</View>
 
 			<View className="flex-row justify-between mt-3">
 				<TouchableOpacity
@@ -86,5 +108,6 @@ function BalanceCard () {
 			</View>
 		</Animated.View>
 	);
-};
-export default observer(BalanceCard)
+}
+
+export default observer(BalanceCard);

@@ -11,11 +11,13 @@ import { StatusBar, ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
 import 'react-native-url-polyfill/auto';
 import ModalProvider from 'src/components/modals/provider';
+// import * as Updates from 'expo-updates';
 import './global.css';
 
 import { customFontsToLoad } from 'src/utils/theme/fonts';
 import ErrorBoundary from 'src/lib/error';
 import AuthProvider from 'src/utils/auth.provider';
+import { FeedbackModalProvider } from 'src/components/modals/feedback';
 
 Sentry.init({
 	dsn: 'https://057dd094b79aa98c59f138fbdfacc62d@o4508136465956864.ingest.de.sentry.io/4508878482636880',
@@ -48,14 +50,15 @@ function Root() {
     return null;
   }
   const theme = colorScheme.get();
-
+// () => Updates.reloadAsync();
   return (
 		<GestureHandlerRootView style={$root}>
 			<StatusBar hidden backgroundColor={'gray'} />
 			<ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
 				<ErrorBoundary onReset={() => {}}>
 					<KeyboardProvider>
-						{/* <AuthProvider> */}
+						<FeedbackModalProvider>
+							{/* <AuthProvider> */}
 							<ModalProvider>
 								<Stack>
 									<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -102,7 +105,8 @@ function Root() {
 									/>
 								</Stack>
 							</ModalProvider>
-						{/* </AuthProvider> */}
+							{/* </AuthProvider> */}
+						</FeedbackModalProvider>
 					</KeyboardProvider>
 				</ErrorBoundary>
 			</ThemeProvider>

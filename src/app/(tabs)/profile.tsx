@@ -132,7 +132,7 @@ const ProfileSettings = () => {
 						rightElement={
 							<Switch
 								value={darkMode}
-								onValueChange={() => colorScheme.set(darkMode ? 'light' : 'dark')}
+								onValueChange={() => colorScheme.toggle()}
 								trackColor={{ false: '#CBD5E1', true: '#818CF8' }}
 								thumbColor={darkMode ? '#4F46E5' : '#F1F5F9'}
 							/>

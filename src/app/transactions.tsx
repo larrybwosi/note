@@ -4,13 +4,14 @@ import { Search, Filter, ArrowUpDown, PlusCircle, } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from '@legendapp/state/react';
 
-import { TransactionItem } from 'src/components/transaction/item';
+// import { TransactionItem } from 'src/components/transaction/item';
 import { FilterModal } from 'src/components/transaction/filter';
 import { SortModal } from 'src/components/transaction/sort';
 import EmptyState from 'src/components/empty_transaction';
 import { router } from 'expo-router';
 import useStore from 'src/store/useStore';
 import { Transaction, TransactionStatus, TransactionType } from 'src/types/transaction';
+import { TransactionItem } from 'src/components/transaction/item';
 
 interface SearchBarProps {
   value: string;
@@ -102,70 +103,68 @@ const filteredAndSortedTransactions = useFilteredAndSortedTransactions();
 
   
   return (
-    <SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <View className="p-4">
-        <View className="flex-row items-center justify-between mb-6">
-          <Text className="text-3xl font-rbold text-gray-900 dark:text-white">
-            Transactions
-          </Text>
-          <TouchableOpacity
-            className="rounded-xl flex-row items-center gap-1 p-2 bg-blue-500"
-            onPress={() => router.navigate('create.transactions')}
-          >
-            <Text className='text-gray-200 font-rregular'>Create</Text>
-            <PlusCircle size={18} color="white" />
-          </TouchableOpacity>
-        </View>
+		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
+			<View className="p-4">
+				<View className="flex-row items-center justify-between mb-6">
+					<Text className="text-3xl font-rbold text-gray-900 dark:text-white">Transactions</Text>
+					<TouchableOpacity
+						className="rounded-xl flex-row items-center gap-1 p-2 bg-blue-500"
+						onPress={() => router.navigate('create.transactions')}
+					>
+						<Text className="text-gray-200 font-rregular">Create</Text>
+						<PlusCircle size={18} color="white" />
+					</TouchableOpacity>
+				</View>
 
-        <View className="space-y-4">
-          <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+				<View className="space-y-4">
+					<SearchBar value={searchQuery} onChangeText={setSearchQuery} />
 
-          <View className="flex-row justify-between">
-            <ActionButton
-              onPress={() => setFilterModalVisible(true)}
-              icon={Filter}
-              label="Filter"
-              color="blue-500"
-            />
-            <ActionButton
-              onPress={() => setSortModalVisible(true)}
-              icon={ArrowUpDown}
-              label="Sort"
-              color="green-500"
-            />
-          </View>
-        </View>
+					<View className="flex-row justify-between">
+						<ActionButton
+							onPress={() => setFilterModalVisible(true)}
+							icon={Filter}
+							label="Filter"
+							color="blue-500"
+						/>
+						<ActionButton
+							onPress={() => setSortModalVisible(true)}
+							icon={ArrowUpDown}
+							label="Sort"
+							color="green-500"
+						/>
+					</View>
+				</View>
 
-        {transactions.length === 0 ? (
-          <EmptyState type="no-transactions" />
-        ) : filteredAndSortedTransactions.length === 0 ? (
-          <EmptyState type="no-results" searchQuery={searchQuery} />
-        ) : (
-          <FlatList
-            className="mt-4"
-            data={filteredAndSortedTransactions}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <TransactionItem transaction={item} />}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          />
-        )}
-      </View>
+				{transactions.length === 0 ? (
+					<EmptyState type="no-transactions" />
+				) : filteredAndSortedTransactions.length === 0 ? (
+					<EmptyState type="no-results" searchQuery={searchQuery} />
+				) : (
+					<FlatList
+						className="mt-4"
+						data={filteredAndSortedTransactions}
+						keyExtractor={(item) => item.id}
+						renderItem={({ item }) => <TransactionItem transaction={item} />}
+						showsVerticalScrollIndicator={false}
+						contentContainerStyle={{ paddingBottom: 20 }}
+					/>
+				)}
+			</View>
 
-      <FilterModal
-        visible={filterModalVisible}
-        onClose={() => setFilterModalVisible(false)}
-        onApply={handleFilter}
-        initialFilters={activeFilters}
-      />
-      <SortModal
-        visible={sortModalVisible}
-        onClose={() => setSortModalVisible(false)}
-        onApply={handleSort}
-        initialSort={sortConfig}
-      />
-    </SafeAreaView>
-  );
+			<FilterModal
+				visible={filterModalVisible}
+				onClose={() => setFilterModalVisible(false)}
+				onApply={handleFilter}
+				initialFilters={activeFilters}
+			/>
+			<SortModal
+				visible={sortModalVisible}
+				onClose={() => setSortModalVisible(false)}
+				onApply={handleSort}
+				initialSort={sortConfig}
+			/>
+		</SafeAreaView>
+	);
 };
 
 export default observer(FinanceScreen);
