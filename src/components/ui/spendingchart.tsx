@@ -8,6 +8,7 @@ import Animated, {
   withTiming,
   Easing,
   FadeInDown,
+  LinearTransition,
 } from 'react-native-reanimated';
 import useStore from "src/store/useStore";
 import { ICON_MAP, IconName, TransactionType } from "src/types/transaction";
@@ -33,7 +34,7 @@ const SpendingBarChart = (): React.ReactElement => {
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.9);
   const scrollRef = useRef<ScrollView>(null);
-  
+  //transform
   const { categories, getCategoryMonthlyTotal } = useStore();
   const EXPENSE_CATEGORIES = categories.filter((cat) => cat.type === 'expense');
 
@@ -170,6 +171,7 @@ const SpendingBarChart = (): React.ReactElement => {
     <Animated.View
       entering={FadeInDown.delay(300).duration(700).springify()}
       style={animatedStyle}
+      layout={LinearTransition.springify()}
       className="w-full bg-white dark:bg-gray-800 rounded-3xl p-5 mb-4 shadow-lg"
     >
       <View className="flex-row justify-between items-center mb-4">

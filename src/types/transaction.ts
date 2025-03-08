@@ -101,6 +101,7 @@ export interface ShoppingItem {
   quantity: number;
   priority: PriorityLevel;
   description?: string;
+	dateToPurchase?: Date;
 }
 
 export interface ShoppingItem {

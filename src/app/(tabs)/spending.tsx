@@ -1,14 +1,14 @@
-import { View } from "react-native";
-import SpendingCategoriesCard from "src/components/ui/spendingcategory";
+import { ScrollView } from "react-native-gesture-handler";
+import BudgetCategoryGroups from "src/components/shopping/category-groups";
 import SpendingChart from "src/components/ui/spendingchart";
 
 
 const SpendingDashboard = (): React.ReactElement => {
   return (
-		<View className="flex-1 bg-gray-50 dark:bg-gray-900 px-4 py-6">
+		<ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900 px-4 py-6">
 			<SpendingChart />
-			<SpendingCategoriesCard />
-		</View>
+			<BudgetCategoryGroups />
+		</ScrollView>
 	);
 };
 

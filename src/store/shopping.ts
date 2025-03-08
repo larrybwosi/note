@@ -1,6 +1,5 @@
 import { observable } from '@legendapp/state';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
-import { use$ } from '@legendapp/state/react';
 import { synced } from '@legendapp/state/sync';
 import { ShoppingItem } from 'src/types/transaction';
 
@@ -29,7 +28,7 @@ export const shoppingStore = observable(
 // Define actions to manipulate the shoppingStore
 const actions = {
 	// Getters using use$ to subscribe to reactive state
-	shoppingLists: () => shoppingStore.shoppingLists.get(),
+	shoppingLists: shoppingStore.shoppingLists.get(),
 
 
 	// Shopping list actions
@@ -38,14 +37,14 @@ const actions = {
 	},
 
 	updateShoppingList: (list: ShoppingList) => {
-		const index = use$(shoppingStore.shoppingLists).findIndex((l) => l.id === list.id);
+		const index = shoppingStore.shoppingLists.get().findIndex((l) => l.id === list.id);
 		if (index !== -1) {
 			shoppingStore.shoppingLists[index].set(list);
 		}
 	},
 
 	deleteShoppingList: (id: string) => {
-		const filtered = use$(shoppingStore.shoppingLists).filter((l) => l.id !== id);
+		const filtered = shoppingStore.shoppingLists.get().filter((l) => l.id !== id);
 		shoppingStore.shoppingLists.set(filtered);
 	},
 
@@ -59,14 +58,14 @@ const actions = {
 
 		// Find the shopping list to add to
 		const listIndex = 0; // This should be modified based on your app logic
-		if (use$(shoppingStore.shoppingLists).length > listIndex) {
+		if (shoppingStore.shoppingLists.get().length > listIndex) {
 			shoppingStore.shoppingLists[listIndex].items.push(newItem);
 		}
 	},
 
 	updateItem: (id: string, updates: Partial<Omit<ShoppingItem, 'id'>>) => {
 		// Update item in all shopping lists
-		use$(shoppingStore.shoppingLists).forEach((list, listIndex) => {
+		shoppingStore.shoppingLists.get().forEach((list, listIndex) => {
 			const itemIndex = list.items.findIndex((item) => item.id === id);
 			if (itemIndex !== -1) {
 				shoppingStore.shoppingLists[listIndex].items[itemIndex].assign(updates);
@@ -76,7 +75,7 @@ const actions = {
 
 	removeItem: (id: string) => {
 		// Remove item from all shopping lists
-		use$(shoppingStore.shoppingLists).forEach((list, listIndex) => {
+		shoppingStore.shoppingLists.get().forEach((list, listIndex) => {
 			const items = list.items.filter((item) => item.id !== id);
 			shoppingStore.shoppingLists[listIndex].items.set(items);
 		});
@@ -84,12 +83,12 @@ const actions = {
 
 	toggleItemCompleted: (id: string) => {
 		// Toggle completed state in all shopping lists
-		use$(shoppingStore.shoppingLists).forEach((list, listIndex) => {
+		shoppingStore.shoppingLists.get().forEach((list, listIndex) => {
 			const itemIndex = list.items.findIndex((item) => item.id === id);
 			if (itemIndex !== -1) {
-				const currentValue = !!use$(
+				const currentValue = !!
 					shoppingStore.shoppingLists[listIndex].items[itemIndex].completed
-				);
+				.get();
 				shoppingStore.shoppingLists[listIndex].items[itemIndex].completed.set(!currentValue);
 			}
 		});
@@ -97,7 +96,7 @@ const actions = {
 
 	clearCompletedItems: () => {
 		// Clear completed items from all shopping lists
-		use$(shoppingStore.shoppingLists).forEach((list, listIndex) => {
+		shoppingStore.shoppingLists.get().forEach((list, listIndex) => {
 			const items = list.items.filter((item) => !item.completed);
 			shoppingStore.shoppingLists[listIndex].items.set(items);
 		});
@@ -105,7 +104,7 @@ const actions = {
 
 	clearAllItems: () => {
 		// Clear all items from all shopping lists
-		use$(shoppingStore.shoppingLists).forEach((list, listIndex) => {
+		shoppingStore.shoppingLists.get().forEach((list, listIndex) => {
 			shoppingStore.shoppingLists[listIndex].items.set([]);
 		});
 	},
@@ -113,7 +112,7 @@ const actions = {
 		const items: ShoppingItem[] = [];
 
 		// Collect all items from all shopping lists with matching categoryId
-		use$(shoppingStore.shoppingLists).forEach((list) => {
+		shoppingStore.shoppingLists.get().forEach((list) => {
 			items.push(...list.items.filter((item) => item.categoryId === categoryId));
 		});
 
