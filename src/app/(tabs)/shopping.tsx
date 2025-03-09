@@ -11,7 +11,7 @@ import useShoppingStore from 'src/store/shopping';
 import useStore from 'src/store/useStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ShoppingList from 'src/components/shopping/list';
-import NewItemModal from 'src/components/shopping';
+import NewItemModal from 'src/components/shopping/new-item-modal';
 
 const ShoppingBudgetPlanner = () => {
 	const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
@@ -68,7 +68,7 @@ const ShoppingBudgetPlanner = () => {
 	return (
 		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
 			{/* Header with budget information */}
-			<View className="bg-white px-5 pt-4 pb-5 rounded-b-3xl shadow-sm">
+			<View className="bg-white dark:bg-gray-900 px-5 pt-4 pb-5 rounded-b-3xl shadow-sm">
 				<Text className="text-2xl font-bold text-gray-800 mb-4 dark:text-white">Shopping Budget</Text>
 
 				<View className="mt-2">
@@ -176,7 +176,7 @@ const ShoppingBudgetPlanner = () => {
 
 
 					{shoppingItems.length === 0 && (
-						<View className="bg-white rounded-2xl p-6 items-center justify-center mt-2">
+						<View className="bg-white dark:bg-gray-800 rounded-2xl p-6 items-center justify-center mt-2">
 							<ShoppingBag size={48} color="#9CA3AF" />
 							<Text className="text-base text-gray-500 text-center mt-4 leading-6">
 								Your shopping list is empty. Add items to get started!
@@ -185,13 +185,12 @@ const ShoppingBudgetPlanner = () => {
 					)}
 				</View>
 			</ScrollView>
-
-					<NewItemModal
-						isVisible={modalVisible}
-						onClose={closeModal}
-						categories={EXPENSE_CATEGORIES}
-						budget={currentBudget?.budget!}
-					/>
+			<NewItemModal
+				isVisible={modalVisible}
+				onClose={closeModal}
+				categories={EXPENSE_CATEGORIES}
+				budget={currentBudget?.budget!}
+			/>
 			
 		</SafeAreaView>
 	);

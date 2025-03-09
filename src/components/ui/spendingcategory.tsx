@@ -1,7 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import useStore from 'src/store/useStore';
 import { ICON_MAP } from 'src/types/transaction';
 
@@ -35,7 +34,6 @@ const CategoryItem = ({
 
 	return (
 		<AnimatedTouchableOpacity
-			entering={FadeInDown.duration(600).delay(700)}
 			className="w-[48%] rounded-2xl p-4 mb-4 bg-amber-50 dark:bg-gray-700"
 			style={styles.categoryItem}
 		>

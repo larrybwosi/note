@@ -13,7 +13,6 @@ import Animated, {
 import useStore from 'src/store/useStore';
 import { getTransactionCategory, getTransactionIcon, getTransactionTitle } from 'src/utils/getCategory';
 import { Transaction } from 'src/types/transaction';
-import { observer } from '@legendapp/state/react';
 
 interface TransactionItemProps {
 	logo: React.ElementType;
@@ -23,6 +22,7 @@ interface TransactionItemProps {
 	date?: string;
 	color: string;
 }
+
 const TransactionItem = ({ logo: Icon, title, description, amount, date, color }: TransactionItemProps) => {
 	const scale = useSharedValue(1);
 
@@ -94,9 +94,7 @@ const DateHeader = ({ label }: { label: string }) => (
 );
 
 const OperationsCard = (): React.ReactElement => {
-	const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 	const isDarkMode = colorScheme.get() === 'dark';
-	const gradientColors = isDarkMode ? ['#111827', '#111827'] : ['#f8fafc', '#fff'];
 
 	const { transactions } = useStore();
 
@@ -144,10 +142,7 @@ const OperationsCard = (): React.ReactElement => {
 	);
 
 	return (
-		<AnimatedLinearGradient
-			colors={gradientColors}
-			start={{ x: 0, y: 0 }}
-			end={{ x: 1, y: 1 }}
+		<Animated.View
 			entering={FadeInDown.delay(400).duration(700).springify()}
 			layout={LinearTransition.springify()}
 			style={{
@@ -157,7 +152,7 @@ const OperationsCard = (): React.ReactElement => {
 				shadowRadius: 12,
 				elevation: 4,
 			}}
-			className="w-full rounded-3xl p-4 h-full bg-gray-50 dark:bg-gray-900"
+			className="w-full rounded-3xl p-2 h-full bg-gray-50 dark:bg-gray-900"
 		>
 			<View className="flex-row justify-between items-center mb-4">
 				<Text className="text-lg font-amedium text-gray-800 dark:text-white">
@@ -201,8 +196,8 @@ const OperationsCard = (): React.ReactElement => {
 			) : (
 				<NoRecentTransactions />
 			)}
-		</AnimatedLinearGradient>
+		</Animated.View>
 	);
 };
 
-export default observer(OperationsCard);
+export default OperationsCard;

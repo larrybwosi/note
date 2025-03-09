@@ -5,7 +5,7 @@ const config: ExpoConfig = {
 	name: 'Dealio',
 	slug: 'Note',
 	scheme: 'dealio',
-	version: '1.0.0',
+	version: '1.1.0',
 	orientation: 'portrait',
 	userInterfaceStyle: 'automatic',
 	icon: './assets/images/app-icon-all.png',
@@ -14,8 +14,12 @@ const config: ExpoConfig = {
 		resizeMode: 'contain',
 		backgroundColor: '#191015',
 	},
+	runtimeVersion: {
+		policy: 'appVersion',
+	},
 	updates: {
 		fallbackToCacheTimeout: 0,
+		url: 'https://u.expo.dev/bf94542d-923b-4506-8a8b-b8a2baac45ca',
 	},
 	jsEngine: 'hermes',
 	assetBundlePatterns: ['**/*'],

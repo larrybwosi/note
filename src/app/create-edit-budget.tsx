@@ -18,7 +18,7 @@ import {
 	Category,
 } from 'src/types/transaction';
 import useStore from 'src/store/useStore';
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import CategoryItem from 'src/components/create-edit-budget/category-item';
 import AllocationGroup from 'src/components/create-edit-budget/allocation-group';
 import { SafeAreaView } from 'react-native-safe-area-context';

@@ -1,6 +1,5 @@
 import { observable } from "@legendapp/state";
 import { ObservablePersistMMKV } from "@legendapp/state/persist-plugins/mmkv";
-import { use$ } from "@legendapp/state/react";
 import { synced } from "@legendapp/state/sync";
 import { CurrencyCode } from "src/utils/currency";
 import { z } from "zod";
@@ -14,7 +13,7 @@ export interface ProfileData {
 	bio: string;
 	plan?: string;
 	imageUrl?: string;
-	currency?: CurrencyCode;
+	currency: CurrencyCode;
 }
 
 export const profileData$ = observable<ProfileData>(
@@ -49,10 +48,10 @@ export const profileData$ = observable<ProfileData>(
 			bio: z.string().min(10),
 			plan: z.string().optional(),
 			imageUrl: z.string().optional(),
-			currency: z.string().optional(),
+			currency: z.string(),
 		})
 		const validatedProfile = profileSchema.parse(profile)
 		profileData$.set(validatedProfile)
   }
 
-  export const profile = use$(profileData$)
+  export const profile = profileData$.get();

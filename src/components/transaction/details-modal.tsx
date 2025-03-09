@@ -26,7 +26,7 @@ import { Transaction, TransactionStatus, TransactionType, Category } from 'src/t
 import useStore from 'src/store/useStore';
 import { getTransactionIcon } from 'src/utils/getCategory';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useFeedbackModal } from '../modals/feedback';
+import { useFeedbackModal } from '../ui/feedback';
 
 interface TransactionDetailsModalProps {
 	transaction: Transaction | null;

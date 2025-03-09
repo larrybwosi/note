@@ -1,9 +1,9 @@
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { CheckSquare, Eye, EyeOff, Shield, ShieldCheck, Square } from 'lucide-react-native';
+import { CheckSquare, Eye, EyeOff, ShieldCheck, Square } from 'lucide-react-native';
 import { observer, use$, useObservable } from '@legendapp/state/react';
 import { router } from 'expo-router';
 
-import { useAuth } from 'src/utils/auth.provider';
+// import { useAuth } from 'src/utils/auth.provider';
 const LoginScreen = () => {
 
   const state$ = useObservable({
@@ -25,6 +25,7 @@ const LoginScreen = () => {
   // Handle login function
   const handleLogin = async() => {
     setIsLoading(true);
+    // await login(email, password);
     // await login('larrydean@gmail.co', 'A2LVs@S3kNqheby');
     setIsLoading(false);
   };

@@ -5,14 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import useStore from 'src/store/useStore';
 
-// Types
-interface BudgetRuleGroup {
-	name: string;
-	percentage: number;
-	description: string;
-	categories: string[];
-	color: string;
-}
 
 const BudgetCategoryGroups = () => {
 	const [activeView, setActiveView] = useState<'list' | 'chart'>('list');
@@ -90,14 +82,14 @@ const BudgetCategoryGroups = () => {
 	return (
 		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
 			{/* Header */}
-			<View className="bg-white px-5 pt-4 pb-5 rounded-b-3xl shadow-sm">
-				<Text className="text-2xl font-bold text-gray-800 mb-4 dark:text-white">
+			<View className="px-5 pt-4 pb-5 rounded-b-3xl shadow-sm">
+				<Text className="text-xl font-amedium text-gray-800 mb-4 dark:text-white">
 					{currentBudget.name}
 				</Text>
 
 				<View className="mt-2">
 					<View className="mb-4">
-						<Text className="text-sm text-gray-500 mb-1 dark:text-gray-400">Total Budget</Text>
+						<Text className="text-sm text-gray-500 mb-1 font-aregular dark:text-gray-400">Total Budget</Text>
 						<Text className="text-2xl font-bold text-gray-800 dark:text-white">
 							${currentBudget.amount.toFixed(2)}
 						</Text>
@@ -138,9 +130,9 @@ const BudgetCategoryGroups = () => {
 			</View>
 
 			{/* Main content */}
-			<ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
+			<ScrollView className="flex-1 px-2" showsVerticalScrollIndicator={false}>
 				<View className="mt-6 mb-10">
-					<Text className="text-lg font-bold text-gray-800 mb-3">Budget Groups</Text>
+					<Text className="text-lg font-rbold text-gray-800 dark:text-gray-200 mb-3">Budget Groups</Text>
 
 					{currentBudget.categoryAllocations.map((group) => {
 						const percentUsed = getGroupPercentageUsed(group.categories, group.percentage);
@@ -149,7 +141,7 @@ const BudgetCategoryGroups = () => {
 						return (
 							<View
 								key={group.name}
-								className="bg-white rounded-2xl mb-4 overflow-hidden shadow-sm"
+								className="bg-white dark:bg-gray-800 rounded-2xl mb-4 overflow-hidden shadow-sm"
 							>
 								{/* Group Header */}
 								<TouchableOpacity
@@ -161,7 +153,7 @@ const BudgetCategoryGroups = () => {
 										style={{ backgroundColor: group.color }}
 									/>
 									<View className="flex-1">
-										<Text className="text-base font-semibold text-gray-800">{group.name}</Text>
+										<Text className="text-base font-amedium text-gray-800 dark:text-gray-200">{group.name}</Text>
 										<Text className="text-xs text-gray-500">{group.description}</Text>
 									</View>
 									<View className="items-end">

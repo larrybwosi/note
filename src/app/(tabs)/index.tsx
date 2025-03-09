@@ -9,7 +9,7 @@ import { profileData$ } from 'src/store/useProfile';
 import useStore from 'src/store/useStore';
 
 // Main App Component
-export default function Home(): React.ReactElement {
+export default function Home() {
 	const { transactions } = useStore();
   return (
 		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">

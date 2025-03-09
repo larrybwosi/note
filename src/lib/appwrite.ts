@@ -3,7 +3,7 @@ import { Client, Account, Avatars, Databases } from 'react-native-appwrite';
 export const config = {
 	platform: 'com.note',
 	endpoint: 'https://cloud.appwrite.io/v1',
-	userPrefrencesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_PREFERENCE_COLLECTION_ID!,
+	usersCollectionId: '67c552ff0011e9c99df3',
 	projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!,
 	databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!,
 };

@@ -8,8 +8,6 @@ import {
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-
 interface QuickLinkItem {
 	id: string;
 	icon: LucideIcon;
@@ -54,37 +52,20 @@ const QuickLinkCard: React.FC<{
 	item: QuickLinkItem;
 	index: number;
 }> = ({ item, index }) => {
-	const scale = useSharedValue(1);
-
-	const animatedStyle = useAnimatedStyle(() => {
-		return {
-			transform: [{ scale: scale.value }],
-		};
-	});
-
 	return (
 		<Link href={item.route} asChild>
 			<TouchableOpacity
-				onPressIn={() => {
-					scale.value = withSpring(0.95);
-				}}
-				onPressOut={() => {
-					scale.value = withSpring(1);
-				}}
 				activeOpacity={0.8}
 			>
-				<Animated.View
-					style={[
-						animatedStyle,
-						{
+				<View
+					style={{
 							marginBottom: 16,
 							shadowColor: '#000',
 							shadowOffset: { width: 0, height: 4 },
 							shadowOpacity: 0.1,
 							shadowRadius: 6,
 							elevation: 5,
-						},
-					]}
+						}}
 				>
 					<LinearGradient
 						colors={item.gradient}
@@ -147,7 +128,7 @@ const QuickLinkCard: React.FC<{
 							</View>
 						</View>
 					</LinearGradient>
-				</Animated.View>
+				</View>
 			</TouchableOpacity>
 		</Link>
 	);

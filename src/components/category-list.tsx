@@ -2,15 +2,13 @@ import { useCallback } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-	Banknote,
 	Check,
-	ChevronDown,
-	ChevronUp,
 	CreditCard,
 	PlusCircle,
 	TrendingUp,
 } from 'lucide-react-native';
-import { ICON_MAP, TransactionType, Category } from 'src/types/transaction';
+import { TransactionType, Category } from 'src/types/transaction';
+import { getTransactionIcon } from 'src/utils/getCategory';
 
 interface CategoryListProps {
 	type: TransactionType;
@@ -19,7 +17,7 @@ interface CategoryListProps {
 	categories: Category[];
 	expandedGroups: Record<TransactionType, boolean>;
 	toggleGroup: (type: TransactionType) => void;
-	customCategory: Partial<Category>;
+	customCategory: Category;
 	setCustomModalVisible: (visible: boolean) => void;
 	setCustomCategory: (category: Category) => void;
 }
@@ -51,10 +49,6 @@ const CategoryList: React.FC<CategoryListProps> = ({
 		[selectedCategories, setSelectedCategories]
 	);
 
-	const getIcon = useCallback((iconName: string) => {
-		return ICON_MAP[iconName] || Banknote;
-	}, []);
-
 	const selectedCount = selectedCategories.filter((id) =>
 		categories.some((cat) => cat.id === id)
 	).length;
@@ -64,7 +58,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
 			{/* Header Section - Enhanced with more depth and polish */}
 			<TouchableOpacity
 				onPress={() => toggleGroup(type)}
-				className="flex-row justify-between items-center bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
+				className="flex-row justify-between items-center bg-white rounded-3xl p-4 shadow-lg border border-gray-100"
 				style={{
 					elevation: 4,
 					shadowColor: '#000',
@@ -76,6 +70,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
 				<View className="flex-row items-center">
 					<LinearGradient
 						colors={gradientColors}
+						style={{borderRadius:20}}
 						className="w-14 h-14 mr-5 items-center justify-center rounded-2xl"
 						start={{ x: 0.1, y: 0.2 }}
 						end={{ x: 0.9, y: 0.9 }}
@@ -83,7 +78,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
 						<Icon size={24} color="#FFFFFF" />
 					</LinearGradient>
 					<View>
-						<Text className="font-rbold text-2xl text-gray-800">
+						<Text className="font-rbold text-xl text-gray-800">
 							{type === 'expense' ? 'Expenses' : 'Income'}
 						</Text>
 						<Text className="text-gray-500 text-sm font-amedium mt-1">
@@ -110,11 +105,6 @@ const CategoryList: React.FC<CategoryListProps> = ({
 							{selectedCount}/{categories.length}
 						</Text>
 					</View>
-					{isExpanded ? (
-						<ChevronUp size={24} color="#4B5563" />
-					) : (
-						<ChevronDown size={24} color="#4B5563" />
-					)}
 				</View>
 			</TouchableOpacity>
 
@@ -141,7 +131,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
 					<View className="flex-row flex-wrap justify-between">
 						{categories.map((category) => {
 							const isSelected = selectedCategories.includes(category.id);
-							const Icon = getIcon(category.icon);
+							const Icon = getTransactionIcon(category.id);
 							const subcategories = category.subcategories;
 
 							return (

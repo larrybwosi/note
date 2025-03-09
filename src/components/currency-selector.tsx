@@ -5,7 +5,7 @@ import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
 import { observer, use$ } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { currencies, Currency } from 'src/utils/currency';
-import { profileData$ } from 'src/store/useProfile';
+import { profile, profileData$ } from 'src/store/useProfile';
 
 const CurrencySelector = () => {
 	const [selectedCurrency, setSelectedCurrency] = useState<Currency>(currencies['USD']);
@@ -14,9 +14,7 @@ const CurrencySelector = () => {
 	const handleCurrencySelect = (currency: Currency) => {
 		setSelectedCurrency(currency);
 		profileData$.currency.set(currency.code);
-		console.log(use$(profileData$.currency))
 		setModalVisible(false);
-		// Here you would typically save this to your app's state/preferences
 	};
 
 	const renderCurrencyItem = ({ item }: { item: Currency }) => (
@@ -40,13 +38,13 @@ const CurrencySelector = () => {
 
 	return (
 		<SafeAreaView className="flex-1 bg-gray-50 dark:bg-gray-900">
-			<Text className="text-2xl font-rbold text-gray-800 dark:text-gray-200 px-4 mb-4 mt-6 pt-4">
+			<Text className="text-2xl font-rbold text-gray-800 dark:text-gray-200 px-4 mb-4 mt-4 pt-4">
 				Currency Settings
 			</Text>
 
 			<Animated.View
 				entering={FadeInDown.duration(400)}
-				className="bg-white dark:bg-gray-800 rounded-2xl p-4 mx-4 mb-3"
+				className="bg-white dark:bg-gray-800 rounded-2xl p-4 mx-4 mb-3 mt-4"
 			>
 				<TouchableOpacity
 					onPress={() => setModalVisible(true)}

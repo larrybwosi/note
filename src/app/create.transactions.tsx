@@ -27,11 +27,13 @@ import {
 import useStore from 'src/store/useStore';
 import { ICON_MAP, TransactionStatus, TransactionType } from 'src/types/transaction';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useFeedbackModal } from 'src/components/ui/feedback';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const CreateTransactionScreen = () => {
 	const { type } = useLocalSearchParams();
+	const { showModal } =useFeedbackModal();
 
 	const [description, setDescription] = useState<string>('');
 	const [amount, setAmount] = useState<string>('');
@@ -168,7 +170,14 @@ const CreateTransactionScreen = () => {
 
 	// Handle form submission
 	const handleSubmit = () => {
-		if (!description || !amount || !selectedCategory) return;
+		if (!description || !amount || !selectedCategory) {
+			showModal({
+				type: 'error',
+				title: 'Missing Fields',
+				message: 'Please fill in all required fields before submitting.',
+			});
+			return;
+		};
 
 		const newTransaction = {
 			id: date.toDateString(),
@@ -190,6 +199,13 @@ const CreateTransactionScreen = () => {
 		setDate(new Date());
 		setIsRecurring(false);
 		setRecurringPeriod('monthly');
+		showModal({
+			type: 'success',
+			title: 'Success',
+			message: `${newTransaction.description} added successfully!`,
+			autoClose: true,
+			autoCloseTime: 2000,
+		});
 		router.back();
 	};
 

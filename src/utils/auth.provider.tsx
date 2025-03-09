@@ -30,67 +30,32 @@ interface SignupProps {
 // Auth context type definition
 interface AuthContextType {
 	user: User | null;
-	preferences: UserPreferences | null;
 	isLoading: boolean;
 	error: string | null;
 	login: (email: string, password: string) => Promise<void>;
 	logout: () => Promise<void>;
 	signup: (data: SignupProps) => Promise<void>;
-	refreshUserData: () => Promise<void>;
 }
 
 // Create the auth context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // User preferences collection ID and default values
-const USERS_COLLECTION_ID = config.userPrefrencesCollectionId;
-const DEFAULT_PREFERENCES: UserPreferences = {
-	financeSetupComplete: false,
-	profileComplete: false,
-};
+const USERS_COLLECTION_ID = config.usersCollectionId;
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const state$ = useObservable({
 		user: null as User | null,
-		preferences: null as UserPreferences | null,
 		isLoading: true,
 		error: null as null | string,
 	});
-const { user, error, isLoading, preferences} = use$(state$)
+const { user, error, isLoading } = use$(state$)
 
 const setUser = state$.user.set
-const setPreferences = state$.preferences.set;
 const setIsLoading = state$.isLoading.set
 const setError = state$.error.set;
 	const { categories } = useStore();
-	// Function to fetch user preferences
-	const fetchUserPreferences = async (userId: string): Promise<UserPreferences> => {
-		try {
-			const response = await databases.getDocument(
-				config.databaseId, // Replace with your database ID
-				USERS_COLLECTION_ID,
-				userId
-			);
-
-			return response as unknown as UserPreferences;
-		} catch (error) {
-			// If preferences don't exist, create them with default values
-			const newPreferences = {
-				...DEFAULT_PREFERENCES,
-				userId,
-			};
-
-			await databases.createDocument(
-				config.databaseId, // Replace with your database ID
-				USERS_COLLECTION_ID,
-				userId,
-				newPreferences
-			);
-
-			return newPreferences;
-		}
-	};
-
+	
 	// Check auth state and redirect based on conditions
 	const checkAuthAndRedirect = async () => {
 		try {
@@ -104,39 +69,23 @@ const setError = state$.error.set;
 				setUser(userData as User);
 
 				// Get user preferences
-				const userPreferences = await fetchUserPreferences(userData?.$id || '');
-				setPreferences(userPreferences);
-
-				// Handle navigation based on user state
-				if (!userPreferences.financeSetupComplete) {
-					router.navigate('profile');
-				} else if (!userPreferences.profileComplete) {
-					router.navigate('profile');
-				} else if (categories.length === 0 || null) {
+				if (categories.length === 0 || null) {
 					router.navigate('categories');
 				}
 			} else {
 				// No active session, navigate to welcome screen
 				setUser(null);
-				setPreferences(null);
 				router.navigate('splash');
 			}
 		} catch (error) {
 			// Handle error (likely no active session)
 			setUser(null);
-			setPreferences(null);
 			router.navigate('splash');
 		} finally {
 			setIsLoading(false);
 		}
 	};
 
-	const refreshUserData = async () => {
-		if (user?.$id) {
-			const userPreferences = await fetchUserPreferences(user.$id);
-			setPreferences(userPreferences);
-		}
-	};
 
 	// Authentication functions
 	const login = async (email: string, password: string) => {
@@ -158,7 +107,6 @@ const setError = state$.error.set;
 			setIsLoading(true);
 			await account.deleteSession('current');
 			setUser(null);
-			setPreferences(null);
 			router.navigate('/splash');
 		} catch (error: any) {
 			console.log('Logout error: ', error);
@@ -187,8 +135,7 @@ const setError = state$.error.set;
 				USERS_COLLECTION_ID,
 				response.$id,
 				{
-					...DEFAULT_PREFERENCES,
-					userId: response.$id,
+					id: response.$id,
 					dob,
 					phone
 				}
@@ -210,13 +157,11 @@ const setError = state$.error.set;
 	// Provide auth context
 	const contextValue: AuthContextType = {
 		user,
-		preferences,
 		isLoading,
 		error,
 		login,
 		logout,
 		signup,
-		refreshUserData,
 	};
 
 	return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

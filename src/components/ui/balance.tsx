@@ -58,7 +58,7 @@ function BalanceCard() {
 					elevation: 4,
 				},
 			]}
-			className="w-full bg-amber-100 rounded-3xl p-5 mb-4"
+			className="w-full bg-amber-100 rounded-3xl p-5 mb-4 mx-2"
 		>
 			<Text className="text-gray-500 text-sm mb-1 font-rregular">Available Balance</Text>
 			<Text className="text-4xl font-amedium mb-4 text-gray-800">{formatCurrency(balance)}</Text>

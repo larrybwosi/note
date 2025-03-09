@@ -10,14 +10,13 @@ import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar, ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
 import 'react-native-url-polyfill/auto';
-import ModalProvider from 'src/components/modals/provider';
 // import * as Updates from 'expo-updates';
 import './global.css';
 
 import { customFontsToLoad } from 'src/utils/theme/fonts';
 import ErrorBoundary from 'src/lib/error';
 import AuthProvider from 'src/utils/auth.provider';
-import { FeedbackModalProvider } from 'src/components/modals/feedback';
+import { FeedbackModalProvider } from 'src/components/ui/feedback';
 
 Sentry.init({
 	dsn: 'https://057dd094b79aa98c59f138fbdfacc62d@o4508136465956864.ingest.de.sentry.io/4508878482636880',
@@ -59,10 +58,8 @@ function Root() {
 					<KeyboardProvider>
 						<FeedbackModalProvider>
 							{/* <AuthProvider> */}
-							<ModalProvider>
 								<Stack>
 									<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-									<Stack.Screen name="plans" options={{ headerShown: false }} />
 									<Stack.Screen
 										name="create.transactions"
 										options={{ headerShown: false, presentation: 'modal' }}
@@ -104,7 +101,6 @@ function Root() {
 										options={{ headerShown: false, presentation: 'modal', statusBarHidden: true }}
 									/>
 								</Stack>
-							</ModalProvider>
 							{/* </AuthProvider> */}
 						</FeedbackModalProvider>
 					</KeyboardProvider>

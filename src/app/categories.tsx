@@ -240,7 +240,7 @@ const CategorySelection = () => {
 								<ChevronLeft size={20} color="#374151" />
 							</TouchableOpacity>
 
-							<Text className="text-gray-900 text-xl font-bold">Customize Categories</Text>
+							<Text className="text-gray-900 text-xl font-rbold">Customize Categories</Text>
 
 							<TouchableOpacity
 								onPress={() => setShowInfo(!showInfo)}
@@ -535,7 +535,7 @@ const CategorySelection = () => {
 							) : (
 								<>
 									<Text
-										className={`font-bold text-center text-lg mr-2 ${
+										className={`font-amedium text-center text-lg mr-2 ${
 											selectedExpenseCount >= 3 && selectedIncomeCount >= 3
 												? 'text-white'
 												: 'text-gray-500'

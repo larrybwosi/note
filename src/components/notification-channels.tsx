@@ -3,9 +3,6 @@ import { View, Text, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import {
 	Bell,
 	Mail,
-	MessageSquare,
-	Calendar,
-	ShoppingCart,
 	DollarSign,
 	Users,
 	Gift,
@@ -14,7 +11,6 @@ import {
 	Info,
 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { observer } from '@legendapp/state/react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Define notification channel types
@@ -52,27 +48,6 @@ const NotificationsSettings = ({
 			name: 'Push Notifications',
 			description: 'Receive push notifications on your device',
 			icon: Bell,
-			enabled: true,
-		},
-		{
-			id: 'messages',
-			name: 'Messages',
-			description: 'Notifications for new messages and replies',
-			icon: MessageSquare,
-			enabled: true,
-		},
-		{
-			id: 'events',
-			name: 'Events & Reminders',
-			description: 'Notifications for upcoming events and reminders',
-			icon: Calendar,
-			enabled: true,
-		},
-		{
-			id: 'orders',
-			name: 'Orders & Purchases',
-			description: 'Updates about your orders and purchases',
-			icon: ShoppingCart,
 			enabled: true,
 		},
 		{

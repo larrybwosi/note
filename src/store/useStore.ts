@@ -314,7 +314,7 @@ const actions = {
 	// Update an existing budget (only allowed if it's in draft status)
 	updateBudget: (budget: Partial<Budget> & { id: string }) => {
 		const index = store.budgets.findIndex((b) => b.id.get() === budget.id);
-
+		
 		if (index !== -1) {
 			const currentBudget = store.budgets[index].get();
 

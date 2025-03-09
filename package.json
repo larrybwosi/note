@@ -33,7 +33,6 @@
 		"@react-native-community/slider": "4.5.2",
 		"@react-navigation/native": "^6.0.2",
 		"@sentry/react-native": "^6.9.0",
-		"@shopify/flash-list": "^1.7.2",
 		"date-fns": "^4.1.0",
 		"expo": "^51.0.38",
 		"expo-dev-client": "^4.0.29",
