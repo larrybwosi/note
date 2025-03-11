@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "note_new",
-    "slug": "note_new",
+    "name": "F-manager",
+    "slug": "finance_manager",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -14,8 +14,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#ffffff",
+        "package": "com.finance.manager"
+      },
+      "package": "com.finance.manager"
     },
     "web": {
       "bundler": "metro",
@@ -36,6 +38,20 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "0377b7e7-3315-4e14-879e-efe9e2f66c88"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0377b7e7-3315-4e14-879e-efe9e2f66c88"
     }
   }
 }
