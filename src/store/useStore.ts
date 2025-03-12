@@ -243,6 +243,7 @@ const actions = {
 
 		// Calculate end date based on period type
 		const { endDate } = getDateRangeForPeriod(periodType, startDate);
+		const isThereActiveBudget = actions.getActiveBudgetSpending()?.budget?.id !== undefined || false || '';
 
 		// Create the budget in draft status
 		const newBudget: Budget = {
@@ -254,7 +255,7 @@ const actions = {
 			periodType,
 			ruleType,
 			categoryAllocations,
-			status: 'draft', // Start as draft until activated
+			status: isThereActiveBudget ? 'draft' : 'active',
 		};
 
 		store.budgets.push(newBudget);

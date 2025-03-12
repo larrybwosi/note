@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { enableReactNativeComponents } from "@legendapp/state/config/enableReactNativeComponents";
-import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
+// import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -13,19 +13,14 @@ import 'react-native-url-polyfill/auto';
 // import * as Updates from 'expo-updates';
 import './global.css';
 
-import { customFontsToLoad } from 'src/utils/theme/fonts';
 import ErrorBoundary from 'src/lib/error';
 import AuthProvider from 'src/utils/auth.provider';
 import { FeedbackModalProvider } from 'src/components/ui/feedback';
 
 Sentry.init({
 	dsn: 'https://057dd094b79aa98c59f138fbdfacc62d@o4508136465956864.ingest.de.sentry.io/4508878482636880',
-
-	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
 	spotlight: __DEV__,
 });
-
-// bf94542d-923b-4506-8a8b-b8a2baac45ca
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,6 +29,15 @@ enableReactNativeComponents();
 // 	warnMissingUse: true,
 // });
 
+const customFontsToLoad = {
+	'roboto-regular': require('../../assets/fonts/Roboto-Regular.ttf'),
+	'roboto-bold': require('../../assets/fonts/Roboto-Bold.ttf'),
+	'roboto-medium': require('../../assets/fonts/Roboto-Medium.ttf'),
+	'roboto-thin': require('../../assets/fonts/Roboto-Thin.ttf'),
+	'Archivo-Regular': require('../../assets/fonts/Archivo-Regular.ttf'),
+	'Archivo-Medium': require('../../assets/fonts/Archivo-SemiBold.ttf'),
+	'Archivo-Bold': require('../../assets/fonts/Archivo-Black.ttf'),
+ };
 
 function Root() {
   const [loaded, fontError] = useFonts(customFontsToLoad);

@@ -41,8 +41,7 @@ const config: ExpoConfig = {
 		supportsTablet: true,
 		bundleIdentifier: 'com.note',
 		splash: {
-			image: './assets/images/splash-logo-ios-mobile.png',
-			tabletImage: './assets/images/splash-logo-ios-tablet.png',
+			image: './assets/images/splash-logo-all.png',
 			resizeMode: 'contain',
 			backgroundColor: '#191015',
 		},

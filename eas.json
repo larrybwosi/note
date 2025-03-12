@@ -28,7 +28,7 @@
         "gradleCommand": ":app:assembleRelease",
         "buildType": "apk"
       },
-      "channel": "development:device"
+      "channel": "development_device"
     },
     "preview": {
       "extends": "production",
@@ -46,7 +46,7 @@
       "ios": {
         "simulator": false
       },
-      "channel": "preview:device"
+      "channel": "preview_device"
     },
     "production": {
       "channel": "production"

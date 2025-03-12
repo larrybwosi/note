@@ -5,20 +5,27 @@ import Animated, {
 	withSpring,
 } from 'react-native-reanimated';
 import { BadgeDollarSignIcon, PlusCircle } from 'lucide-react-native';
-import { TouchableOpacity, Text, View } from 'react-native';
+import { TouchableOpacity, Text, View, DimensionValue } from 'react-native';
 import { observer } from '@legendapp/state/react';
 import { router } from 'expo-router';
 
 import useStore from 'src/store/useStore';
 import { formatCurrency } from 'src/utils/currency';
+import { useFeedbackModal } from './feedback';
+import { TransactionType } from 'src/types/transaction';
 
 function BalanceCard() {
 	const scale = useSharedValue(0.98);
 	const { getBalance, getTotalSpent, getRemainingBudget, getActiveBudgetSpending } = useStore();
-	const {
-		budget: { amount: spendingLimit },
-		percentUsed,
-	} = getActiveBudgetSpending()!;
+		const { showModal, hideModal } = useFeedbackModal();
+	// const {
+	// 	budget: { amount: spendingLimit },
+	// 	percentUsed,
+	// } = getActiveBudgetSpending()!;
+
+	const currentBudget = getActiveBudgetSpending()
+	const spendingLimit = currentBudget?.budget?.amount;
+	const percentUsed = currentBudget?.percentUsed || 0;
 
 	const balance = getBalance();
 	const totalSpent = getTotalSpent();
@@ -30,6 +37,22 @@ function BalanceCard() {
 
 	const handlePressOut = () => {
 		scale.value = withSpring(1, { damping: 10 });
+	};
+
+	const handlePress = (type: TransactionType) => {
+		if(!currentBudget) {
+			showModal({
+				type: 'info',
+				title: 'No Budget Selected',
+				message: 'Please select a budget before adding an item.',
+				primaryButtonText: 'OK',
+				secondaryButtonText: 'Cancel',
+				onPrimaryAction: () => router.push('/create-edit-budget'),
+				onSecondaryAction: () => hideModal(),
+			});
+			return
+		}
+		router.navigate(`create.transactions?type=${type}`);
 	};
 
 	// Calculate progress width based on percentUsed
@@ -66,12 +89,12 @@ function BalanceCard() {
 			<View className="mb-2">
 				<View className="flex-row justify-between items-center mb-1">
 					<Text className="text-gray-500 text-sm font-amedium">Spending Limit</Text>
-					<Text className="text-gray-800 font-semibold">{formatCurrency(spendingLimit!)}</Text>
+					<Text className="text-gray-800 font-semibold">{formatCurrency(spendingLimit || 0)}</Text>
 				</View>
 				<View className="h-2 bg-gray-200 rounded-full w-full overflow-hidden">
 					<View
 						className={`h-2 ${getProgressColor()} rounded-full`}
-						style={{ width: progressWidth }}
+						style={{ width: progressWidth as DimensionValue }}
 					/>
 				</View>
 			</View>
@@ -80,27 +103,27 @@ function BalanceCard() {
 				<Text className="text-gray-500 text-sm font-rmedium">
 					Spent {formatCurrency(totalSpent)}
 				</Text>
-				<Text className="text-gray-500 text-sm font-rmedium">{percentUsed.toFixed(0)}% used</Text>
+				<Text className="text-gray-500 text-sm font-rmedium">{percentUsed?.toFixed(0)}% used</Text>
 			</View>
 
 			<View className="flex-row justify-between mt-3">
 				<TouchableOpacity
-					className="bg-black rounded-xl py-3.5 px-6 flex-1 mr-2 items-center flex-row justify-center"
+					className="bg-black rounded-xl py-3 px-6 flex-1 mr-2 items-center flex-row justify-center"
 					onPressIn={handlePressIn}
 					onPressOut={handlePressOut}
 					activeOpacity={0.8}
-					onPress={() => router.navigate('create.transactions?type=expense')}
+					onPress={() => handlePress('expense')}
 				>
 					<Text className="text-white font-amedium mr-1">Pay</Text>
 					<BadgeDollarSignIcon size={16} color="white" />
 				</TouchableOpacity>
 
 				<TouchableOpacity
-					className="bg-black rounded-xl py-3.5 px-6 flex-1 ml-2 items-center flex-row justify-center"
+					className="bg-black rounded-xl py-3 px-6 flex-1 ml-2 items-center flex-row justify-center"
 					onPressIn={handlePressIn}
 					onPressOut={handlePressOut}
 					activeOpacity={0.8}
-					onPress={() => router.navigate('create.transactions?type=income')}
+					onPress={() => handlePress('income')}
 				>
 					<Text className="text-white font-amedium mr-1">Deposit</Text>
 					<PlusCircle size={16} color="white" />

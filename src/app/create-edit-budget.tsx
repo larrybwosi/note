@@ -5,7 +5,6 @@ import {
 	ScrollView,
 	TextInput,
 	FlatList,
-	Alert,
 	ActivityIndicator,
 } from 'react-native';
 import { Check, DollarSign, SlidersHorizontal, MoveLeft } from 'lucide-react-native';
@@ -25,12 +24,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import DateTimePickerComponent from 'src/components/date.time';
 import { observer, use$, useObservable } from '@legendapp/state/react';
+import { useFeedbackModal } from 'src/components/ui/feedback';
 
 
 function CreateEditBudget(): React.ReactElement {
 	const { categories, getBudgetById } = useStore();
 	const EXPENSE_CATEGORIES = categories.filter((cat) => cat.type === 'expense');
   const { selectedBudgetId } = useLocalSearchParams()
+		const { showModal, hideModal } = useFeedbackModal()
 
   const selectedBudget = getBudgetById(selectedBudgetId as string || '');
   const state$ = useObservable({
@@ -163,7 +164,12 @@ function CreateEditBudget(): React.ReactElement {
 
 	const handleSaveBudget = () => {
 		if (!currentBudget?.name || currentBudget?.amount <= 0) {
-			Alert.alert('Error', 'Please provide a name and valid amount');
+			showModal({
+				type: 'warning',
+				title: 'Empty name',
+				message: 'Please provide a name and valid amount',
+			});
+			
 			return;
 		}
 
@@ -182,7 +188,12 @@ function CreateEditBudget(): React.ReactElement {
 			}, 300); // Small delay for visual feedback
 		} catch (error: any) {
 			setLoading(false);
-			Alert.alert('Error', error.message);
+			showModal({
+				type: 'error',
+				title: 'Error',
+				message: error.message,
+			});
+			
 		}
 	};
 

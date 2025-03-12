@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { PieChart, BarChart } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import useStore from 'src/store/useStore';
+import { observer } from '@legendapp/state/react';
 
 
 const BudgetCategoryGroups = () => {
@@ -14,14 +14,6 @@ const BudgetCategoryGroups = () => {
 	const {  getActiveBudgetSpending, categories } = useStore();
 	const currentBudget = getActiveBudgetSpending()?.budget;
 	const budgetSpending = getActiveBudgetSpending();
-
-	// Load budget data when component is focused
-	useFocusEffect(
-		useCallback(() => {
-			// Any initialization logic if needed
-			return () => {};
-		}, [])
-	);
 
 	// Toggle expanded state for a group
 	const toggleGroupExpand = (groupName: string) => {
@@ -212,4 +204,4 @@ const BudgetCategoryGroups = () => {
 	);
 };
 
-export default BudgetCategoryGroups;
+export default observer(BudgetCategoryGroups);

@@ -49,7 +49,7 @@ const SpendingOverview = (): React.ReactElement => {
 
 	return (
 		<Animated.View
-			className="w-full bg-white rounded-3xl p-6 mb-4 shadow-sm"
+			className="w-full bg-white dark:bg-gray-800 rounded-3xl p-6 mb-4 shadow-sm"
 			style={{
 				opacity: animatedValue,
 				transform: [
@@ -64,7 +64,7 @@ const SpendingOverview = (): React.ReactElement => {
 		>
 			{/* Header */}
 			<View className="flex-row justify-between items-center mb-6">
-				<Text className="text-2xl font-rbold text-gray-800">Spending Overview</Text>
+				<Text className="text-2xl font-rbold text-gray-800 dark:text-gray-100">Spending Overview</Text>
 				<Pressable className="h-8 w-8 bg-gray-100 rounded-full justify-center items-center">
 					<Text className="text-lg font-semibold text-gray-700">↻</Text>
 				</Pressable>
@@ -72,10 +72,10 @@ const SpendingOverview = (): React.ReactElement => {
 
 			{/* Total Expense Section */}
 			<View className="mb-6">
-				<Text className="text-sm text-gray-500 mb-1 font-aregular">Total Expense</Text>
+				<Text className="text-sm text-gray-500 mb-1 font-aregular dark:text-gray-300">Total Expense</Text>
 				<View className="flex-row items-baseline">
-					<Text className="text-4xl font-bold text-gray-800">
-						{formatCurrency(totalSpent || 265053)}
+					<Text className="text-4xl font-bold text-gray-800 dark:text-gray-50">
+						{formatCurrency(totalSpent || 0)}
 					</Text>
 					<View className="flex-row items-center ml-2 bg-red-100 px-2 py-0.5 rounded-full">
 						<TrendingUp size={12} color="#EF4444" />
@@ -115,8 +115,8 @@ const SpendingOverview = (): React.ReactElement => {
 					return (
 						<View key={category.id} className="items-center" style={{ width: '20%' }}>
 							<View className="w-3 h-3 rounded-sm mb-1" style={{ backgroundColor: color }} />
-							<Text className="text-xs text-gray-700 font-aregular">{category.name}</Text>
-							<Text className="text-xs font-rmedium text-gray-700">{percentage}%</Text>
+							<Text className="text-xs text-gray-700 dark:text-gray-200 font-aregular">{category.name}</Text>
+							<Text className="text-xs font-rmedium text-gray-700 dark:text-gray-100">{percentage}%</Text>
 						</View>
 					);
 				})}

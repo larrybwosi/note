@@ -12,6 +12,7 @@ import BudgetDetails from 'src/components/budget-details';
 import { router } from 'expo-router';
 import EmptyState from 'src/components/budget/empty-state';
 import BudgetCard from 'src/components/budget/card';
+import { useFeedbackModal } from 'src/components/ui/feedback';
 
 // Color palette for categories
 
@@ -24,6 +25,7 @@ const BudgetManagement = () => {
 	const [hasActiveBudget, setHasActiveBudget] = useState(false);
 
 	const { budgets, activateBudget, deleteBudget } = useStore();
+			const { showModal, hideModal } = useFeedbackModal()
 
 	// Filter budgets based on active tab
 	const filteredBudgets = budgets.filter((budget) =>
@@ -99,21 +101,18 @@ const BudgetManagement = () => {
 	};
 
 	const handleDeleteBudget = (id:string) => {
-		Alert.alert(
-			'Delete Budget',
-			'Are you sure you want to delete this budget? This action cannot be undone.',
-			[
-				{ text: 'Cancel', style: 'cancel' },
-				{
-					text: 'Delete',
-					onPress: () => {
-						deleteBudget(id);
-						if (detailsVisible) setDetailsVisible(false);
-					},
-					style: 'destructive',
-				},
-			]
-		);
+		showModal({
+			type: 'confirmation',
+			title: 'Delete Budget',
+			message: 'Are you sure you want to delete this budget? This action cannot be undone.',
+			primaryButtonText: 'Delete',
+			onPrimaryAction: () => {
+				deleteBudget(id);
+				if (detailsVisible) setDetailsVisible(false);
+			},
+			secondaryButtonText: 'Cancel',
+			onSecondaryAction: () => setDetailsVisible(false),
+		});
 	};
 
 	const handleViewDetails = (budget:Budget) => {

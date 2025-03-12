@@ -12,13 +12,15 @@ import useStore from 'src/store/useStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ShoppingList from 'src/components/shopping/list';
 import NewItemModal from 'src/components/shopping/new-item-modal';
+import { useFeedbackModal } from 'src/components/ui/feedback';
+import { router } from 'expo-router';
 
 const ShoppingBudgetPlanner = () => {
 	const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
 	const [modalVisible, setModalVisible] = useState(false);
+	const { showModal, hideModal } = useFeedbackModal();
 
 	// Store hooks
-	const { shoppingLists } = useShoppingStore();
 	const { getActiveBudgetSpending, categories } = useStore();
 	const currentBudget = getActiveBudgetSpending();
 
@@ -32,7 +34,19 @@ const ShoppingBudgetPlanner = () => {
 
 
 	// Open modal and reset form
-	const openModal = () => {
+	const handleOpenModal = () => {
+		if(!currentBudget){
+			showModal({
+				type: 'info',
+				title: 'No Budget Selected',
+				message: 'Please select a budget before adding an item.',
+				primaryButtonText: 'OK',
+				secondaryButtonText: 'Cancel',
+				onPrimaryAction: () => router.push('/create-edit-budget'),
+				onSecondaryAction: () => hideModal(),
+			});
+			return
+		}
 		setModalVisible(true);
 	};
 
@@ -133,7 +147,7 @@ const ShoppingBudgetPlanner = () => {
 				{/* Add Item Button */}
 				<TouchableOpacity
 					className="bg-indigo-600 rounded-2xl p-4 mt-6 flex-row justify-between items-center shadow-md"
-					onPress={openModal}
+					onPress={handleOpenModal}
 					activeOpacity={0.8}
 				>
 					<View className="flex-row items-center">

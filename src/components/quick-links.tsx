@@ -24,7 +24,7 @@ const quickLinks: QuickLinkItem[] = [
 		icon: PieChart,
 		title: 'Budget Insights',
 		description: 'Comprehensive financial planning',
-		gradient: ['#3b82f6', '#8A56F5'],
+		gradient: ['#60a5fa', '#93c5fd'],
 		route: '/budget.planner',
 		accentColor: '#8A56F5',
 	},
@@ -33,7 +33,7 @@ const quickLinks: QuickLinkItem[] = [
 		icon: ListTodo,
 		title: 'Financial Categories',
 		description: 'Organize your money flows',
-		gradient: ['#22c55e', '#1BD193'],
+		gradient: ['#22d3ee', '#1BD193'],
 		route: '/categories',
 		accentColor: '#1BD193',
 	},
@@ -78,7 +78,7 @@ const QuickLinkCard: React.FC<{
 						>
 							{/* Icon Container */}
 							<View
-								className="mr-4 rounded-full p-3 items-center justify-centers"
+								className="mr-4 rounded-full p-3 items-center justify-centers "
 								style={{
 									backgroundColor: 'rgba(255,255,255,0.2)',
 									shadowColor: '#000',
@@ -93,21 +93,12 @@ const QuickLinkCard: React.FC<{
 							{/* Content */}
 							<View className="flex-1">
 								<Text
-									className="text-white font-abold "
-									style={{
-										textShadowColor: 'rgba(0, 0, 0, 0.15)',
-										textShadowOffset: { width: 0, height: 1 },
-										textShadowRadius: 2,
-									}}
+									className="text-gray-800 font-amedium "
 								>
 									{item.title}
 								</Text>
 								<Text
-									className="text-white text-opacity-80 text-sm font-aregular"
-									style={{
-										textShadowOffset: { width: 0, height: 1 },
-										textShadowRadius: 1,
-									}}
+									className="text-gray-500 text-opacity-80 text-sm font-aregular"
 								>
 									{item.description}
 								</Text>
@@ -145,7 +136,7 @@ const FinancialQuickLinks: React.FC = () => {
 		>
 			<View className="mb-6">
 				<Text
-					className="text-xl font-rbold text-gray-900 dark:text-gray-100 mb-2"
+					className="text-xl font-rbold text-gray-900 dark:text-gray-100 mb-2 "
 					style={{
 						letterSpacing: -0.5,
 						textShadowColor: 'rgba(0,0,0,0.05)',
@@ -155,7 +146,7 @@ const FinancialQuickLinks: React.FC = () => {
 				>
 					Financial Command Center
 				</Text>
-				<Text className="text-gray-600 dark:text-gray-300 text-base font-rregular">
+				<Text className="text-gray-600 dark:text-gray-300 text-base font-rregular mb-4">
 					Quick access to your financial tools and insights
 				</Text>
 			</View>

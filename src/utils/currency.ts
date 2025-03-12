@@ -58,7 +58,7 @@ const convertedAmount = amount * conversionRate;
 // 	minimumFractionDigits: 2,
 // 	maximumFractionDigits: 2,
 // });
-const res = amount.toLocaleString('en-US', {
+const res = amount?.toLocaleString('en-US', {
 	style: 'currency',
 	currency: targetCurrencyCode,
 	minimumFractionDigits: 2,

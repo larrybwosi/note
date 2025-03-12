@@ -5,7 +5,6 @@ import {
 	ScrollView,
 	TextInput,
 	ActivityIndicator,
-	Alert,
 	Animated,
 } from 'react-native';
 import {
@@ -27,11 +26,13 @@ import CustomCategoryModal from 'src/components/custom-category-modal';
 import CategoryList from 'src/components/category-list';
 import { router } from 'expo-router';
 import { useRef, useEffect } from 'react';
+import { useFeedbackModal } from 'src/components/ui/feedback';
 
 const CategorySelection = () => {
 	// Animation refs
 	const fadeAnim = useRef(new Animated.Value(0)).current;
 	const slideAnim = useRef(new Animated.Value(20)).current;
+	const { showModal, hideModal } = useFeedbackModal();
 
 	// Default selections (at least 3 of each type)
 	const defaultSelected = ['salary', 'part_time_job', 'gifts', 'housing', 'food', 'clothing'];
@@ -127,19 +128,21 @@ const CategorySelection = () => {
 			// Check if removing would violate minimum requirements
 			const category = categories.find((cat) => cat.id === id);
 			if (category?.type === 'expense' && selectedExpenseCount <= 3) {
-				Alert.alert(
-					'Minimum Required',
-					'You need at least 3 expense categories for accurate financial tracking.',
-					[{ text: 'OK', style: 'default' }]
-				);
+				showModal({
+					type: 'info',
+					title: 'Minimum Required',
+					message: 'You need at least 3 expense categories for accurate financial tracking.',
+					autoClose: true,
+				});
 				return;
 			}
 			if (category?.type === 'income' && selectedIncomeCount <= 3) {
-				Alert.alert(
-					'Minimum Required',
-					'You need at least 3 income categories for accurate financial tracking.',
-					[{ text: 'OK', style: 'default' }]
-				);
+				showModal({
+					type: 'info',
+					title: 'Minimum Required',
+					message: 'You need at least 3 income categories for accurate financial tracking.',
+					autoClose: true,
+				})
 				return;
 			}
 
@@ -166,9 +169,13 @@ const CategorySelection = () => {
 		});
 
 		// Show success feedback
-		Alert.alert('Category Created', `"${newCategory.name}" has been added to your categories.`, [
-			{ text: 'Great!', style: 'default' },
-		]);
+		showModal({
+			type: 'success',
+			title: 'Category Created',
+			message: `"${newCategory.name}" has been added to your categories.`,
+			primaryButtonText: 'Great!',
+			autoClose: true,
+		})
 	};
 
 	const handleSave = () => {
@@ -194,7 +201,11 @@ const CategorySelection = () => {
 				setLoading(false);
 			} catch (error: any) {
 				setLoading(false);
-				Alert.alert('Error', error.message);
+				showModal({
+					type: 'error',
+					title: 'Error',
+					message: error.message
+				})
 			}
 		}, 800);
 	};
@@ -208,7 +219,12 @@ const CategorySelection = () => {
 
 	const handleCreateFromSearch = () => {
 		if (searchQuery.trim().length < 2) {
-			Alert.alert('Invalid Name', 'Category name must be at least 2 characters');
+			showModal({
+				type: 'info',
+				title: 'Invalid Name',
+				message: 'Category name must be at least 2 characters long.',
+				autoClose: true,
+			});
 			return;
 		}
 
@@ -341,7 +357,7 @@ const CategorySelection = () => {
 
 				{/* Main Content */}
 				<ScrollView
-					className="flex-1 px-6"
+					className="flex-1 px-2"
 					contentContainerStyle={{ paddingTop: 20, paddingBottom: 100 }}
 					showsVerticalScrollIndicator={false}
 				>

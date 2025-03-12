@@ -1,7 +1,6 @@
-import { format } from "date-fns";
 import { Calendar, Clock, DollarSign, Edit, Trash2 } from "lucide-react-native";
-import { Text, TouchableOpacity } from "react-native";
-import { View } from "react-native";
+import { format } from 'date-fns';
+import { View, Text, TouchableOpacity } from "react-native";
 import { Budget, BUDGET_RULE_ALLOCATIONS } from "src/types/transaction";
 
 
