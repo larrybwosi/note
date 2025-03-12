@@ -43,7 +43,7 @@ export type IconName = keyof typeof ICON_MAP;
 export type BudgetRuleType = '10-70-20' | '50-30-20' | '80-20' | 'custom';
 export type BudgetPeriodType = 'week' | 'month' | 'year';
 export type BudgetStatus = 'active' | 'expired' | 'draft';
-export type BudgetRuleGroups = { name: string; percentage: number; description: string; categories: string[] };
+export type BudgetRuleGroups = { name: string; percentage: number; description: string; categories: string[], color: string };
 
 // Enhanced Budget interface
 export interface Budget {

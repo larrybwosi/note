@@ -5,7 +5,6 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	TextInput,
-	Alert,
 	Modal,
 	Pressable,
 	KeyboardAvoidingView,
@@ -18,6 +17,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import useShoppingStore from 'src/store/shopping';
 import useStore from 'src/store/useStore';
 import { Budget, BudgetRuleGroups, Category, ShoppingItem } from 'src/types/transaction';
+import { useFeedbackModal } from '../ui/feedback';
 
 interface NewItemModalProps {
 	isVisible: boolean;
@@ -40,9 +40,11 @@ const NewItemModal = ({ isVisible, onClose, categories, budget }: NewItemModalPr
 	const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
 
 	// Store hooks
-	const { addItem } = useShoppingStore();
+	const { addItemToList:addItem, getActiveListId } = useShoppingStore();
 	const { getActiveBudgetSpending } = useStore();
+	const { showModal, hideModal} = useFeedbackModal()
 	const currentBudget = getActiveBudgetSpending();
+	const activeListId = getActiveListId()
 
 	// Budget calculations
 	const totalSpent = shoppingItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -50,7 +52,7 @@ const NewItemModal = ({ isVisible, onClose, categories, budget }: NewItemModalPr
 
 	// Set up available categories based on budget groups
 	useEffect(() => {
-		if (!budget || budget.ruleType !== 'groups') {
+		if (!budget) {
 			setAvailableCategories(categories);
 			return;
 		}
@@ -80,11 +82,6 @@ const NewItemModal = ({ isVisible, onClose, categories, budget }: NewItemModalPr
 	// Get remaining balance for a group
 	const getGroupRemainingBalance = (group: BudgetRuleGroups | undefined): number => {
 		if (!group || !budget) return 0;
-
-		// If remainingBalance is directly available
-		if (group.remainingBalance !== undefined) {
-			return group.remainingBalance;
-		}
 
 		// Otherwise calculate from budget amount and percentage
 		const groupTotal = budget.amount * (group.percentage / 100);
@@ -117,24 +114,49 @@ const NewItemModal = ({ isVisible, onClose, categories, budget }: NewItemModalPr
 	// Add item to shopping list
 	const handleAddItem = () => {
 		if (!selectedCategory) {
-			Alert.alert('Please Select Category', 'Please select a category before adding an item.');
+			showModal({
+        type: "warning",
+        title: "Please Select Category",
+        message: "Please select a category before adding an item.",
+				primaryButtonText: 'Okay',
+				autoClose:true,
+      });
 			return;
 		}
 
 		if (!newItemName.trim()) {
-			Alert.alert('Missing Information', 'Please enter an item name.');
+			showModal({
+        type: "warning",
+        title: "Missing Information",
+        message: "Please enter an item name.",
+        primaryButtonText: "Okay",
+        autoClose: true,
+      });
 			return;
 		}
 
 		const price = parseFloat(newItemPrice);
 		if (isNaN(price) || price <= 0) {
-			Alert.alert('Invalid Price', 'Please enter a valid price greater than zero.');
+			showModal({
+        type: "warning",
+        title: "Invalid Price",
+        message: "Please enter a valid price greater than zero.",
+        primaryButtonText: "Okay",
+        autoClose: true,
+      });
 			return;
 		}
 
 		const quantity = parseInt(newItemQuantity);
 		if (isNaN(quantity) || quantity <= 0) {
-			Alert.alert('Invalid Quantity', 'Please enter a valid quantity greater than zero.');
+			showModal({
+        type: "warning",
+        title: "Invalid Quantity",
+        message: "Please enter a valid quantity greater than zero.",
+        primaryButtonText: "Okay",
+				onPrimaryAction: ()=> hideModal(),
+        autoClose: true,
+      });
 			return;
 		}
 
@@ -157,37 +179,33 @@ const NewItemModal = ({ isVisible, onClose, categories, budget }: NewItemModalPr
 		// Check if adding this item would exceed the group budget
 		const itemTotal = price * quantity;
 		if (selectedGroup && itemTotal > groupRemainingBalance) {
-			Alert.alert(
-				'Group Budget Warning',
-				`Adding this item will exceed your remaining budget for ${selectedGroup.name}. Do you want to continue?`,
-				[
-					{ text: 'Cancel', style: 'cancel' },
-					{
-						text: 'Add Anyway',
-						style: 'destructive',
-						onPress: () => {
-							addItemToList(newItem);
-						},
-					},
-				]
-			);
+			showModal({
+        type: "confirmation",
+        title: "Group Budget Warning",
+        message: `Adding this item will exceed your remaining budget for ${selectedGroup.name}. Do you want to continue?`,
+        primaryButtonText: "Cancel",
+        secondaryButtonText: "Add Anyway",
+				onPrimaryAction: ()=> hideModal(),
+        onSecondaryAction: () => {
+          addItemToList(newItem);
+        },
+      });
+			
 		}
 		// Check overall budget
 		else if (totalSpent + itemTotal > remainingBudget) {
-			Alert.alert(
-				'Budget Warning',
-				'Adding this item will exceed your overall remaining budget. Do you want to continue?',
-				[
-					{ text: 'Cancel', style: 'cancel' },
-					{
-						text: 'Add Anyway',
-						style: 'destructive',
-						onPress: () => {
-							addItemToList(newItem);
-						},
-					},
-				]
-			);
+			showModal({
+        type: "confirmation",
+        title: "Budget Warning",
+        message:
+          "Adding this item will exceed your overall remaining budget. Do you want to continue?",
+        primaryButtonText: "Cancel",
+        secondaryButtonText: "Add Anyway",
+				onPrimaryAction: ()=> hideModal(),
+        onSecondaryAction: () => {
+          addItemToList(newItem);
+        },
+      });
 		} else {
 			addItemToList(newItem);
 		}
@@ -195,16 +213,15 @@ const NewItemModal = ({ isVisible, onClose, categories, budget }: NewItemModalPr
 
 	// Helper function to add item and reset form
 	const addItemToList = (item: ShoppingItem) => {
-		addItem({
-			name: item.name,
-			categoryId: item.categoryId,
-			price: item.price,
-			quantity: item.quantity,
-			purchased: false,
-			priority: 'medium',
-			description: item.description,
-			dateToPurchase: item.dateToPurchase,
-		});
+		addItem(activeListId!, {
+      name: item.name,
+      categoryId: item.categoryId,
+      price: item.price,
+      quantity: item.quantity,
+      description: item.description,
+      dateToPurchase: item.dateToPurchase,
+			completed:false
+    });
 
 		setShoppingItems([...shoppingItems, item]);
 		closeModal();
@@ -226,7 +243,7 @@ const NewItemModal = ({ isVisible, onClose, categories, budget }: NewItemModalPr
 
 	// Render budget groups section
 	const renderBudgetGroups = () => {
-		if (!budget || budget.ruleType !== 'groups' || !budget.categoryAllocations.length) {
+		if (!budget || !budget.categoryAllocations.length) {
 			return null;
 		}
 
@@ -346,7 +363,7 @@ const NewItemModal = ({ isVisible, onClose, categories, budget }: NewItemModalPr
 				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
 				className="flex-1 dark:bg-gray-900"
 			>
-				<TouchableWithoutFeedback onPress={closeModal}>
+				<TouchableWithoutFeedback>
 					<View className="flex-1 bg-black/50 justify-end">
 						<View className="bg-white dark:bg-gray-800 rounded-t-3xl p-6 shadow-lg">
 							<View className="flex-row justify-between items-center mb-6">

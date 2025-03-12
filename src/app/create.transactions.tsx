@@ -28,6 +28,7 @@ import useStore from 'src/store/useStore';
 import { ICON_MAP, TransactionStatus, TransactionType } from 'src/types/transaction';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFeedbackModal } from 'src/components/ui/feedback';
+import { createUniqueId } from 'src/utils/store';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -180,7 +181,7 @@ const CreateTransactionScreen = () => {
 		};
 
 		const newTransaction = {
-			id: date.toDateString(),
+			id: createUniqueId(),
 			description,
 			amount: Number(amount),
 			type: selectedType,

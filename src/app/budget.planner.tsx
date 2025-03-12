@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import {
 	Plus,
 	AlertCircle,
@@ -14,9 +14,6 @@ import EmptyState from 'src/components/budget/empty-state';
 import BudgetCard from 'src/components/budget/card';
 import { useFeedbackModal } from 'src/components/ui/feedback';
 
-// Color palette for categories
-
-
 
 const BudgetManagement = () => {
 	const [activeTab, setActiveTab] = useState('active');
@@ -25,7 +22,7 @@ const BudgetManagement = () => {
 	const [hasActiveBudget, setHasActiveBudget] = useState(false);
 
 	const { budgets, activateBudget, deleteBudget } = useStore();
-			const { showModal, hideModal } = useFeedbackModal()
+	const { showModal, hideModal } = useFeedbackModal()
 
 	// Filter budgets based on active tab
 	const filteredBudgets = budgets.filter((budget) =>
@@ -50,52 +47,51 @@ const BudgetManagement = () => {
 			status: 'draft',
 			categoryAllocations: [],
 		});
-		router.push('create-edit-budget');
+		router.push('/create-edit-budget');
 	};
 
 	const handleEditBudget = (budget:Budget) => {
 		setCurrentBudget({ ...budget });
-		router.push(`create-edit-budget?selectedBudgetId=${budget.id}`);
+		router.push(`/create-edit-budget?selectedBudgetId=${budget.id}`);
 	};
 
 	const handleActivateBudget = (id: string) => {
 		if (hasActiveBudget) {
-			Alert.alert(
-				'Active Budget Exists',
-				'You already have an active budget. Do you want to deactivate it and activate this one instead?',
-				[
-					{ text: 'Cancel', style: 'cancel' },
-					{
-						text: 'Proceed',
-						onPress: () => {
-							try {
-								const result = activateBudget(id);
-								if (!result) {
-									Alert.alert('Error', 'Failed to activate budget');
-								}
-								setActiveTab('active');
-							} catch (error) {
-								Alert.alert(
-									'Error ⚠️',
-									'Failed to activate budget. Please check your inputs and try again.'
-								);
-							}
-						},
-					},
-				]
-			);
+			showModal({
+        type: "confirmation",
+        title: "Active Budget Exists",
+        message:
+          "You already have an active budget. Do you want to deactivate it and activate this one instead?",
+        primaryButtonText: "Cancel",
+        onPrimaryAction: hideModal,
+        secondaryButtonText: "Proceed",
+        onSecondaryAction: () => {
+          try {
+            activateBudget(id);
+            setActiveTab("active");
+          } catch (error) {
+						showModal({
+              type: "error",
+              title: "Error ⚠️",
+              message:
+                "Failed to activate budget. Please check your inputs and try again.",
+							autoClose:true
+            });
+          }
+        },
+      });
 		} else {
 			try {
-				const result = activateBudget(id);
-				if (!result) {
-					Alert.alert('Error', 'Failed to activate budget');
-				}
+				activateBudget(id);
 				setActiveTab('active');
 			} catch (error) {
-				Alert.alert(
-					'Error ⚠️',
-					'Failed to activate budget. Please check your inputs and try again.'
-				);
+				showModal({
+          type: "error",
+          title: "Error ⚠️",
+          message:
+            "Failed to activate budget. Please check your inputs and try again.",
+          autoClose: true,
+        });
 			}
 		}
 	};

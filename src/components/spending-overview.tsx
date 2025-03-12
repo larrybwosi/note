@@ -3,15 +3,16 @@ import { Animated, Pressable, Text, View } from 'react-native';
 import { TrendingUp } from 'lucide-react-native';
 import useStore from 'src/store/useStore';
 import { formatCurrency } from 'src/utils/currency';
+import { observer } from '@legendapp/state/react';
 
 const SpendingOverview = (): React.ReactElement => {
 	const [animatedValue] = useState(new Animated.Value(0));
-	const { categories, getActiveBudgetSpending, getCategoryMonthlyTotal, getTotalSpent } =
+	const { categories, getActiveBudgetSpending, getCategoryMonthlyTotal } =
 		useStore();
 	const EXPENSE_CATEGORIES = categories.filter((cat) => cat.type === 'expense');
 
 	const currentBudgetSpending = getActiveBudgetSpending();
-	const totalSpent = getTotalSpent();
+	const totalSpent = currentBudgetSpending?.totalSpent;
 
 	// Animate component on mount
 	useEffect(() => {
@@ -125,4 +126,4 @@ const SpendingOverview = (): React.ReactElement => {
 	);
 };
 
-export default SpendingOverview;
+export default observer(SpendingOverview);

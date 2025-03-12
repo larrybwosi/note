@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
 import { enableReactNativeComponents } from "@legendapp/state/config/enableReactNativeComponents";
 // import { enableReactTracking } from '@legendapp/state/config/enableReactTracking';
-import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { colorScheme } from 'nativewind';
 import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar, ViewStyle } from 'react-native';
 import { useFonts } from 'expo-font';
@@ -47,12 +45,10 @@ function Root() {
   if (!loaded) {
     return null;
   }
-  const theme = colorScheme.get();
-// () => Updates.reloadAsync();
+  
   return (
     <GestureHandlerRootView style={$root}>
       <StatusBar hidden backgroundColor={"gray"} />
-      {/* <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}> */}
       <ErrorBoundary onReset={() => Updates.reloadAsync()}>
         <KeyboardProvider>
           <FeedbackModalProvider>
@@ -140,7 +136,6 @@ function Root() {
           </FeedbackModalProvider>
         </KeyboardProvider>
       </ErrorBoundary>
-      {/* </ThemeProvider> */}
     </GestureHandlerRootView>
   );
 }

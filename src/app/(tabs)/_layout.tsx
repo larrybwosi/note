@@ -16,7 +16,7 @@ export default function TabLayout() {
 					right: 0,
 					elevation: 0,
 					borderTopWidth: 0,
-					height: 40,
+					height: 50,
 				},
 			})}
 			backBehavior="history"

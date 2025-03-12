@@ -11,9 +11,12 @@ const BudgetCategoryGroups = () => {
 	const [expanded, setExpanded] = useState<string[]>([]);
 
 	// Store hooks
-	const {  getActiveBudgetSpending, categories } = useStore();
+	const { getActiveBudgetSpending, categories } =
+    useStore();
 	const currentBudget = getActiveBudgetSpending()?.budget;
 	const budgetSpending = getActiveBudgetSpending();
+	const budgetGroups = budgetSpending?.groups
+	// console.log(JSON.stringify(budgetSpending?.groups, null, 1))
 
 	// Toggle expanded state for a group
 	const toggleGroupExpand = (groupName: string) => {

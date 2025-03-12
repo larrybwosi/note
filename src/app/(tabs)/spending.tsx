@@ -1,3 +1,4 @@
+import { observer } from "@legendapp/state/react";
 import { ScrollView } from "react-native-gesture-handler";
 import BudgetCategoryGroups from "src/components/shopping/category-groups";
 import ExpenseOverview from "src/components/spending-overview";
@@ -12,4 +13,4 @@ const SpendingDashboard = (): React.ReactElement => {
 	);
 };
 
-export default SpendingDashboard;
+export default observer(SpendingDashboard);

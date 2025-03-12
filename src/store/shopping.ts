@@ -1,18 +1,10 @@
 import { observable } from '@legendapp/state';
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv';
 import { synced } from '@legendapp/state/sync';
+import useStore from './useStore';
+import { ShoppingItem } from 'src/types/transaction';
 
 // Define types
-export interface ShoppingItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  categoryId: string;
-  completed: boolean;
-  dateAdded: Date;
-}
-
 export interface ShoppingList {
   id: string;
   name: string;
@@ -337,11 +329,22 @@ const useShoppingStore = () => {
 
     toggleItemCompletion: (itemId: string, listId?: string) => {
       const location = findItemById(itemId, listId);
+      const { addTransaction } = useStore()
       
       if (location) {
         const { listIndex, itemIndex } = location;
         const currentValue = !!shoppingStore.shoppingLists[listIndex].items[itemIndex].completed.get();
         
+        if(!currentValue){
+          const item = shoppingStore.shoppingLists[listIndex].items[itemIndex].get();
+          addTransaction({
+            ...item,
+            type: "expense",
+            amount: item.price,
+            date: new Date(),
+            description: item.name,
+          });
+        }
         shoppingStore.shoppingLists[listIndex].items[itemIndex].completed.set(!currentValue);
         updateListTimestamp(listIndex);
         return true;

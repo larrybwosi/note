@@ -17,6 +17,7 @@ import {
   getDateRangeForPeriod,
 } from "src/utils/store";
 import useShoppingStore from "./shopping";
+import { BudgetCollection, BudgetSpending, BudgetStatusResult, FinanceSummary, SpendingTrends, TransactionResult } from "./store-types";
 
 // Define the store structure using observables
 export const store = observable(
@@ -34,13 +35,10 @@ export const store = observable(
   })
 );
 
-const actions = {
-  transactions: store.transactions.get(),
-  categories: store.categories.get(),
-  budgets: store.budgets.get(),
 
+const actions = {
   // Transaction operations
-  addTransaction: (transaction: Transaction) => {
+  addTransaction: (transaction: Transaction): TransactionResult => {
     // First, check if there's an active budget
     const activeBudget = store.budgets.get().find((b) => b.status === "active");
 
@@ -94,115 +92,133 @@ const actions = {
     }
 
     // If no issues, proceed with adding the transaction
-    store.transactions.push({
+    const newTransaction = {
       ...transaction,
       id: transaction.id || createUniqueId(),
-    });
+    };
+
+    store.transactions.push(newTransaction);
 
     return {
       success: true,
-      transaction: transaction,
+      transaction: newTransaction,
     };
   },
 
-  updateTransaction: (transaction: Transaction) => {
+  updateTransaction: (transaction: Transaction): boolean => {
     const index = store.transactions.findIndex(
       (t) => t.id.get() === transaction.id
     );
     if (index !== -1) {
       store.transactions[index].set(transaction);
+      return true;
     }
+    return false;
   },
 
-  deleteTransaction: (id: string) => {
+  deleteTransaction: (id: string): boolean => {
     const index = store.transactions.get().findIndex((t) => t.id === id);
     if (index !== -1) {
       store.transactions[index].delete();
+      return true;
     }
+    return false;
   },
 
   // Category operations
-  addCategory: (category: Category) => {
+  addCategory: (
+    category: Category
+  ): { success: boolean; category?: Category; error?: string } => {
     // Check if the category already exists
-    const isDuplicate = store.categories.get().some(
-      (existingCategory) =>
-        existingCategory.name.toLowerCase() === category.name.toLowerCase() // Case-insensitive comparison
-    );
+    const isDuplicate = store.categories
+      .get()
+      .some(
+        (existingCategory) =>
+          existingCategory.name.toLowerCase() === category.name.toLowerCase()
+      );
 
     if (!isDuplicate) {
       // Add the category if it doesn't already exist
-      store.categories.push({
-        ...category,
-        id: category.id || createUniqueId(),
-      });
-    } else {
-      console.warn(`Category "${category.name}" already exists.`);
+      const newCategory = { ...category, id: category.id || createUniqueId() };
+      store.categories.push(newCategory);
+      return { success: true, category: newCategory };
     }
+
+    return {
+      success: false,
+      error: `Category "${category.name}" already exists.`,
+    };
   },
 
-  updateCategory: (category: Category) => {
+  updateCategory: (category: Category): boolean => {
     const index = store.categories.findIndex((c) => c.id.get() === category.id);
     if (index !== -1) {
       store.categories[index].set(category);
+      return true;
     }
+    return false;
   },
 
-  deleteCategory: (id: string) => {
+  deleteCategory: (id: string): boolean => {
     const index = store.categories.findIndex((c) => c.id.get() === id);
     if (index !== -1) {
       store.categories[index].delete();
+      return true;
     }
+    return false;
   },
 
-  // Budget operations
-  deleteBudget: (id: string) => {
-    const index = store.budgets.findIndex((b) => b.id.get() === id);
-    if (index !== -1) {
-      store.budgets[index].delete();
-    }
-  },
-
-  // Financial calculations
-  getBalance: () => {
+  // Financial calculations combined into a single function
+  getSummary: (dateRange?: {
+    startDate?: Date;
+    endDate?: Date;
+  }): FinanceSummary => {
     const transactions = store.transactions.get();
+    const { startDate, endDate } = dateRange || {};
 
-    return transactions.reduce((balance, t) => {
-      return t.type === "income" ? balance + t.amount : balance - t.amount;
-    }, 0);
-  },
+    const filteredTransactions = transactions.filter((t) => {
+      const transactionDate = new Date(t.date);
+      return (
+        (!startDate || transactionDate >= startDate) &&
+        (!endDate || transactionDate <= endDate)
+      );
+    });
 
-  getTotalSpent: () => {
-    const transactions = store.transactions.get();
+    let totalIncome = 0;
+    let totalSpent = 0;
 
-    return transactions.reduce((total, t) => {
-      return t.type === "expense" ? total + t.amount : total;
-    }, 0);
-  },
+    // Calculate both values in a single iteration
+    filteredTransactions.forEach((t) => {
+      if (t.type === "income") {
+        totalIncome += t.amount;
+      } else if (t.type === "expense") {
+        totalSpent += t.amount;
+      }
+    });
 
-  getTotalIncome: () => {
-    const transactions = store.transactions.get();
+    const balance = totalIncome - totalSpent;
 
-    return transactions.reduce((total, t) => {
-      return t.type === "income" ? total + t.amount : total;
-    }, 0);
-  },
-
-  getPercentageSpent: () => {
+    // Calculate percentage spent based on active budgets
     const totalBudget = store.budgets
       .get()
       .filter((budget) => budget.status === "active")
       .reduce((sum, budget) => sum + budget.amount, 0);
 
-    const totalSpent = actions.getTotalSpent();
+    const percentageSpent =
+      totalBudget === 0 ? 0 : (totalSpent / totalBudget) * 100;
 
-    if (totalBudget === 0) return 0;
-    return (totalSpent / totalBudget) * 100;
+    return {
+      balance,
+      totalSpent,
+      totalIncome,
+      percentageSpent,
+    };
   },
 
-  getCategoryMonthlyTotal: (categoryId: string) => {
+  getCategoryMonthlyTotal: (categoryId: string): number => {
     const { startOfMonth, endOfMonth } = getCurrentMonthDateRange();
 
-    const total = store.transactions
+    return store.transactions
       .get()
       .filter(
         (t) =>
@@ -211,20 +227,14 @@ const actions = {
           new Date(t.date) <= endOfMonth
       )
       .reduce((sum, t) => sum + t.amount, 0);
-
-    return total;
   },
 
   getCategoryTransactions: (
     categoryId: string,
     startDate?: Date,
     endDate?: Date
-  ) => {
+  ): Transaction[] => {
     const transactions = store.transactions.get();
-
-    if (!startDate && !endDate) {
-      return transactions.filter((t) => t.categoryId === categoryId);
-    }
 
     return transactions.filter((t) => {
       const transactionDate = new Date(t.date);
@@ -236,7 +246,7 @@ const actions = {
     });
   },
 
-  // Budget creation and management
+  // Budget operations
   createBudget: (budgetData: {
     name: string;
     amount: number;
@@ -244,7 +254,7 @@ const actions = {
     ruleType: BudgetRuleType;
     startDate: Date;
     categoryAllocations: BudgetRuleGroups[];
-  }) => {
+  }): Budget => {
     const {
       name,
       amount,
@@ -256,10 +266,8 @@ const actions = {
 
     // Calculate end date based on period type
     const { endDate } = getDateRangeForPeriod(periodType, startDate);
-    const isThereActiveBudget =
-      actions.getActiveBudgetSpending()?.budget?.id !== undefined ||
-      false ||
-      "";
+    const activeBudgetInfo = actions.getActiveBudgetSpending();
+    const isThereActiveBudget = activeBudgetInfo?.budget?.id !== undefined;
 
     const { createShoppingList, setActiveList } = useShoppingStore();
 
@@ -290,17 +298,14 @@ const actions = {
     return newBudget;
   },
 
-  // Activate a budget (and deactivate any other active budget)
-  activateBudget: (budgetId: string) => {
-    // First deactivate any currently active budget
-    const activeBudgets = store.budgets
+  activateBudget: (budgetId: string): Budget | null => {
+    // First deactivate any currently active budgets
+    store.budgets
       .get()
-      ?.filter((budget) => budget.status === "active")
-      ?.map((_, index) => index);
-
-    activeBudgets?.forEach((index) => {
-      store.budgets[index].status.set("expired");
-    });
+      .filter((budget) => budget.status === "active")
+      .forEach((_, index) => {
+        store.budgets[index].status.set("expired");
+      });
 
     // Then activate the selected budget
     const targetIndex = store.budgets.findIndex((b) => b.id.get() === budgetId);
@@ -312,24 +317,29 @@ const actions = {
     return null;
   },
 
-  // Check if budget has expired and needs renewal
-  checkBudgetStatus: () => {
-    const now = new Date();
-    const activeBudgets = store.budgets
-      .get()
-      .filter((b) => b.status === "active");
-    const expiredBudgets = [];
+  deleteBudget: (id: string): boolean => {
+    const index = store.budgets.findIndex((b) => b.id.get() === id);
+    if (index !== -1) {
+      store.budgets[index].delete();
+      return true;
+    }
+    return false;
+  },
 
-    for (const budget of activeBudgets) {
-      if (now > new Date(budget.endDate)) {
-        // Set the budget to expired
+  checkBudgetStatus: (): BudgetStatusResult => {
+    const now = new Date();
+    const expiredBudgets: string[] = [];
+
+    store.budgets
+      .get()
+      .filter((b) => b.status === "active" && now > new Date(b.endDate))
+      .forEach((budget) => {
         const index = store.budgets.findIndex((b) => b.id.get() === budget.id);
         if (index !== -1) {
           store.budgets[index].status.set("expired");
           expiredBudgets.push(budget.id);
         }
-      }
-    }
+      });
 
     return {
       needsRenewal: expiredBudgets.length > 0,
@@ -337,13 +347,11 @@ const actions = {
     };
   },
 
-  getBudgetById: (budgetId: string) => {
-    const budget = store.budgets.get().find((b) => b.id === budgetId);
-    return budget;
+  getBudgetById: (budgetId: string): Budget | undefined => {
+    return store.budgets.get().find((b) => b.id === budgetId);
   },
 
-  // Update an existing budget (only allowed if it's in draft status)
-  updateBudget: (budget: Partial<Budget> & { id: string }) => {
+  updateBudget: (budget: Partial<Budget> & { id: string }): Budget | null => {
     const index = store.budgets.findIndex((b) => b.id.get() === budget.id);
 
     if (index !== -1) {
@@ -356,19 +364,19 @@ const actions = {
       }
 
       // Apply updates
-      store.budgets[index].set({
+      const updatedBudget = {
         ...currentBudget,
         ...budget,
-      });
+      };
 
-      return store.budgets[index].get();
+      store.budgets[index].set(updatedBudget);
+      return updatedBudget;
     }
 
     return null;
   },
 
-  // Renew an expired budget (create a new budget with same settings but new dates)
-  renewBudget: (expiredBudgetId: string) => {
+  renewBudget: (expiredBudgetId: string): Budget | null => {
     const budget = store.budgets.get().find((b) => b.id === expiredBudgetId);
 
     if (budget && budget.status === "expired") {
@@ -395,27 +403,34 @@ const actions = {
     return null;
   },
 
-  // Get spending for current active budget
-  getActiveBudgetSpending: () => {
+  getActiveBudgetSpending: (): BudgetSpending | null => {
     const activeBudget = store.budgets.get().find((b) => b.status === "active");
     if (!activeBudget) return null;
 
     const startDate = new Date(activeBudget.startDate);
     const endDate = new Date(activeBudget.endDate);
+    const transactions = store.transactions.get();
+    const categories = store.categories.get();
+
+    // Filter once for all budget-period transactions
+    const budgetPeriodTransactions = transactions.filter(
+      (t) =>
+        new Date(t.date) >= startDate &&
+        new Date(t.date) <= endDate &&
+        t.type === "expense"
+    );
+
+    let totalSpent = 0;
 
     const groupSpending = activeBudget.categoryAllocations.map((group) => {
-      // Get all transactions matching group's categories within date range console
-      const transactions = store.transactions
-        .get()
-        .filter(
-          (t) =>
-            group.categories.includes(t.categoryId) &&
-            new Date(t.date) >= startDate &&
-            new Date(t.date) <= endDate &&
-            t.type === "expense"
-        );
+      // Get transactions for this group's categories
+      const groupTransactions = budgetPeriodTransactions.filter((t) =>
+        group.categories.includes(t.categoryId)
+      );
 
-      const spent = actions.getTotalSpent();
+      const spent = groupTransactions.reduce((sum, t) => sum + t.amount, 0);
+      totalSpent += spent;
+
       const allocated = (group.percentage / 100) * activeBudget.amount;
 
       return {
@@ -424,20 +439,15 @@ const actions = {
         spent,
         remaining: allocated - spent,
         percentUsed: allocated > 0 ? (spent / allocated) * 100 : 0,
-        transactions,
+        transactions: groupTransactions,
         // Include category details for reference
         categories: group.categories.map((categoryId) => ({
           id: categoryId,
-          name:
-            store.categories.get().find((c) => c.id === categoryId)?.name || "",
+          name: categories.find((c) => c.id === categoryId)?.name || "",
         })),
       };
     });
 
-    const totalSpent = groupSpending.reduce(
-      (total, group) => total + group.spent,
-      0
-    );
     const totalRemaining = activeBudget.amount - totalSpent;
 
     return {
@@ -451,17 +461,20 @@ const actions = {
     };
   },
 
-  // Get all budgets organized by status
-  getAllBudgets: () => {
+  getAllBudgets: (): BudgetCollection => {
+    const budgets = store.budgets.get();
+
     return {
-      active: store.budgets.get().find((b) => b.status === "active"),
-      expired: store.budgets.get().filter((b) => b.status === "expired"),
-      drafts: store.budgets.get().filter((b) => b.status === "draft"),
+      active: budgets.find((b) => b.status === "active"),
+      expired: budgets.filter((b) => b.status === "expired"),
+      drafts: budgets.filter((b) => b.status === "draft"),
     };
   },
 
-  // Get transactions for a specific date range
-  getTransactionsByDateRange: (startDate: Date, endDate: Date) => {
+  getTransactionsByDateRange: (
+    startDate: Date,
+    endDate: Date
+  ): Transaction[] => {
     return store.transactions
       .get()
       .filter(
@@ -469,18 +482,17 @@ const actions = {
       );
   },
 
-  // Get spending trends by category over time
   getSpendingTrendsByCategory: (
     periodType: "week" | "month" | "year",
     count: number = 6
-  ) => {
+  ): SpendingTrends => {
     const now = new Date();
-    const periods = [] as { start: Date; end: Date; label: string }[];
+    const periods: { start: Date; end: Date; label: string }[] = [];
 
     // Generate periods
     for (let i = 0; i < count; i++) {
       const periodEnd = new Date(now);
-      let periodStart;
+      let periodStart: Date;
 
       switch (periodType) {
         case "week":
@@ -511,41 +523,42 @@ const actions = {
       });
     }
 
-    // Get categories
-    const categories = store.categories.get();
+    // Get all transactions once
+    const allTransactions = store.transactions.get();
+
+    // Get expense categories
+    const expenseCategories = store.categories
+      .get()
+      .filter((cat) => cat.type === "expense");
 
     // Calculate spending for each category in each period
-    const trends = categories
-      .filter((cat) => cat.type === "expense")
-      .map((category) => {
-        const periodData = periods.map((period) => {
-          const transactions = store.transactions
-            .get()
-            .filter(
-              (t) =>
-                t.categoryId === category.id &&
-                new Date(t.date) >= period.start &&
-                new Date(t.date) <= period.end &&
-                t.type === "expense"
-            );
-
-          return {
-            period: period.label,
-            amount: transactions.reduce((sum, t) => sum + t.amount, 0),
-          };
-        });
+    const categoryTrends = expenseCategories.map((category) => {
+      const periodData = periods.map((period) => {
+        const transactions = allTransactions.filter(
+          (t) =>
+            t.categoryId === category.id &&
+            new Date(t.date) >= period.start &&
+            new Date(t.date) <= period.end &&
+            t.type === "expense"
+        );
 
         return {
-          categoryId: category.id,
-          categoryName: category.name,
-          color: category.color,
-          data: periodData,
+          period: period.label,
+          amount: transactions.reduce((sum, t) => sum + t.amount, 0),
         };
       });
 
+      return {
+        categoryId: category.id,
+        categoryName: category.name,
+        color: category.color,
+        data: periodData,
+      };
+    });
+
     return {
       periods: periods.map((p) => p.label).reverse(),
-      categoryTrends: trends,
+      categoryTrends,
     };
   },
 };

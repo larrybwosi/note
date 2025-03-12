@@ -3,15 +3,14 @@ import { View, Text, FlatList, TextInput, TouchableOpacity } from 'react-native'
 import { Search, Filter, ArrowUpDown, PlusCircle, } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from '@legendapp/state/react';
+import { router } from "expo-router";
 
-// import { TransactionItem } from 'src/components/transaction/item';
-import { FilterModal } from 'src/components/transaction/filter';
-import { SortModal } from 'src/components/transaction/sort';
-import EmptyState from 'src/components/empty_transaction';
-import { router } from 'expo-router';
-import useStore from 'src/store/useStore';
 import { Transaction, TransactionStatus, TransactionType } from 'src/types/transaction';
 import { TransactionItem } from 'src/components/transaction/item';
+import { FilterModal } from "src/components/transaction/filter";
+import { SortModal } from "src/components/transaction/sort";
+import EmptyState from "src/components/empty_transaction";
+import useStore from "src/store/useStore";
 
 interface SearchBarProps {
   value: string;
@@ -48,11 +47,11 @@ const ActionButton = ({ onPress, icon: Icon, label, color }:ActionButtonProps) =
     onPress={onPress}
   >
     <Icon color="#ffffff" size={20} className="mr-2" />
-    <Text className="text-white dark:text-gray-700 font-rmedium">{label}</Text>
+    <Text className="text-white font-rmedium">{label}</Text>
   </TouchableOpacity>
 );
 
-const FinanceScreen: React.FC = () => {
+const Transactions: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
@@ -88,7 +87,8 @@ const FinanceScreen: React.FC = () => {
         return 0;
       });
   }
-const filteredAndSortedTransactions = useFilteredAndSortedTransactions();
+
+  const filteredAndSortedTransactions = useFilteredAndSortedTransactions();
   
 
   const handleFilter = (filters: typeof activeFilters) => {
@@ -109,7 +109,7 @@ const filteredAndSortedTransactions = useFilteredAndSortedTransactions();
 					<Text className="text-3xl font-rbold text-gray-900 dark:text-white">Transactions</Text>
 					<TouchableOpacity
 						className="rounded-xl flex-row items-center gap-1 p-2 bg-blue-500"
-						onPress={() => router.navigate('create.transactions')}
+						onPress={() => router.navigate('/create.transactions')}
 					>
 						<Text className="text-gray-200 font-rregular">Create</Text>
 						<PlusCircle size={18} color="white" />
@@ -119,7 +119,7 @@ const filteredAndSortedTransactions = useFilteredAndSortedTransactions();
 				<View className="space-y-4">
 					<SearchBar value={searchQuery} onChangeText={setSearchQuery} />
 
-					<View className="flex-row justify-between">
+					<View className="flex-row justify-between mt-4">
 						<ActionButton
 							onPress={() => setFilterModalVisible(true)}
 							icon={Filter}
@@ -167,4 +167,4 @@ const filteredAndSortedTransactions = useFilteredAndSortedTransactions();
 	);
 };
 
-export default observer(FinanceScreen);
+export default observer(Transactions);
