@@ -10,9 +10,9 @@ import Animated, {
 	useSharedValue,
 	withSpring,
 } from 'react-native-reanimated';
-// import { BlurView } from 'expo-blur';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// import * as Haptics from 'expo-haptics';
+import * as Haptics from 'expo-haptics';
 
 // Types
 interface ErrorBoundaryProps {
@@ -86,7 +86,7 @@ const ErrorFallbackUI = ({
 	const insets = useSafeAreaInsets();
 
 	const navigateBack = useCallback(() => {
-		// Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 		if (router.canGoBack()) {
 			router.back();
 		}
@@ -94,20 +94,20 @@ const ErrorFallbackUI = ({
 	}, [resetErrorBoundary]);
 
 	const navigateToHome = useCallback(() => {
-		// Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-		router.replace(homeRoute);
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+		router.replace('/');
 		resetErrorBoundary();
 	}, [homeRoute, resetErrorBoundary]);
 
 	const tryAgain = useCallback(() => {
-		// Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+		Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 		resetErrorBoundary();
 	}, [resetErrorBoundary]);
 
 	const handleReport = useCallback(() => {
 		if (reportError && error) {
-			// Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-			reportError(error, errorInfo?.componentStack);
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+			reportError(error, errorInfo?.componentStack!);
 		}
 	}, [error, errorInfo, reportError]);
 
@@ -233,7 +233,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
 		// Optional reporting to error tracking service
 		if (this.props.onReport) {
-			this.props.onReport(error, errorInfo.componentStack);
+			this.props.onReport(error, errorInfo.componentStack!);
 		}
 	}
 

@@ -10,7 +10,6 @@ import {
   BudgetRuleGroups,
 } from "src/types/transaction";
 import {
-  calcTotalDaysInPeriod,
   createUniqueId,
   formatPeriodLabel,
   getCurrentMonthDateRange,

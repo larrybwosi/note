@@ -118,6 +118,7 @@ function BalanceCard() {
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           activeOpacity={0.8}
+          // onPress={() => router.push('/splash')}
           onPress={() => handlePress("expense")}
         >
           <Text className="text-white font-amedium mr-1">Pay</Text>

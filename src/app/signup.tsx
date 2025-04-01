@@ -1,9 +1,9 @@
 import { SafeAreaView, Text, TextInput, TouchableOpacity, View, Platform } from 'react-native';
 import { ArrowLeft, Eye, EyeOff, CalendarDays, LucideIcon} from 'lucide-react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-// import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
-// import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
 import { useAuth } from 'src/utils/auth.provider';
 import { observer, use$, useObservable } from '@legendapp/state/react';
@@ -44,7 +44,7 @@ const FormField = ({
 	<View className="mb-4">
 		<Text className="text-sm text-gray-500 font-amedium mb-2">{label}</Text>
 		<View className="flex-row items-center">
-			{/* <Controller
+			<Controller
 				control={control}
 				name={name}
 				render={({ field: { onChange, onBlur, value }, formState: { errors } }) => (
@@ -65,7 +65,7 @@ const FormField = ({
 						)}
 					</>
 				)}
-			/> */}
+			/>
 			{Icon && setShowPassword && (
 				<TouchableOpacity className="absolute right-2 p-2" onPress={() => setShowPassword(!showPassword)}>
 					<Icon size={20} color="#718096" />
@@ -86,9 +86,9 @@ const SignupScreen = () => {
   const setShowPassword = state$.showPassword.set;
   const setIsLoading = state$.isLoading.set;
 
-  // const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
-  //   resolver: zodResolver(signupSchema)
-  // });
+  const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(signupSchema)
+  });
 
   // const { signup } = useAuth()
   const handleRegister = async(data: FormData) => {
@@ -119,7 +119,7 @@ const SignupScreen = () => {
 					</Text>
 
 					{/* Form Fields */}
-					{/* <View className="space-y-4">
+					<View className="space-y-4">
 						<FormField control={control} name="fullName" label="Full Name" placeholder="John Doe" />
 
 						<FormField
@@ -156,10 +156,10 @@ const SignupScreen = () => {
 							keyboardType="password"
 							icon={showPassword ? Eye : EyeOff}
 						/>
-					</View> */}
+					</View>
 
 					{/* Register Button */}
-					{/* <TouchableOpacity
+					<TouchableOpacity
 						className={`bg-blue-600 rounded-lg p-3 mt-8 ${isLoading ? 'opacity-75' : ''}`}
 						onPress={handleSubmit(handleRegister)}
 						disabled={isLoading}
@@ -167,7 +167,7 @@ const SignupScreen = () => {
 						<Text className="text-white text-center font-amedium text-sm">
 							{isLoading ? 'Registering...' : 'Register'}
 						</Text>
-					</TouchableOpacity> */}
+					</TouchableOpacity>
 
 					{/* Existing Account Link */}
 					<View className="flex-row justify-center mt-6">

@@ -8,11 +8,11 @@
       "extends": "production",
       "distribution": "internal",
       "android": {
-        "gradleCommand": ":app:assembleDebug",
+        "gradleCommand": ":app:assembleRelease",
         "buildType": "apk"
       },
       "ios": {
-        "buildConfiguration": "Debug",
+        "buildConfiguration": "Release",
         "simulator": true
       },
       "channel": "development"
@@ -21,11 +21,11 @@
       "extends": "development",
       "distribution": "internal",
       "ios": {
-        "buildConfiguration": "Debug",
+        "buildConfiguration": "Release",
         "simulator": false
       },
       "android": {
-        "gradleCommand": ":app:assembleDebug",
+        "gradleCommand": ":app:assembleRelease",
         "buildType": "apk"
       },
       "channel": "development_device"
